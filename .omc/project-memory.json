@@ -129,6 +129,12 @@
   },
   "hotPaths": [
     {
+      "path": "src\\components\\ProjectShowcase.tsx",
+      "accessCount": 10,
+      "lastAccessed": 1777548937830,
+      "type": "file"
+    },
+    {
       "path": "src\\components\\Hero.astro",
       "accessCount": 4,
       "lastAccessed": 1777539935464,
@@ -150,6 +156,12 @@
       "path": "src\\styles\\global.css",
       "accessCount": 3,
       "lastAccessed": 1777540515651,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\FluidBackground.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1777546866551,
       "type": "file"
     },
     {
@@ -183,6 +195,12 @@
       "type": "file"
     },
     {
+      "path": "src\\components\\SmoothScroll.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1777547927717,
+      "type": "file"
+    },
+    {
       "path": "package.json",
       "accessCount": 1,
       "lastAccessed": 1777539348062,
@@ -201,27 +219,15 @@
       "type": "file"
     },
     {
-      "path": "src\\components\\SmoothScroll.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1777539395268,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\ProjectShowcase.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1777539457631,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\FluidBackground.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1777539458460,
-      "type": "file"
-    },
-    {
       "path": "src\\components\\Navigation.astro",
       "accessCount": 1,
       "lastAccessed": 1777540067015,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\yjf25\\AppData\\Local\\Temp\\claude\\e--projects-PersonaHomepage\\13323cfc-448a-4e81-bed9-9e635d85bc5b\\tasks\\brjc6z0jg.output",
+      "accessCount": 1,
+      "lastAccessed": 1777546902619,
       "type": "file"
     }
   ],

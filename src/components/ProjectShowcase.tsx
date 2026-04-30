@@ -37,7 +37,13 @@ export function ProjectShowcase({ groups }: Props) {
     const showcase = showcaseRef.current;
     if (!showcase) return;
 
-    const handleWheel = (event: WheelEvent) => {
+    const getPixelDelta = (event: WheelEvent, fallbackElement: HTMLElement) => {
+      if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) return event.deltaY * 16;
+      if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) return event.deltaY * fallbackElement.clientHeight;
+      return event.deltaY;
+    };
+
+    const handlePanelWheel = (event: WheelEvent) => {
       if (window.matchMedia('(max-width: 900px)').matches) return;
 
       const target = event.target instanceof Element ? event.target : null;
@@ -50,25 +56,28 @@ export function ProjectShowcase({ groups }: Props) {
       const maxScroll = cards.scrollHeight - cards.clientHeight;
       if (maxScroll <= 1) return;
 
-      const deltaY = event.deltaMode === 1
-        ? event.deltaY * 16
-        : event.deltaMode === 2
-          ? event.deltaY * cards.clientHeight
-          : event.deltaY;
-      const nextScroll = Math.min(maxScroll, Math.max(0, cards.scrollTop + deltaY));
+      const deltaY = getPixelDelta(event, cards);
+      if (deltaY === 0) return;
 
-      if (nextScroll === cards.scrollTop) return;
+      const atTop = cards.scrollTop <= 0;
+      const atBottom = cards.scrollTop >= maxScroll - 1;
+      const scrollingUp = deltaY < 0;
+      const scrollingDown = deltaY > 0;
+
+      if ((atTop && scrollingUp) || (atBottom && scrollingDown)) {
+        return;
+      }
 
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
-      cards.scrollTop = nextScroll;
+      cards.scrollTop = Math.min(maxScroll, Math.max(0, cards.scrollTop + deltaY));
     };
 
-    showcase.addEventListener('wheel', handleWheel, { passive: false, capture: true });
+    showcase.addEventListener('wheel', handlePanelWheel, { passive: false, capture: true });
 
     return () => {
-      showcase.removeEventListener('wheel', handleWheel, { capture: true });
+      showcase.removeEventListener('wheel', handlePanelWheel, { capture: true });
     };
   }, []);
 
@@ -82,7 +91,6 @@ export function ProjectShowcase({ groups }: Props) {
           <section
             key={group.id}
             className="project-showcase__panel"
-            data-lenis-prevent-wheel="true"
             aria-labelledby={`${group.id}-title`}
           >
             <header className="project-showcase__header">
@@ -229,7 +237,7 @@ export function ProjectShowcase({ groups }: Props) {
           gap: var(--space-md);
           min-height: 0;
           overflow-y: auto;
-          overscroll-behavior: contain;
+          overscroll-behavior-y: auto;
           padding-right: var(--space-sm);
           scrollbar-width: thin;
           scrollbar-color: rgba(160, 160, 160, 0.42) transparent;

@@ -91,9 +91,9 @@ export function FluidBackground() {
       ];
 
       flowLines = [
-        { x: viewportWidth * 0.08, y: viewportHeight * 0.22, width: viewportWidth * 0.42, height: 120, color: '#a0a0a0', alpha: 0.12, phase: 0.8, speed: 0.001, parallaxFactor: 0.06 },
-        { x: viewportWidth * 0.5, y: viewportHeight * 0.64, width: viewportWidth * 0.4, height: 150, color: '#b0c4de', alpha: 0.11, phase: 2.3, speed: 0.0013, parallaxFactor: 0.14 },
-        { x: viewportWidth * 0.15, y: viewportHeight * 0.92, width: viewportWidth * 0.48, height: 100, color: '#d2b48c', alpha: 0.1, phase: 4.1, speed: 0.0009, parallaxFactor: 0.2 }
+        { x: viewportWidth * 0.08, y: viewportHeight * 0.12, width: viewportWidth * 0.42, height: 120, color: '#a0a0a0', alpha: 0.12, phase: 0.8, speed: 0.001, parallaxFactor: 0.06 },
+        { x: viewportWidth * 0.5, y: viewportHeight * 0.48, width: viewportWidth * 0.4, height: 150, color: '#b0c4de', alpha: 0.11, phase: 2.3, speed: 0.0013, parallaxFactor: 0.14 },
+        { x: viewportWidth * 0.15, y: viewportHeight * 0.82, width: viewportWidth * 0.48, height: 100, color: '#d2b48c', alpha: 0.1, phase: 4.1, speed: 0.0009, parallaxFactor: 0.2 }
       ];
 
       featurePoints = Array.from({ length: 28 }, (_, index) => ({
