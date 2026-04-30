@@ -1,0 +1,197 @@
+---
+const recognitions = [
+  {
+    label: '数学竞赛',
+    items: ['大学生数学竞赛 · 国家级三等奖']
+  },
+  {
+    label: '算法竞赛',
+    items: ['CSP 认证 · 前 5.83%', '蓝桥杯大赛算法竞赛 · 省部级二等奖']
+  },
+  {
+    label: '创新创业',
+    items: ['全国大学生能源经济学术创意大赛 · 省部级二等奖', '中国国际大学生创新大赛 · 省部级三等奖']
+  },
+  {
+    label: '校级荣誉',
+    items: ['校三好', '全面发展奖学金一等 · 校级 3%', '智育奖学金', '学术科研奖学金', '求实奖励基金 · 院级 3%']
+  }
+];
+
+const experiences = [
+  {
+    title: '校国旗护卫队',
+    role: '队员、办公室副主任',
+    time: '2022.10 - 2024.07',
+    detail: '统筹队内后勤保障、训练物资与礼服管理；作为核心队员参与开学典礼、毕业典礼等重大仪仗司礼任务，随队获中国大学生国旗护卫队展示赛国家级三等奖。'
+  },
+  {
+    title: '信息学院',
+    role: '年级工作理事',
+    time: '2022.10 - 2025.07',
+    detail: '协助辅导员完成全年级资料审核、档案管理、学生事务处理，以及奖助学金评优材料收集与初审。'
+  },
+  {
+    title: '大同市发展和改革委员会',
+    role: '国民经济综合科实习生',
+    time: '2023.07 - 2023.08',
+    detail: '参与国民经济综合科数据分析与政策研究辅助工作，协助整理资料、支持部门沟通与信息传递，在导师指导下提升政策理解、跨部门协作和事务推进能力。'
+  }
+];
+---
+
+<section class="experience" id="experience" data-section="experience" aria-labelledby="experience-title">
+  <div class="experience__header">
+    <span class="section-kicker">Recognition</span>
+    <h2 id="experience-title">竞赛、表彰与补充经历</h2>
+  </div>
+
+  <div class="experience__content">
+    <div class="recognition-list" aria-label="竞赛与所获表彰">
+      {recognitions.map((group) => (
+        <article class="recognition-list__group">
+          <h3>{group.label}</h3>
+          <ul>
+            {group.items.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </article>
+      ))}
+    </div>
+
+    <div class="experience__timeline" aria-label="学生工作与实践经历">
+      {experiences.map((item) => (
+        <article class="experience__item">
+          <div class="experience__item-meta">
+            <span>{item.time}</span>
+          </div>
+          <div class="experience__item-body">
+            <h3>{item.title}</h3>
+            <p class="experience__item-role">{item.role}</p>
+            <p>{item.detail}</p>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .experience {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: var(--space-xl);
+  }
+
+  .experience__header {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-xl);
+    align-items: end;
+    margin-bottom: var(--space-xl);
+  }
+
+  .experience__header h2 {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    max-width: 10em;
+  }
+
+  .experience__content {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: var(--space-xl);
+  }
+
+  .recognition-list,
+  .experience__timeline {
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  .recognition-list__group {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: var(--space-lg);
+    padding: var(--space-lg) 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .recognition-list__group h3 {
+    color: var(--color-beige);
+    font-size: 0.9rem;
+  }
+
+  .recognition-list__group ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .recognition-list__group li {
+    color: var(--color-text-muted);
+    line-height: 1.7;
+  }
+
+  .experience__item {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: var(--space-lg);
+    padding: var(--space-lg) 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .experience__item-meta {
+    font-family: var(--font-mono);
+    color: var(--color-gray);
+    font-size: 0.75rem;
+  }
+
+  .experience__item-body h3 {
+    font-size: 1.05rem;
+    margin-bottom: var(--space-xs);
+  }
+
+  .experience__item-role {
+    color: var(--color-beige);
+    font-weight: 500;
+    margin-bottom: var(--space-sm);
+  }
+
+  .experience__item-body p {
+    color: var(--color-text-muted);
+    line-height: 1.75;
+  }
+
+  @media (max-width: 900px) {
+    .experience {
+      padding: var(--space-xl) var(--space-lg);
+    }
+
+    .experience__header,
+    .experience__content {
+      display: block;
+    }
+
+    .experience__header h2 {
+      margin-top: var(--space-sm);
+    }
+
+    .recognition-list {
+      margin-bottom: var(--space-xl);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .experience {
+      padding: var(--space-xl) var(--space-md);
+    }
+
+    .recognition-list__group,
+    .experience__item {
+      grid-template-columns: 1fr;
+      gap: var(--space-sm);
+      padding: var(--space-md) 0;
+    }
+  }
+</style>

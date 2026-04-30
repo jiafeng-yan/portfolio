@@ -1,0 +1,266 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import Hero from '../components/Hero.astro';
+import Profile from '../components/Profile.astro';
+import Skills from '../components/Skills.astro';
+import Experience from '../components/Experience.astro';
+import { ProjectShowcase } from '../components/ProjectShowcase';
+import { FluidBackground } from '../components/FluidBackground';
+import { CustomCursor } from '../components/CustomCursor';
+import { ScrollAnimations } from '../components/ScrollAnimations';
+import { SmoothScroll } from '../components/SmoothScroll';
+
+const projects = [
+  {
+    id: 'dehazing-fusion',
+    title: 'Dehazing in Fusion: Joint Dehazing-Fusion of Inf-Vis Images via Synergistic Learning',
+    subtitle: '学生一作 · 特征解耦与协同学习网络',
+    venue: '科研项目',
+    category: 'research',
+    description: '针对红外与可见光图像在雾霾等复杂环境下的融合难题，提出基于特征解耦的协同学习框架，同时执行去雾和融合任务，并通过协同机制让两个任务相互促进。',
+    highlights: [
+      '主导文献调研、核心算法设计、合成数据集构建与实验方案制定',
+      '独立撰写论文初稿，模型在合成数据与真实场景中均表现出优秀效果'
+    ],
+    technologies: ['PyTorch', 'Image Fusion', 'Dehazing', 'Synergistic Learning'],
+    status: 'TIP 投稿中'
+  },
+  {
+    id: 'mdaif',
+    title: 'MdaIF: Robust One-Stop Multi-Degradation Image Fusion with Language-Driven Semantics',
+    subtitle: '学生二作 · VLM 驱动的多退化感知融合',
+    venue: '科研项目',
+    category: 'research',
+    description: '面向雾、雨、雪等恶劣天气下纹理丢失与固定网络泛化弱的问题，提出基于 VLM 的“一站式”多退化感知图像融合框架，端到端联合优化恢复与融合。',
+    highlights: [
+      '参与核心算法设计与代码实现，负责多退化融合数据集构建',
+      '复现去雾、去雨相关论文方法，完成定量和定性对比实验分析'
+    ],
+    technologies: ['VLM', 'Image Fusion', 'LoRA', 'PyTorch', 'Dataset Pipeline'],
+    links: [
+      { type: 'arxiv', url: 'https://arxiv.org/abs/2511.12525' }
+    ],
+    status: 'AAAI 2026 Poster'
+  },
+  {
+    id: 'dcdb',
+    title: 'DCDB: Dynamic Conditional Dual Diffusion Bridge',
+    subtitle: '第二作者 · 动态条件双扩散桥',
+    venue: '科研项目',
+    category: 'research',
+    description: '针对扩散模型处理去雾与融合等病态多任务时依赖 GT 且采用静态引导的问题，设计双扩散桥架构，将主任务与条件生成解耦，并用随时间步演变的动态条件降低学习难度。',
+    highlights: [
+      '参与双桥模型框架设计与实现，主导 SOTA 对比实验和消融实验',
+      '通过注意力权重分析和量化指标验证动态条件优于静态条件'
+    ],
+    technologies: ['Diffusion Model', 'Dual Bridge', 'Image Enhancement', 'PyTorch'],
+    links: [
+      { type: 'arxiv', url: 'https://arxiv.org/abs/2509.03044' }
+    ],
+    status: 'arXiv 预印本'
+  },
+  {
+    id: 'grasp',
+    title: 'GRASP: Geospatial Reasoning Segmentation via Adaptive Structured Policy Learning',
+    subtitle: '第三作者 · 遥感推理分割',
+    venue: '科研项目',
+    category: 'research',
+    description: '针对遥感文本-掩码推理任务依赖昂贵像素级标注且 OOD 泛化弱的问题，提出由 MLLM 生成框/点弱提示、冻结分割模型生成精细掩码的级联框架，并引入强化学习优化。',
+    highlights: [
+      '负责 GRASP 级联模型框架搭建与核心代码实现',
+      '独立构建 GRASP-1k OOD 评测基准的数据生产 pipeline，集成 Gemini API 与 SAM2'
+    ],
+    technologies: ['MLLM', 'Remote Sensing', 'RL', 'SAM2', 'Gemini API'],
+    links: [
+      { type: 'arxiv', url: 'https://arxiv.org/abs/2508.17102' }
+    ],
+    status: 'TGRS 投稿中'
+  },
+  {
+    id: 'hydrogen-economy',
+    title: '氢能产业终端促进企业低碳转型',
+    subtitle: '组员 · 能源经济与低碳转型研究',
+    venue: '科研竞赛',
+    category: 'research',
+    description: '围绕碳达峰政策背景下氢能产业终端应用与企业低碳转型路径，开展产业调研、政策资料梳理和试点建设实践可行性分析。',
+    highlights: [
+      '参与产业调研及可行性分析，整理政策与应用场景材料',
+      '项目获全国大学生能源经济学术创意大赛北京市省级二等奖'
+    ],
+    technologies: ['Policy Research', 'Industry Research', 'Low-carbon Transition'],
+    status: '省级二等奖'
+  },
+  {
+    id: 'livestream-rag',
+    title: '基于检索增强 VLM 的直播互动应用',
+    subtitle: '独立完成 · 多模态 RAG 智能问答系统',
+    venue: '个人项目',
+    category: 'build',
+    description: '构建支持多模态数据交互与知识库动态管理的智能问答系统，集成屏幕捕获、OCR、图像内容分析、文档自动解析、向量化检索与上下文生成回答。',
+    highlights: [
+      '把直播评论、屏幕图像和文档知识库统一进入检索增强生成链路',
+      '完成从数据采集、解析、索引到回答生成的端到端原型'
+    ],
+    technologies: ['RAG', 'VLM', 'OCR', 'Vector Search', 'LLM'],
+    links: [
+      { type: 'github', url: 'https://github.com/jiafeng-yan/LiveStreamRAG' }
+    ],
+    status: '个人项目'
+  },
+  {
+    id: 'search-engine',
+    title: '本地文献检索系统',
+    subtitle: '独立完成 · 信息检索课程满分课设',
+    venue: '课程设计',
+    category: 'build',
+    description: '本地部署的可视化文献检索系统，支持 PDF 上传、停用词更新、通配符查询、查询词高亮、源文档超链接、拼写纠正和自动摘要。',
+    highlights: [
+      '使用 Docker 部署 Grobid 解析 PDF，Lucene 负责索引维护与查询',
+      '在文本分类任务中使用 Qwen2.5-7B + LoRA，以千级样本达到 92% 准确率'
+    ],
+    technologies: ['Lucene', 'Grobid', 'React', 'Flask', 'Docker', 'LoRA'],
+    links: [
+      { type: 'github', url: 'https://github.com/jiafeng-yan/InformationRetrieval_SearchEngine' }
+    ],
+    status: '满分课设'
+  },
+  {
+    id: 'gnn-anomaly',
+    title: '基于图神经网络的节点异常检测',
+    subtitle: '项目负责人 · 半监督图卷积自回归网络',
+    venue: '课程设计',
+    category: 'build',
+    description: '将异常检测建模为样本不平衡分类任务，提出两阶段训练的半监督图卷积自回归网络，通过噪声注入防止过拟合，并用对比损失增强特征嵌入表达。',
+    highlights: [
+      '统筹小组计划、文献调研、算法设计、消融实验与项目汇报',
+      '使用 GraphSAGE 提升运行效率并获得归纳学习能力'
+    ],
+    technologies: ['GraphSAGE', 'GCN', 'Contrastive Learning', 'PyTorch'],
+    status: '数据挖掘课设'
+  }
+];
+
+const projectGroups = [
+  {
+    id: 'research',
+    eyebrow: 'Research',
+    title: '科研项目',
+    summary: '围绕红外-可见光融合、多退化恢复、扩散桥、遥感推理分割和低碳转型研究展开，强调从问题建模、数据构建到可复现实验与论文产出的完整闭环。',
+    projects: projects.filter((project) => project.category === 'research')
+  },
+  {
+    id: 'build',
+    eyebrow: 'Build',
+    title: '开发与课程项目',
+    summary: '把检索增强、多模态解析、文献搜索和图神经网络异常检测落成可运行系统或完整课程设计，覆盖原型搭建、后端链路、索引管理与前端交互呈现。',
+    projects: projects.filter((project) => project.category === 'build')
+  }
+];
+---
+
+<Layout title="闫家锋 | 计算机视觉与多模态 AI">
+  <FluidBackground client:visible />
+  <CustomCursor client:load />
+  <ScrollAnimations client:visible />
+  <SmoothScroll client:load />
+  <Navigation />
+
+  <main>
+    <Hero />
+    <Profile />
+
+    <section class="projects" data-section="projects" aria-labelledby="projects-title">
+      <div class="projects__header">
+        <span class="section-kicker">Selected Work</span>
+        <h2 id="projects-title">代表项目</h2>
+        <p>
+          科研项目突出算法创新、实验闭环与论文产出；开发项目突出系统实现、检索链路和课程设计中的工程完整度，统一展示从想法验证到可运行结果的能力。
+        </p>
+      </div>
+
+      <ProjectShowcase client:visible groups={projectGroups} />
+    </section>
+
+    <Skills />
+    <Experience />
+
+    <footer class="footer">
+      <p>© 2026 闫家锋 · 中央财经大学信息学院</p>
+      <p class="footer__links">
+        <a href="https://github.com/jiafeng-yan" target="_blank" rel="noopener noreferrer" data-cursor-hover>GitHub</a>
+        <span>·</span>
+        <a href="mailto:yan.jiafeng@email.cufe.edu.cn" data-cursor-hover>Email</a>
+        <span>·</span>
+        <a href="tel:+8613935252657" data-cursor-hover>139 3525 2657</a>
+      </p>
+    </footer>
+  </main>
+</Layout>
+
+<style>
+  .projects {
+    padding: var(--space-xl) var(--space-lg);
+    max-width: min(1580px, calc(100vw - 0.75rem));
+    margin: 0 auto;
+  }
+
+  .projects__header {
+    max-width: 82rem;
+    margin-bottom: var(--space-xl);
+  }
+
+  .projects__header h2 {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    margin: var(--space-sm) 0 var(--space-md);
+  }
+
+  .projects__header p {
+    color: var(--color-text-muted);
+    line-height: 1.85;
+  }
+
+  .footer {
+    padding: var(--space-xl);
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    margin-top: var(--space-xl);
+  }
+
+  .footer__links {
+    margin-top: var(--space-sm);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .footer__links a {
+    transition: color var(--duration-fast);
+  }
+
+  .footer__links a:hover,
+  .footer__links a:focus-visible {
+    color: var(--color-text);
+  }
+
+  @media (max-width: 900px) {
+    .projects {
+      padding: var(--space-xl) var(--space-lg);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .projects {
+      padding: var(--space-xl) var(--space-md);
+    }
+
+    .footer {
+      padding: var(--space-lg) var(--space-md);
+      font-size: 0.78rem;
+    }
+  }
+</style>

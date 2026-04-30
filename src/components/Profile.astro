@@ -1,0 +1,149 @@
+---
+const profileRows = [
+  {
+    label: 'Education',
+    title: '中央财经大学（211）· 信息学院',
+    detail: '计算机科学与技术本科生 · 已保研至本校',
+    meta: '2022.09 - 2026.07'
+  },
+  {
+    label: 'Rank',
+    title: '加权排名 4 / 30 · 综测排名 3 / 30',
+    detail: 'GPA 3.76 / 4.5',
+    meta: 'Top 13%'
+  },
+  {
+    label: 'Courses',
+    title: '408、编译原理、机器学习、人工智能、计算机视觉、自然语言处理、数据挖掘、信息检索',
+    detail: '概率论与数理统计 99 · Python 98 · 高等数学 96 · C++ 95 · 离散数学 95',
+    meta: 'Core CS'
+  },
+  {
+    label: 'Contact',
+    title: 'yan.jiafeng@email.cufe.edu.cn',
+    detail: 'GitHub: jiafeng-yan · Phone / WeChat: 139 3525 2657',
+    meta: 'Open to HR'
+  }
+];
+---
+
+<section class="profile" id="profile" data-section="profile" aria-labelledby="profile-title">
+  <div class="profile__intro">
+    <span class="section-kicker">Profile</span>
+    <h2 id="profile-title">面向研究与工程落地的计算机视觉候选人</h2>
+    <p>
+      我把研究问题拆成可验证的模型设计、数据构建和实验闭环；也能把检索、多模态与前后端系统做成可交互原型。
+      当前重点是计算机视觉、多模态学习与检索增强系统，并持续关注模型能力在真实任务中的泛化表现。
+    </p>
+  </div>
+
+  <div class="profile__rows">
+    {profileRows.map((row) => (
+      <article class="profile__row">
+        <span class="profile__row-label">{row.label}</span>
+        <div>
+          <h3>{row.title}</h3>
+          <p>{row.detail}</p>
+        </div>
+        <span class="profile__row-meta">{row.meta}</span>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .profile {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: var(--space-2xl) var(--space-xl) var(--space-xl);
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
+    gap: var(--space-xl);
+    align-items: start;
+  }
+
+  .profile__intro {
+    position: sticky;
+    top: var(--space-xl);
+  }
+
+  .profile__intro h2 {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    line-height: 1.15;
+    margin: var(--space-sm) 0 var(--space-lg);
+    max-width: 9em;
+  }
+
+  .profile__intro p {
+    color: var(--color-text-muted);
+    line-height: 1.9;
+    max-width: 34rem;
+  }
+
+  .profile__rows {
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  .profile__row {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr) auto;
+    gap: var(--space-lg);
+    padding: var(--space-lg) 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    align-items: start;
+  }
+
+  .profile__row-label,
+  .profile__row-meta {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-gray);
+  }
+
+  .profile__row-label {
+    text-transform: uppercase;
+  }
+
+  .profile__row h3 {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: var(--space-xs);
+  }
+
+  .profile__row p {
+    color: var(--color-text-muted);
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 900px) {
+    .profile {
+      grid-template-columns: 1fr;
+      padding: var(--space-xl) var(--space-lg);
+    }
+
+    .profile__intro {
+      position: static;
+    }
+
+    .profile__intro h2 {
+      max-width: 12em;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .profile {
+      padding: var(--space-xl) var(--space-md);
+    }
+
+    .profile__row {
+      grid-template-columns: 1fr;
+      gap: var(--space-sm);
+      padding: var(--space-md) 0;
+    }
+
+    .profile__row-meta {
+      order: -1;
+    }
+  }
+</style>

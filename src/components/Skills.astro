@@ -1,0 +1,134 @@
+---
+// src/components/Skills.astro
+
+const skills = [
+  {
+    category: '编程语言',
+    items: ['Python', 'C++', 'React', 'R', 'MATLAB', 'Lingo']
+  },
+  {
+    category: '研究与算法',
+    items: ['计算机视觉', '图像融合', '多模态微调', '图神经网络', '信息检索', '数据挖掘']
+  },
+  {
+    category: '工程工具',
+    items: ['PyTorch', 'VSCode', 'Conda', 'Git', 'LLaMA Factory', 'DeepSpeed', 'Docker']
+  },
+  {
+    category: '系统实践',
+    items: ['Lucene', 'Grobid', 'Flask', 'OCR', 'RAG', 'SAM']
+  }
+];
+---
+
+<section class="skills" id="skills" data-section="skills" aria-labelledby="skills-title">
+  <div class="skills__header">
+    <span class="section-kicker">Skills</span>
+    <h2 id="skills-title">专业技能</h2>
+    <p>
+      研究侧熟悉视觉低层任务、多模态与检索，能从论文复现推进到实验设计；工程侧能完成数据处理、模型训练、后端服务和前端展示。英语能力：CET-6。
+    </p>
+  </div>
+
+  <div class="skills__grid">
+    {skills.map(({ category, items }) => (
+      <article class="skills__category">
+        <h3 class="skills__category-title">{category}</h3>
+        <ul class="skills__list">
+          {items.map((item) => (
+            <li class="skills__item">{item}</li>
+          ))}
+        </ul>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .skills {
+    padding: var(--space-xl);
+    max-width: min(1320px, calc(100vw - 1rem));
+    margin: 0 auto;
+  }
+
+  .skills__header {
+    max-width: 64rem;
+    margin-bottom: var(--space-xl);
+  }
+
+  .skills__header h2 {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    margin: var(--space-sm) 0 var(--space-md);
+  }
+
+  .skills__header p {
+    color: var(--color-text-muted);
+    line-height: 1.85;
+  }
+
+  .skills__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-lg);
+  }
+
+  .skills__category {
+    padding-top: var(--space-md);
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  .skills__category-title {
+    font-size: 0.95rem;
+    color: var(--color-beige);
+    margin-bottom: var(--space-md);
+    font-weight: 600;
+  }
+
+  .skills__list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .skills__item {
+    padding: var(--space-xs) var(--space-sm);
+    background: rgba(255, 255, 255, 0.58);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 4px;
+    font-size: 0.86rem;
+    color: var(--color-text-muted);
+    transition:
+      transform var(--duration-fast),
+      background var(--duration-fast),
+      color var(--duration-fast);
+  }
+
+  .skills__item:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--color-text);
+  }
+
+  @media (max-width: 900px) {
+    .skills {
+      padding: var(--space-xl) var(--space-lg);
+    }
+
+    .skills__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .skills {
+      padding: var(--space-xl) var(--space-md);
+    }
+
+    .skills__grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-lg);
+    }
+  }
+</style>
