@@ -1,15 +1,5 @@
 import { useEffect, useRef } from 'react';
 
-interface SoftParticle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  color: string;
-  alpha: number;
-}
-
 interface ContourField {
   x: number;
   y: number;
@@ -33,23 +23,12 @@ interface FlowLine {
   parallaxFactor: number;
 }
 
-interface FeaturePoint {
-  x: number;
-  y: number;
-  size: number;
-  color: string;
-  alpha: number;
-  phase: number;
-  parallaxFactor: number;
-}
-
-const colors = ['#a0a0a0', '#d2b48c', '#b0c4de'];
-
 export function FluidBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>();
   const mouseRef = useRef({ x: 0.5, y: 0.5 });
   const scrollYRef = useRef(0);
+  const documentHeightRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -60,57 +39,64 @@ export function FluidBackground() {
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const motionScale = prefersReducedMotion ? 0.16 : 1;
-    let particles: SoftParticle[] = [];
     let contourFields: ContourField[] = [];
     let flowLines: FlowLine[] = [];
-    let featurePoints: FeaturePoint[] = [];
     let viewportWidth = window.innerWidth;
     let viewportHeight = window.innerHeight;
+    let documentHeight = document.documentElement.scrollHeight;
 
     const alphaHex = (alpha: number) => Math.floor(alpha * 255).toString(16).padStart(2, '0');
-    const wrapY = (y: number, margin = 260) => {
-      const range = viewportHeight + margin * 2;
-      return ((((y + margin) % range) + range) % range) - margin;
+
+    // Convert absolute Y position to viewport-relative position with parallax
+    // Returns null if element is outside viewport (with margin)
+    const toViewportY = (absoluteY: number, parallaxFactor: number, margin: number = 300): number | null => {
+      // Parallax: higher parallaxFactor = element is further = moves less with scroll
+      // Like looking out a car window: distant mountains move slowly, nearby trees move fast
+      const viewportY = absoluteY - scrollYRef.current * (1 - parallaxFactor);
+      
+      // Check if element is visible in viewport (with margin)
+      if (viewportY < -margin || viewportY > viewportHeight + margin) {
+        return null;
+      }
+      return viewportY;
     };
 
     const seedScene = () => {
-      particles = Array.from({ length: 16 }, () => ({
-        x: Math.random() * viewportWidth,
-        y: Math.random() * viewportHeight,
-        vx: (Math.random() - 0.5) * 0.42,
-        vy: (Math.random() - 0.5) * 0.42,
-        radius: Math.random() * 170 + 110,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        alpha: Math.random() * 0.024 + 0.012
-      }));
-
+      // Contour fields: DEEP layer (parallaxFactor 0.65-0.95)
+      // Higher parallaxFactor = moves less = appears further away
       contourFields = [
-        { x: viewportWidth * 0.78, y: viewportHeight * 0.18, radius: 170, color: '#b0c4de', alpha: 0.12, phase: 0.4, speed: 0.0011, parallaxFactor: 0.08 },
-        { x: viewportWidth * 0.18, y: viewportHeight * 0.56, radius: 210, color: '#d2b48c', alpha: 0.1, phase: 1.7, speed: 0.0009, parallaxFactor: 0.13 },
-        { x: viewportWidth * 0.82, y: viewportHeight * 0.84, radius: 150, color: '#a0a0a0', alpha: 0.095, phase: 3.1, speed: 0.0012, parallaxFactor: 0.18 }
+        { x: viewportWidth * 0.78, y: documentHeight * 0.05, radius: 170, color: '#90b4ce', alpha: 0.28, phase: 0.4, speed: 0.0011, parallaxFactor: 0.65 + Math.random() * 0.30 },
+        { x: viewportWidth * 0.18, y: documentHeight * 0.18, radius: 210, color: '#b8986c', alpha: 0.24, phase: 1.7, speed: 0.0009, parallaxFactor: 0.68 + Math.random() * 0.27 },
+        { x: viewportWidth * 0.82, y: documentHeight * 0.32, radius: 150, color: '#7a7a7a', alpha: 0.22, phase: 3.1, speed: 0.0012, parallaxFactor: 0.70 + Math.random() * 0.25 },
+        { x: viewportWidth * 0.45, y: documentHeight * 0.45, radius: 180, color: '#90b4ce', alpha: 0.20, phase: 2.1, speed: 0.0010, parallaxFactor: 0.66 + Math.random() * 0.29 },
+        { x: viewportWidth * 0.25, y: documentHeight * 0.58, radius: 160, color: '#b8986c', alpha: 0.26, phase: 0.8, speed: 0.0011, parallaxFactor: 0.67 + Math.random() * 0.28 },
+        { x: viewportWidth * 0.68, y: documentHeight * 0.72, radius: 190, color: '#7a7a7a', alpha: 0.23, phase: 1.2, speed: 0.0009, parallaxFactor: 0.69 + Math.random() * 0.26 },
+        { x: viewportWidth * 0.35, y: documentHeight * 0.85, radius: 175, color: '#90b4ce', alpha: 0.25, phase: 2.5, speed: 0.0010, parallaxFactor: 0.65 + Math.random() * 0.30 },
+        { x: viewportWidth * 0.88, y: documentHeight * 0.95, radius: 145, color: '#b8986c', alpha: 0.21, phase: 3.8, speed: 0.0012, parallaxFactor: 0.68 + Math.random() * 0.27 }
       ];
 
+      // Flow lines: MID layer (parallaxFactor 0.25-0.55)
+      // Moderate parallaxFactor = moderate movement = mid-depth
       flowLines = [
-        { x: viewportWidth * 0.08, y: viewportHeight * 0.12, width: viewportWidth * 0.42, height: 120, color: '#a0a0a0', alpha: 0.12, phase: 0.8, speed: 0.001, parallaxFactor: 0.06 },
-        { x: viewportWidth * 0.5, y: viewportHeight * 0.48, width: viewportWidth * 0.4, height: 150, color: '#b0c4de', alpha: 0.11, phase: 2.3, speed: 0.0013, parallaxFactor: 0.14 },
-        { x: viewportWidth * 0.15, y: viewportHeight * 0.82, width: viewportWidth * 0.48, height: 100, color: '#d2b48c', alpha: 0.1, phase: 4.1, speed: 0.0009, parallaxFactor: 0.2 }
+        { x: viewportWidth * 0.08, y: documentHeight * 0.03, width: viewportWidth * 0.42, height: 120, color: '#7a7a7a', alpha: 0.28, phase: 0.8, speed: 0.001, parallaxFactor: 0.25 + Math.random() * 0.30 },
+        { x: viewportWidth * 0.5, y: documentHeight * 0.12, width: viewportWidth * 0.4, height: 150, color: '#90b4ce', alpha: 0.26, phase: 2.3, speed: 0.0013, parallaxFactor: 0.28 + Math.random() * 0.27 },
+        { x: viewportWidth * 0.15, y: documentHeight * 0.22, width: viewportWidth * 0.48, height: 100, color: '#b8986c', alpha: 0.24, phase: 4.1, speed: 0.0009, parallaxFactor: 0.30 + Math.random() * 0.25 },
+        { x: viewportWidth * 0.55, y: documentHeight * 0.35, width: viewportWidth * 0.35, height: 130, color: '#7a7a7a', alpha: 0.22, phase: 1.5, speed: 0.0011, parallaxFactor: 0.26 + Math.random() * 0.29 },
+        { x: viewportWidth * 0.25, y: documentHeight * 0.48, width: viewportWidth * 0.45, height: 110, color: '#90b4ce', alpha: 0.20, phase: 3.2, speed: 0.001, parallaxFactor: 0.27 + Math.random() * 0.28 },
+        { x: viewportWidth * 0.72, y: documentHeight * 0.55, width: viewportWidth * 0.38, height: 140, color: '#b8986c', alpha: 0.25, phase: 0.6, speed: 0.0012, parallaxFactor: 0.29 + Math.random() * 0.26 },
+        { x: viewportWidth * 0.08, y: documentHeight * 0.68, width: viewportWidth * 0.52, height: 115, color: '#7a7a7a', alpha: 0.23, phase: 2.0, speed: 0.001, parallaxFactor: 0.25 + Math.random() * 0.30 },
+        { x: viewportWidth * 0.42, y: documentHeight * 0.78, width: viewportWidth * 0.42, height: 125, color: '#90b4ce', alpha: 0.27, phase: 3.5, speed: 0.0011, parallaxFactor: 0.28 + Math.random() * 0.27 },
+        { x: viewportWidth * 0.18, y: documentHeight * 0.88, width: viewportWidth * 0.35, height: 105, color: '#b8986c', alpha: 0.22, phase: 1.1, speed: 0.0009, parallaxFactor: 0.30 + Math.random() * 0.25 },
+        { x: viewportWidth * 0.62, y: documentHeight * 0.97, width: viewportWidth * 0.48, height: 135, color: '#7a7a7a', alpha: 0.24, phase: 2.8, speed: 0.001, parallaxFactor: 0.26 + Math.random() * 0.29 }
       ];
-
-      featurePoints = Array.from({ length: 28 }, (_, index) => ({
-        x: (viewportWidth * ((index * 37) % 100)) / 100 + (Math.random() - 0.5) * 80,
-        y: (viewportHeight * ((index * 23) % 100)) / 100 + (Math.random() - 0.5) * 70,
-        size: Math.random() * 2.3 + 1.1,
-        color: colors[index % colors.length],
-        alpha: Math.random() * 0.16 + 0.1,
-        phase: Math.random() * Math.PI * 2,
-        parallaxFactor: 0.05 + (index % 5) * 0.025
-      }));
     };
 
     const resize = () => {
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
       viewportWidth = window.innerWidth;
       viewportHeight = window.innerHeight;
+      documentHeight = document.documentElement.scrollHeight;
+      documentHeightRef.current = documentHeight;
       canvas.width = Math.floor(viewportWidth * ratio);
       canvas.height = Math.floor(viewportHeight * ratio);
       canvas.style.width = `${viewportWidth}px`;
@@ -123,7 +109,7 @@ export function FluidBackground() {
       const grid = 88;
       const offset = -(scrollYRef.current * 0.035) % grid;
       ctx.save();
-      ctx.strokeStyle = `#a0a0a0${alphaHex(0.055)}`;
+      ctx.strokeStyle = `#5a5a5a${alphaHex(0.15)}`;
       ctx.lineWidth = 1;
 
       for (let x = 0; x <= viewportWidth + grid; x += grid) {
@@ -145,12 +131,15 @@ export function FluidBackground() {
 
     const drawContour = (field: ContourField) => {
       field.phase += field.speed * motionScale;
-      const y = wrapY(field.y - scrollYRef.current * field.parallaxFactor, field.radius + 220);
-      const mouseDX = (mouseRef.current.x - 0.5) * 12;
-      const mouseDY = (mouseRef.current.y - 0.5) * 10;
+      const viewportY = toViewportY(field.y, field.parallaxFactor, field.radius + 220);
+      if (viewportY === null) return; // Skip if outside viewport
+      
+      // Mouse parallax: higher parallaxFactor = element is further = moves less with mouse
+      const mouseDX = (mouseRef.current.x - 0.5) * 24 * (1 - field.parallaxFactor);
+      const mouseDY = (mouseRef.current.y - 0.5) * 20 * (1 - field.parallaxFactor);
 
       ctx.save();
-      ctx.translate(field.x + mouseDX, y + mouseDY);
+      ctx.translate(field.x + mouseDX, viewportY + mouseDY);
       ctx.strokeStyle = `${field.color}${alphaHex(field.alpha)}`;
       ctx.lineWidth = 1;
 
@@ -181,15 +170,21 @@ export function FluidBackground() {
 
     const drawFlowLine = (line: FlowLine) => {
       line.phase += line.speed * motionScale;
-      const y = wrapY(line.y - scrollYRef.current * line.parallaxFactor, line.height + 260);
+      const viewportY = toViewportY(line.y, line.parallaxFactor, line.height + 260);
+      if (viewportY === null) return; // Skip if outside viewport
+
+      // Mouse parallax: higher parallaxFactor = element is further = moves less with mouse
+      const mouseDX = (mouseRef.current.x - 0.5) * 24 * (1 - line.parallaxFactor);
+      const mouseDY = (mouseRef.current.y - 0.5) * 20 * (1 - line.parallaxFactor);
 
       ctx.save();
+      ctx.translate(mouseDX, mouseDY);
       ctx.strokeStyle = `${line.color}${alphaHex(line.alpha)}`;
       ctx.fillStyle = `${line.color}${alphaHex(line.alpha * 1.4)}`;
       ctx.lineWidth = 1;
 
       for (let i = 0; i < 3; i++) {
-        const localY = y + Math.sin(line.phase + i) * 18 + i * 16;
+        const localY = viewportY + Math.sin(line.phase + i) * 18 + i * 16;
         ctx.beginPath();
         ctx.moveTo(line.x, localY);
         ctx.bezierCurveTo(
@@ -213,47 +208,6 @@ export function FluidBackground() {
       ctx.restore();
     };
 
-    const drawFeaturePoint = (point: FeaturePoint) => {
-      point.phase += 0.0012 * motionScale;
-      const y = wrapY(point.y - scrollYRef.current * point.parallaxFactor, 180);
-      const pulse = 0.7 + Math.sin(point.phase) * 0.3;
-
-      ctx.save();
-      ctx.fillStyle = `${point.color}${alphaHex(point.alpha * pulse)}`;
-      ctx.beginPath();
-      ctx.arc(point.x + Math.cos(point.phase) * 4, y + Math.sin(point.phase * 0.8) * 4, point.size, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    };
-
-    const drawFeatureGraph = () => {
-      ctx.save();
-      ctx.lineWidth = 1;
-
-      for (let i = 0; i < featurePoints.length; i++) {
-        const a = featurePoints[i];
-        const ay = wrapY(a.y - scrollYRef.current * a.parallaxFactor, 180);
-
-        for (let j = i + 1; j < featurePoints.length; j++) {
-          const b = featurePoints[j];
-          const by = wrapY(b.y - scrollYRef.current * b.parallaxFactor, 180);
-          const dx = a.x - b.x;
-          const dy = ay - by;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          if (distance > 148) continue;
-
-          ctx.strokeStyle = `#1a1a1a${alphaHex(0.038 * (1 - distance / 148))}`;
-          ctx.beginPath();
-          ctx.moveTo(a.x, ay);
-          ctx.lineTo(b.x, by);
-          ctx.stroke();
-        }
-      }
-
-      ctx.restore();
-    };
-
     const animate = () => {
       ctx.clearRect(0, 0, viewportWidth, viewportHeight);
       ctx.fillStyle = '#fafafa';
@@ -261,45 +215,25 @@ export function FluidBackground() {
 
       drawGrid();
 
-      particles.forEach((particle) => {
-        particle.x += particle.vx * motionScale;
-        particle.y += particle.vy * motionScale;
-
-        const dx = mouseRef.current.x * viewportWidth - particle.x;
-        const dy = mouseRef.current.y * viewportHeight - particle.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 320) {
-          particle.vx += dx * 0.00004 * motionScale;
-          particle.vy += dy * 0.00004 * motionScale;
-        }
-
-        if (particle.x < -particle.radius) particle.x = viewportWidth + particle.radius;
-        if (particle.x > viewportWidth + particle.radius) particle.x = -particle.radius;
-        if (particle.y < -particle.radius) particle.y = viewportHeight + particle.radius;
-        if (particle.y > viewportHeight + particle.radius) particle.y = -particle.radius;
-
-        particle.vx *= 0.99;
-        particle.vy *= 0.99;
-
-        const gradient = ctx.createRadialGradient(particle.x, particle.y, 0, particle.x, particle.y, particle.radius);
-        gradient.addColorStop(0, `${particle.color}${alphaHex(particle.alpha)}`);
-        gradient.addColorStop(1, `${particle.color}00`);
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
       contourFields.forEach(drawContour);
       flowLines.forEach(drawFlowLine);
-      drawFeatureGraph();
-      featurePoints.forEach(drawFeaturePoint);
 
       animationRef.current = requestAnimationFrame(animate);
     };
 
     const handleScroll = () => {
       scrollYRef.current = window.scrollY;
+    };
+
+    const handleResize = () => {
+      // Check if document height changed (content loaded, etc.)
+      const newDocumentHeight = document.documentElement.scrollHeight;
+      if (newDocumentHeight !== documentHeightRef.current) {
+        documentHeight = newDocumentHeight;
+        documentHeightRef.current = newDocumentHeight;
+        seedScene();
+      }
+      resize();
     };
 
     const handleMouseMove = (event: MouseEvent) => {
@@ -312,12 +246,12 @@ export function FluidBackground() {
     resize();
     animate();
 
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', handleResize);
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('mousemove', handleMouseMove);
 
     return () => {
-      window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('mousemove', handleMouseMove);
       if (animationRef.current) {
