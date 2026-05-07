@@ -76,6 +76,41 @@ export function ScrollAnimations() {
           duration: 0.5
         }, '-=0.3');
 
+      // Parallax effect on hero elements
+      gsap.to('.hero__name-first', {
+        scrollTrigger: {
+          trigger: '.hero',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 1
+        },
+        y: -80,
+        ease: 'none'
+      });
+
+      gsap.to('.hero__name-last', {
+        scrollTrigger: {
+          trigger: '.hero',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 1.2
+        },
+        y: -100,
+        ease: 'none'
+      });
+
+      gsap.to('.hero__subtitle', {
+        scrollTrigger: {
+          trigger: '.hero',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 0.8
+        },
+        y: -40,
+        opacity: 0.5,
+        ease: 'none'
+      });
+
       // Section reveal animations with Intersection Observer pattern
       gsap.utils.toArray<HTMLElement>('[data-section]').forEach((section) => {
         if (section.classList.contains('hero')) return;
@@ -94,7 +129,29 @@ export function ScrollAnimations() {
         });
       });
 
-      // Project showcase stagger animation
+      // Projects header special animation
+      ScrollTrigger.create({
+        trigger: '.projects__header',
+        start: 'top 80%',
+        onEnter: () => {
+          gsap.from('.projects__header h2', {
+            y: 30,
+            opacity: 0,
+            duration: 0.6,
+            ease: 'power2.out'
+          });
+          gsap.from('.projects__header p', {
+            y: 20,
+            opacity: 0,
+            duration: 0.5,
+            delay: 0.1,
+            ease: 'power2.out'
+          });
+        },
+        once: true
+      });
+
+      // Project showcase stagger animation with parallax
       ScrollTrigger.create({
         trigger: '.project-showcase',
         start: 'top 80%',
@@ -110,12 +167,13 @@ export function ScrollAnimations() {
         once: true
       });
 
-      // Profile rows animation
+      // Profile rows animation with slide-in effect
       ScrollTrigger.create({
         trigger: '.profile__rows',
         start: 'top 85%',
         onEnter: () => {
           gsap.from('.profile__row', {
+            x: -20,
             y: 20,
             opacity: 0,
             stagger: 0.06,
@@ -126,7 +184,7 @@ export function ScrollAnimations() {
         once: true
       });
 
-      // Skills items stagger
+      // Skills items stagger with scale effect
       gsap.utils.toArray<HTMLElement>('.skills__category').forEach((category) => {
         ScrollTrigger.create({
           trigger: category,
@@ -134,6 +192,7 @@ export function ScrollAnimations() {
           onEnter: () => {
             gsap.from(category.querySelectorAll('.skills__item'), {
               y: 12,
+              scale: 0.95,
               opacity: 0,
               stagger: 0.03,
               duration: 0.3,
@@ -144,7 +203,7 @@ export function ScrollAnimations() {
         });
       });
 
-      // Experience items animation
+      // Experience items animation with timeline effect
       ScrollTrigger.create({
         trigger: '.experience__content',
         start: 'top 85%',
@@ -153,6 +212,21 @@ export function ScrollAnimations() {
             y: 24,
             opacity: 0,
             stagger: 0.05,
+            duration: 0.5,
+            ease: 'power2.out'
+          });
+        },
+        once: true
+      });
+
+      // Footer fade-in
+      ScrollTrigger.create({
+        trigger: '.footer',
+        start: 'top 90%',
+        onEnter: () => {
+          gsap.from('.footer', {
+            y: 20,
+            opacity: 0,
             duration: 0.5,
             ease: 'power2.out'
           });

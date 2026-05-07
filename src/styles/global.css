@@ -1,27 +1,27 @@
 :root {
-  /* Color Palette - Professional & High Contrast */
-  --color-bg: #fafafa;
+  /* Color Palette - Warm & Humanistic */
+  --color-bg: #f8f6f3;
   --color-bg-elevated: #ffffff;
-  --color-text: #0f172a;
-  --color-text-muted: #475569;
-  --color-text-subtle: #94a3b8;
+  --color-text: #2c2825;
+  --color-text-muted: #5a5652;
+  --color-text-subtle: #8a8580;
 
-  /* Accent Colors */
-  --color-primary: #3b82f6;
-  --color-primary-muted: #60a5fa;
-  --color-accent-warm: #f59e0b;
-  --color-accent-cool: #06b6d4;
+  /* Accent Colors - Warm palette */
+  --color-primary: #b8704a;
+  --color-primary-muted: #c98b6a;
+  --color-accent-warm: #d4a574;
+  --color-accent-cool: #7a9bb8;
 
   /* Legacy Support */
-  --color-gray: #64748b;
-  --color-beige: #d97706;
-  --color-ink-blue: #0ea5e9;
+  --color-gray: #7a7672;
+  --color-beige: #b8704a;
+  --color-ink-blue: #7a9bb8;
 
   /* Semantic Colors */
-  --color-success: #10b981;
-  --color-success-bg: rgba(16, 185, 129, 0.08);
-  --color-border: rgba(15, 23, 42, 0.08);
-  --color-border-strong: rgba(15, 23, 42, 0.15);
+  --color-success: #6a9a6a;
+  --color-success-bg: rgba(106, 154, 106, 0.08);
+  --color-border: rgba(44, 40, 37, 0.10);
+  --color-border-strong: rgba(44, 40, 37, 0.18);
 
   /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -48,11 +48,11 @@
   --border-radius: 8px;
   --border-radius-lg: 12px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.1);
+  /* Shadows - warmer tone */
+  --shadow-sm: 0 1px 2px rgba(44, 40, 37, 0.06);
+  --shadow-md: 0 4px 12px rgba(44, 40, 37, 0.08);
+  --shadow-lg: 0 8px 24px rgba(44, 40, 37, 0.10);
+  --shadow-xl: 0 16px 48px rgba(44, 40, 37, 0.12);
 }
 
 /* Reset */
@@ -81,6 +81,23 @@ body {
 main {
   position: relative;
   z-index: 1;
+}
+
+/* Content layering - ensure content stands above background */
+section {
+  position: relative;
+  /* Removed solid background to let orbs show through */
+}
+
+/* Card and panel enhancements for better separation */
+.project-showcase__panel,
+.project-card,
+.hero__stats,
+.hero__link,
+.skills__item,
+.profile__row {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 /* Hide cursor on desktop, show on touch devices */

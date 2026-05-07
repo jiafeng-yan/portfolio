@@ -1,34 +1,26 @@
 import { useEffect, useRef } from 'react';
 
-interface ContourField {
+interface Orb {
   x: number;
   y: number;
+  baseX: number;
+  baseY: number;
   radius: number;
   color: string;
   alpha: number;
-  phase: number;
-  speed: number;
-  parallaxFactor: number;
-}
-
-interface FlowLine {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  color: string;
-  alpha: number;
-  phase: number;
-  speed: number;
-  parallaxFactor: number;
+  // Brownian motion parameters
+  vx: number;
+  vy: number;
+  noiseOffsetX: number;
+  noiseOffsetY: number;
+  // Mouse interaction
+  targetX: number;
+  targetY: number;
 }
 
 export function FluidBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
-  const mouseRef = useRef({ x: 0.5, y: 0.5 });
-  const scrollYRef = useRef(0);
-  const documentHeightRef = useRef(0);
+  const mouseRef = useRef({ x: 0, y: 0, active: false });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -37,225 +29,281 @@ export function FluidBackground() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const motionScale = prefersReducedMotion ? 0.16 : 1;
-    let contourFields: ContourField[] = [];
-    let flowLines: FlowLine[] = [];
-    let viewportWidth = window.innerWidth;
-    let viewportHeight = window.innerHeight;
-    let documentHeight = document.documentElement.scrollHeight;
+    let animationId: number;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    let time = 0;
 
-    const alphaHex = (alpha: number) => Math.floor(alpha * 255).toString(16).padStart(2, '0');
+    // Smooth, constant-speed motion using sine waves
+    // Each orb has its own phase and frequency for variety
+    const getOrbMotion = (orbIndex: number, t: number): { dx: number; dy: number } => {
+      // Different frequencies for each orb to create variety
+      const freqX = [0.0008, 0.001, 0.0007, 0.0009, 0.0006][orbIndex];
+      const freqY = [0.0009, 0.0007, 0.001, 0.0006, 0.0008][orbIndex];
 
-    // Convert absolute Y position to viewport-relative position with parallax
-    // Returns null if element is outside viewport (with margin)
-    const toViewportY = (absoluteY: number, parallaxFactor: number, margin: number = 300): number | null => {
-      // Parallax: higher parallaxFactor = element is further = moves less with scroll
-      // Like looking out a car window: distant mountains move slowly, nearby trees move fast
-      const viewportY = absoluteY - scrollYRef.current * (1 - parallaxFactor);
-      
-      // Check if element is visible in viewport (with margin)
-      if (viewportY < -margin || viewportY > viewportHeight + margin) {
-        return null;
-      }
-      return viewportY;
+      // Different phases for each orb
+      const phaseX = [0, Math.PI / 3, Math.PI / 2, Math.PI / 4, Math.PI][orbIndex];
+      const phaseY = [Math.PI / 6, 0, Math.PI / 4, Math.PI / 3, Math.PI / 2][orbIndex];
+
+      // Smooth sine wave motion - constant speed, no sudden changes
+      const dx = Math.sin(t * freqX + phaseX) * 0.8 + Math.sin(t * freqX * 0.5 + phaseX * 2) * 0.4;
+      const dy = Math.cos(t * freqY + phaseY) * 0.8 + Math.cos(t * freqY * 0.5 + phaseY * 2) * 0.4;
+
+      return { dx, dy };
     };
 
-    const seedScene = () => {
-      // Contour fields: DEEP layer (parallaxFactor 0.65-0.95)
-      // Higher parallaxFactor = moves less = appears further away
-      contourFields = [
-        { x: viewportWidth * 0.78, y: documentHeight * 0.05, radius: 170, color: '#90b4ce', alpha: 0.28, phase: 0.4, speed: 0.0011, parallaxFactor: 0.65 + Math.random() * 0.30 },
-        { x: viewportWidth * 0.18, y: documentHeight * 0.18, radius: 210, color: '#b8986c', alpha: 0.24, phase: 1.7, speed: 0.0009, parallaxFactor: 0.68 + Math.random() * 0.27 },
-        { x: viewportWidth * 0.82, y: documentHeight * 0.32, radius: 150, color: '#7a7a7a', alpha: 0.22, phase: 3.1, speed: 0.0012, parallaxFactor: 0.70 + Math.random() * 0.25 },
-        { x: viewportWidth * 0.45, y: documentHeight * 0.45, radius: 180, color: '#90b4ce', alpha: 0.20, phase: 2.1, speed: 0.0010, parallaxFactor: 0.66 + Math.random() * 0.29 },
-        { x: viewportWidth * 0.25, y: documentHeight * 0.58, radius: 160, color: '#b8986c', alpha: 0.26, phase: 0.8, speed: 0.0011, parallaxFactor: 0.67 + Math.random() * 0.28 },
-        { x: viewportWidth * 0.68, y: documentHeight * 0.72, radius: 190, color: '#7a7a7a', alpha: 0.23, phase: 1.2, speed: 0.0009, parallaxFactor: 0.69 + Math.random() * 0.26 },
-        { x: viewportWidth * 0.35, y: documentHeight * 0.85, radius: 175, color: '#90b4ce', alpha: 0.25, phase: 2.5, speed: 0.0010, parallaxFactor: 0.65 + Math.random() * 0.30 },
-        { x: viewportWidth * 0.88, y: documentHeight * 0.95, radius: 145, color: '#b8986c', alpha: 0.21, phase: 3.8, speed: 0.0012, parallaxFactor: 0.68 + Math.random() * 0.27 }
-      ];
+    // Noise texture data
+    const noiseSize = 256;
+    const noiseData = new Uint8ClampedArray(noiseSize * noiseSize * 4);
 
-      // Flow lines: MID layer (parallaxFactor 0.25-0.55)
-      // Moderate parallaxFactor = moderate movement = mid-depth
-      flowLines = [
-        { x: viewportWidth * 0.08, y: documentHeight * 0.03, width: viewportWidth * 0.42, height: 120, color: '#7a7a7a', alpha: 0.28, phase: 0.8, speed: 0.001, parallaxFactor: 0.25 + Math.random() * 0.30 },
-        { x: viewportWidth * 0.5, y: documentHeight * 0.12, width: viewportWidth * 0.4, height: 150, color: '#90b4ce', alpha: 0.26, phase: 2.3, speed: 0.0013, parallaxFactor: 0.28 + Math.random() * 0.27 },
-        { x: viewportWidth * 0.15, y: documentHeight * 0.22, width: viewportWidth * 0.48, height: 100, color: '#b8986c', alpha: 0.24, phase: 4.1, speed: 0.0009, parallaxFactor: 0.30 + Math.random() * 0.25 },
-        { x: viewportWidth * 0.55, y: documentHeight * 0.35, width: viewportWidth * 0.35, height: 130, color: '#7a7a7a', alpha: 0.22, phase: 1.5, speed: 0.0011, parallaxFactor: 0.26 + Math.random() * 0.29 },
-        { x: viewportWidth * 0.25, y: documentHeight * 0.48, width: viewportWidth * 0.45, height: 110, color: '#90b4ce', alpha: 0.20, phase: 3.2, speed: 0.001, parallaxFactor: 0.27 + Math.random() * 0.28 },
-        { x: viewportWidth * 0.72, y: documentHeight * 0.55, width: viewportWidth * 0.38, height: 140, color: '#b8986c', alpha: 0.25, phase: 0.6, speed: 0.0012, parallaxFactor: 0.29 + Math.random() * 0.26 },
-        { x: viewportWidth * 0.08, y: documentHeight * 0.68, width: viewportWidth * 0.52, height: 115, color: '#7a7a7a', alpha: 0.23, phase: 2.0, speed: 0.001, parallaxFactor: 0.25 + Math.random() * 0.30 },
-        { x: viewportWidth * 0.42, y: documentHeight * 0.78, width: viewportWidth * 0.42, height: 125, color: '#90b4ce', alpha: 0.27, phase: 3.5, speed: 0.0011, parallaxFactor: 0.28 + Math.random() * 0.27 },
-        { x: viewportWidth * 0.18, y: documentHeight * 0.88, width: viewportWidth * 0.35, height: 105, color: '#b8986c', alpha: 0.22, phase: 1.1, speed: 0.0009, parallaxFactor: 0.30 + Math.random() * 0.25 },
-        { x: viewportWidth * 0.62, y: documentHeight * 0.97, width: viewportWidth * 0.48, height: 135, color: '#7a7a7a', alpha: 0.24, phase: 2.8, speed: 0.001, parallaxFactor: 0.26 + Math.random() * 0.29 }
-      ];
-    };
+    // Generate noise
+    for (let i = 0; i < noiseSize * noiseSize; i++) {
+      const value = Math.random() * 255;
+      noiseData[i * 4] = value;
+      noiseData[i * 4 + 1] = value;
+      noiseData[i * 4 + 2] = value;
+      noiseData[i * 4 + 3] = 12; // Very subtle opacity
+    }
+
+    const noiseCanvas = document.createElement('canvas');
+    noiseCanvas.width = noiseSize;
+    noiseCanvas.height = noiseSize;
+    const noiseCtx = noiseCanvas.getContext('2d');
+    if (noiseCtx) {
+      const imageData = new ImageData(noiseData, noiseSize, noiseSize);
+      noiseCtx.putImageData(imageData, 0, 0);
+    }
+
+    // Floating orbs with Brownian motion - warm, humanistic colors
+    const orbs: Orb[] = [
+      {
+        x: width * 0.2, y: height * 0.3,
+        baseX: width * 0.2, baseY: height * 0.3,
+        radius: 320, color: '#d4a574', alpha: 0.28,
+        vx: 0, vy: 0, noiseOffsetX: Math.random() * 1000, noiseOffsetY: Math.random() * 1000,
+        targetX: width * 0.2, targetY: height * 0.3
+      },
+      {
+        x: width * 0.75, y: height * 0.25,
+        baseX: width * 0.75, baseY: height * 0.25,
+        radius: 380, color: '#7a9bb8', alpha: 0.22,
+        vx: 0, vy: 0, noiseOffsetX: Math.random() * 1000, noiseOffsetY: Math.random() * 1000,
+        targetX: width * 0.75, targetY: height * 0.25
+      },
+      {
+        x: width * 0.6, y: height * 0.7,
+        baseX: width * 0.6, baseY: height * 0.7,
+        radius: 350, color: '#c98b7a', alpha: 0.25,
+        vx: 0, vy: 0, noiseOffsetX: Math.random() * 1000, noiseOffsetY: Math.random() * 1000,
+        targetX: width * 0.6, targetY: height * 0.7
+      },
+      {
+        x: width * 0.25, y: height * 0.75,
+        baseX: width * 0.25, baseY: height * 0.75,
+        radius: 300, color: '#9a8b6a', alpha: 0.20,
+        vx: 0, vy: 0, noiseOffsetX: Math.random() * 1000, noiseOffsetY: Math.random() * 1000,
+        targetX: width * 0.25, targetY: height * 0.75
+      },
+      {
+        x: width * 0.5, y: height * 0.45,
+        baseX: width * 0.5, baseY: height * 0.45,
+        radius: 420, color: '#b8a090', alpha: 0.18,
+        vx: 0, vy: 0, noiseOffsetX: Math.random() * 1000, noiseOffsetY: Math.random() * 1000,
+        targetX: width * 0.5, targetY: height * 0.45
+      },
+    ];
 
     const resize = () => {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      viewportWidth = window.innerWidth;
-      viewportHeight = window.innerHeight;
-      documentHeight = document.documentElement.scrollHeight;
-      documentHeightRef.current = documentHeight;
-      canvas.width = Math.floor(viewportWidth * ratio);
-      canvas.height = Math.floor(viewportHeight * ratio);
-      canvas.style.width = `${viewportWidth}px`;
-      canvas.style.height = `${viewportHeight}px`;
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      seedScene();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.scale(dpr, dpr);
+
+      // Update base positions on resize
+      orbs[0].baseX = width * 0.2; orbs[0].baseY = height * 0.3;
+      orbs[1].baseX = width * 0.75; orbs[1].baseY = height * 0.25;
+      orbs[2].baseX = width * 0.6; orbs[2].baseY = height * 0.7;
+      orbs[3].baseX = width * 0.25; orbs[3].baseY = height * 0.75;
+      orbs[4].baseX = width * 0.5; orbs[4].baseY = height * 0.45;
+    };
+
+    // Mouse move handler
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseRef.current.x = e.clientX;
+      mouseRef.current.y = e.clientY;
+      mouseRef.current.active = true;
+    };
+
+    const handleMouseLeave = () => {
+      mouseRef.current.active = false;
     };
 
     const drawGrid = () => {
-      const grid = 88;
-      const offset = -(scrollYRef.current * 0.035) % grid;
+      const gridSize = 80;
+      const scrollOffset = window.scrollY * 0.02;
       ctx.save();
-      ctx.strokeStyle = `#5a5a5a${alphaHex(0.15)}`;
+      ctx.strokeStyle = 'rgba(180, 170, 160, 0.06)';
       ctx.lineWidth = 1;
 
-      for (let x = 0; x <= viewportWidth + grid; x += grid) {
+      // Vertical lines
+      for (let x = 0; x <= width; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
-        ctx.lineTo(x, viewportHeight);
+        ctx.lineTo(x, height);
         ctx.stroke();
       }
 
-      for (let y = offset; y <= viewportHeight + grid; y += grid) {
+      // Horizontal lines with subtle scroll offset
+      const offsetY = scrollOffset % gridSize;
+      for (let y = -gridSize + offsetY; y <= height + gridSize; y += gridSize) {
         ctx.beginPath();
         ctx.moveTo(0, y);
-        ctx.lineTo(viewportWidth, y);
+        ctx.lineTo(width, y);
         ctx.stroke();
       }
 
       ctx.restore();
     };
 
-    const drawContour = (field: ContourField) => {
-      field.phase += field.speed * motionScale;
-      const viewportY = toViewportY(field.y, field.parallaxFactor, field.radius + 220);
-      if (viewportY === null) return; // Skip if outside viewport
-      
-      // Mouse parallax: higher parallaxFactor = element is further = moves less with mouse
-      const mouseDX = (mouseRef.current.x - 0.5) * 24 * (1 - field.parallaxFactor);
-      const mouseDY = (mouseRef.current.y - 0.5) * 20 * (1 - field.parallaxFactor);
+    const updateOrbs = (orbIndex: number) => {
+      return () => {
+        const orb = orbs[orbIndex];
+        if (!orb) return;
 
-      ctx.save();
-      ctx.translate(field.x + mouseDX, viewportY + mouseDY);
-      ctx.strokeStyle = `${field.color}${alphaHex(field.alpha)}`;
-      ctx.lineWidth = 1;
+        const mouseInfluence = 120; // Reduced from 180
+        const mouseStrength = 0.08; // Reduced from 0.2
+        const motionStrength = 100; // Smooth motion strength
+        const returnStrength = 0.015; // Increased to keep orbs closer to base
+        const damping = 0.96;
 
-      for (let layer = 0; layer < 7; layer++) {
-        const layerRadius = field.radius * (0.35 + layer * 0.095);
-        ctx.beginPath();
+        // Get smooth, constant-speed motion
+        const motion = getOrbMotion(orbIndex, time);
 
-        for (let step = 0; step <= 96; step++) {
-          const angle = (Math.PI * 2 * step) / 96;
-          const wave =
-            Math.sin(angle * 3 + field.phase + layer * 0.7) * 0.08 +
-            Math.cos(angle * 5 - field.phase * 0.8) * 0.045;
-          const rx = layerRadius * (1 + wave);
-          const ry = layerRadius * (0.58 + Math.sin(field.phase + layer) * 0.025 + wave * 0.55);
-          const x = Math.cos(angle) * rx;
-          const pointY = Math.sin(angle) * ry;
+        // Apply smooth motion force
+        orb.vx += motion.dx * motionStrength * 0.01;
+        orb.vy += motion.dy * motionStrength * 0.01;
 
-          if (step === 0) ctx.moveTo(x, pointY);
-          else ctx.lineTo(x, pointY);
+        // Mouse interaction - gentle repulsion
+        if (mouseRef.current.active) {
+          const dx = orb.x - mouseRef.current.x;
+          const dy = orb.y - mouseRef.current.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < mouseInfluence && dist > 0) {
+            const force = (1 - dist / mouseInfluence) * mouseStrength;
+            orb.vx += (dx / dist) * force * 30; // Reduced from 50
+            orb.vy += (dy / dist) * force * 30;
+          }
         }
 
-        ctx.closePath();
-        ctx.stroke();
-      }
+        // Soft repulsion between orbs
+        orbs.forEach((other, otherIndex) => {
+          if (otherIndex === orbIndex) return;
+          const dx = orb.x - other.x;
+          const dy = orb.y - other.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const minDist = (orb.radius + other.radius) * 0.3;
 
-      ctx.restore();
-    };
+          if (dist < minDist && dist > 0) {
+            const force = (1 - dist / minDist) * 0.02;
+            orb.vx += (dx / dist) * force * 10;
+            orb.vy += (dy / dist) * force * 10;
+          }
+        });
 
-    const drawFlowLine = (line: FlowLine) => {
-      line.phase += line.speed * motionScale;
-      const viewportY = toViewportY(line.y, line.parallaxFactor, line.height + 260);
-      if (viewportY === null) return; // Skip if outside viewport
+        // Return force to base position
+        const returnDx = orb.baseX - orb.x;
+        const returnDy = orb.baseY - orb.y;
+        orb.vx += returnDx * returnStrength;
+        orb.vy += returnDy * returnStrength;
 
-      // Mouse parallax: higher parallaxFactor = element is further = moves less with mouse
-      const mouseDX = (mouseRef.current.x - 0.5) * 24 * (1 - line.parallaxFactor);
-      const mouseDY = (mouseRef.current.y - 0.5) * 20 * (1 - line.parallaxFactor);
+        // Apply velocity with damping
+        orb.vx *= damping;
+        orb.vy *= damping;
 
-      ctx.save();
-      ctx.translate(mouseDX, mouseDY);
-      ctx.strokeStyle = `${line.color}${alphaHex(line.alpha)}`;
-      ctx.fillStyle = `${line.color}${alphaHex(line.alpha * 1.4)}`;
-      ctx.lineWidth = 1;
+        // Update position
+        orb.x += orb.vx;
+        orb.y += orb.vy;
 
-      for (let i = 0; i < 3; i++) {
-        const localY = viewportY + Math.sin(line.phase + i) * 18 + i * 16;
-        ctx.beginPath();
-        ctx.moveTo(line.x, localY);
-        ctx.bezierCurveTo(
-          line.x + line.width * 0.28,
-          localY - line.height * 0.6,
-          line.x + line.width * 0.62,
-          localY + line.height * 0.5,
-          line.x + line.width,
-          localY + Math.cos(line.phase + i) * 20
-        );
-        ctx.stroke();
-
-        const t = (line.phase * 0.18 + i * 0.27) % 1;
-        const px = line.x + line.width * t;
-        const py = localY + Math.sin(t * Math.PI * 2 + line.phase) * line.height * 0.18;
-        ctx.beginPath();
-        ctx.arc(px, py, 2.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.restore();
-    };
-
-    const animate = () => {
-      ctx.clearRect(0, 0, viewportWidth, viewportHeight);
-      ctx.fillStyle = '#fafafa';
-      ctx.fillRect(0, 0, viewportWidth, viewportHeight);
-
-      drawGrid();
-
-      contourFields.forEach(drawContour);
-      flowLines.forEach(drawFlowLine);
-
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    const handleScroll = () => {
-      scrollYRef.current = window.scrollY;
-    };
-
-    const handleResize = () => {
-      // Check if document height changed (content loaded, etc.)
-      const newDocumentHeight = document.documentElement.scrollHeight;
-      if (newDocumentHeight !== documentHeightRef.current) {
-        documentHeight = newDocumentHeight;
-        documentHeightRef.current = newDocumentHeight;
-        seedScene();
-      }
-      resize();
-    };
-
-    const handleMouseMove = (event: MouseEvent) => {
-      mouseRef.current = {
-        x: event.clientX / viewportWidth,
-        y: event.clientY / viewportHeight
+        // Clamp to reasonable bounds
+        const maxDrift = 150; // Reduced from 200
+        orb.x = Math.max(orb.baseX - maxDrift, Math.min(orb.baseX + maxDrift, orb.x));
+        orb.y = Math.max(orb.baseY - maxDrift, Math.min(orb.baseY + maxDrift, orb.y));
       };
     };
 
-    resize();
-    animate();
+    const drawOrbs = () => {
+      orbs.forEach((orb) => {
+        const gradient = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.radius);
 
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('scroll', handleScroll, { passive: true });
+        // Parse the hex color to RGB for gradient stops
+        const r = parseInt(orb.color.slice(1, 3), 16);
+        const g = parseInt(orb.color.slice(3, 5), 16);
+        const b = parseInt(orb.color.slice(5, 7), 16);
+
+        gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${orb.alpha})`);
+        gradient.addColorStop(0.3, `rgba(${r}, ${g}, ${b}, ${orb.alpha * 0.7})`);
+        gradient.addColorStop(0.6, `rgba(${r}, ${g}, ${b}, ${orb.alpha * 0.3})`);
+        gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    };
+
+    const drawNoise = () => {
+      ctx.globalAlpha = 0.3;
+      ctx.drawImage(noiseCanvas, 0, 0, width, height);
+      ctx.globalAlpha = 1;
+    };
+
+    const animate = () => {
+      time++;
+
+      // Clear with warm cream background
+      ctx.fillStyle = '#f8f6f3';
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw subtle gradient overlay
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
+      gradient.addColorStop(0, 'rgba(248, 246, 243, 1)');
+      gradient.addColorStop(0.5, 'rgba(252, 250, 247, 0.5)');
+      gradient.addColorStop(1, 'rgba(245, 243, 240, 1)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+
+      // Update and draw floating orbs
+      orbs.forEach((_, index) => updateOrbs(index)());
+      drawOrbs();
+
+      // Draw grid
+      drawGrid();
+
+      // Draw noise texture
+      drawNoise();
+
+      animationId = requestAnimationFrame(animate);
+    };
+
+    resize();
+    animate(0);
+
+    window.addEventListener('resize', resize);
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', handleMouseMove);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
+      window.removeEventListener('mouseleave', handleMouseLeave);
+      if (animationId) {
+        cancelAnimationFrame(animationId);
       }
     };
   }, []);
@@ -268,7 +316,7 @@ export function FluidBackground() {
         inset: 0,
         zIndex: 0,
         pointerEvents: 'none',
-        opacity: 1
+        willChange: 'transform',
       }}
       aria-hidden="true"
     />

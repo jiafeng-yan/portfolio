@@ -61,10 +61,29 @@ export function ProjectCard({ project }: Props) {
     if (!card) return;
 
     gsap.to(card, {
-      y: expanded ? -6 : 0,
-      boxShadow: expanded ? '0 18px 48px rgba(0, 0, 0, 0.1)' : '0 0 0 rgba(0, 0, 0, 0)',
-      borderColor: expanded ? 'rgba(26, 26, 26, 0.22)' : 'rgba(0, 0, 0, 0.08)',
-      duration: 0.36,
+      y: expanded ? -8 : 0,
+      boxShadow: expanded ? '0 20px 60px rgba(44, 40, 37, 0.12)' : '0 0 0 rgba(44, 40, 37, 0)',
+      borderColor: expanded ? 'rgba(184, 112, 74, 0.25)' : 'rgba(44, 40, 37, 0.10)',
+      duration: 0.4,
+      ease: 'power2.out'
+    });
+
+    // Animate tech tags with stagger
+    const techItems = card.querySelectorAll('.project-card__tech-item');
+    gsap.to(techItems, {
+      y: expanded ? -2 : 0,
+      scale: expanded ? 1.02 : 1,
+      duration: 0.3,
+      stagger: 0.02,
+      ease: 'power2.out'
+    });
+
+    // Animate links
+    const links = card.querySelectorAll('.project-card__link');
+    gsap.to(links, {
+      x: expanded ? 4 : 0,
+      duration: 0.3,
+      stagger: 0.03,
       ease: 'power2.out'
     });
   };
@@ -149,7 +168,7 @@ export function ProjectCard({ project }: Props) {
 
       <style>{`
         .project-card {
-          background: rgba(255, 255, 255, 0.72);
+          background: rgba(255, 255, 255, 0.85);
           border: 1px solid var(--color-border);
           border-radius: var(--border-radius-lg);
           padding: var(--space-md);
@@ -158,12 +177,13 @@ export function ProjectCard({ project }: Props) {
             border-color var(--duration-normal) var(--ease-out-expo);
           will-change: transform;
           outline: none;
+          backdrop-filter: blur(8px);
         }
 
         .project-card:hover,
         .project-card:focus-within,
         .project-card:focus {
-          background: rgba(255, 255, 255, 0.96);
+          background: rgba(255, 255, 255, 0.98);
           border-color: var(--color-border-strong);
         }
 
@@ -192,7 +212,7 @@ export function ProjectCard({ project }: Props) {
         .project-card__status {
           font-size: 0.68rem;
           padding: 3px 10px;
-          background: rgba(14, 165, 233, 0.12);
+          background: rgba(122, 155, 184, 0.15);
           color: var(--color-ink-blue);
           border-radius: 999px;
           font-weight: 600;
@@ -257,16 +277,16 @@ export function ProjectCard({ project }: Props) {
         .project-card__tech-item {
           font-size: 0.72rem;
           padding: 5px 10px;
-          background: rgba(15, 23, 42, 0.04);
+          background: rgba(44, 40, 37, 0.05);
           border-radius: 6px;
           font-family: var(--font-mono);
           color: var(--color-text-muted);
           font-weight: 500;
-          transition: background var(--duration-fast);
+          transition: background var(--duration-fast), transform var(--duration-fast);
         }
 
         .project-card:hover .project-card__tech-item {
-          background: rgba(15, 23, 42, 0.06);
+          background: rgba(44, 40, 37, 0.08);
         }
 
         .project-card__links {
@@ -280,7 +300,7 @@ export function ProjectCard({ project }: Props) {
           align-items: center;
           gap: var(--space-xs);
           padding: 6px 12px;
-          background: rgba(15, 23, 42, 0.04);
+          background: rgba(44, 40, 37, 0.05);
           border-radius: 6px;
           font-size: 0.75rem;
           color: var(--color-text-muted);
@@ -322,7 +342,7 @@ export function ProjectCard({ project }: Props) {
           }
 
           .project-card:hover {
-            background: rgba(255, 255, 255, 0.72);
+            background: rgba(255, 255, 255, 0.85);
           }
         }
       `}</style>

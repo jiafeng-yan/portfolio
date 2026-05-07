@@ -32,6 +32,76 @@ interface Props {
 
 export function ProjectShowcase({ groups }: Props) {
   const showcaseRef = useRef<HTMLDivElement>(null);
+  const panelsRef = useRef<HTMLDivElement[]>([]);
+
+  useEffect(() => {
+    const showcase = showcaseRef.current;
+    if (!showcase) return;
+
+    // Check if :has() is supported
+    const supportsHas = CSS.supports('selector(:has(*))');
+
+    // If :has() is not supported, use JavaScript fallback
+    if (!supportsHas) {
+      const panels = showcase.querySelectorAll<HTMLDivElement>('.project-showcase__panel');
+      panelsRef.current = Array.from(panels);
+
+      // Store handlers for proper cleanup
+      const handlers: Map<HTMLDivElement, { enter: () => void; leave: () => void }> = new Map();
+
+      const handlePanelHover = (panel: HTMLDivElement, isHovering: boolean) => {
+        const otherPanel = panelsRef.current.find(p => p !== panel);
+
+        if (isHovering) {
+          // Expand hovered panel
+          panel.style.flexBasis = 'calc((100% - var(--showcase-gap)) * 0.62)';
+          panel.style.background = 'rgba(255, 255, 255, 0.86)';
+          panel.style.borderColor = 'rgba(26, 26, 26, 0.32)';
+          panel.style.transform = 'translateY(-4px)';
+          panel.style.opacity = '1';
+
+          // Shrink other panel
+          if (otherPanel) {
+            otherPanel.style.flexBasis = 'calc((100% - var(--showcase-gap)) * 0.38)';
+            otherPanel.style.opacity = '0.58';
+            otherPanel.style.transform = 'translateY(8px)';
+          }
+        } else {
+          // Reset both panels
+          panelsRef.current.forEach(p => {
+            p.style.flexBasis = 'calc((100% - var(--showcase-gap)) / 2)';
+            p.style.background = 'rgba(255, 255, 255, 0.58)';
+            p.style.borderColor = 'rgba(0, 0, 0, 0.12)';
+            p.style.transform = 'translateY(0)';
+            p.style.opacity = '1';
+          });
+        }
+      };
+
+      panelsRef.current.forEach(panel => {
+        const enterHandler = () => handlePanelHover(panel, true);
+        const leaveHandler = () => handlePanelHover(panel, false);
+        handlers.set(panel, { enter: enterHandler, leave: leaveHandler });
+
+        panel.addEventListener('mouseenter', enterHandler);
+        panel.addEventListener('mouseleave', leaveHandler);
+        panel.addEventListener('focusin', enterHandler);
+        panel.addEventListener('focusout', leaveHandler);
+      });
+
+      return () => {
+        panelsRef.current.forEach(panel => {
+          const handler = handlers.get(panel);
+          if (handler) {
+            panel.removeEventListener('mouseenter', handler.enter);
+            panel.removeEventListener('mouseleave', handler.leave);
+            panel.removeEventListener('focusin', handler.enter);
+            panel.removeEventListener('focusout', handler.leave);
+          }
+        });
+      };
+    }
+  }, []);
 
   useEffect(() => {
     const showcase = showcaseRef.current;
@@ -149,23 +219,26 @@ export function ProjectShowcase({ groups }: Props) {
           overflow: hidden;
         }
 
-        .project-showcase:has(.project-showcase__panel:first-child:hover) .project-showcase__panel:first-child,
-        .project-showcase:has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:first-child,
-        .project-showcase:has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:nth-child(2),
-        .project-showcase:has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:nth-child(2) {
-          flex-basis: calc((100% - var(--showcase-gap)) * 0.62);
-          background: rgba(255, 255, 255, 0.86);
-          border-color: rgba(26, 26, 26, 0.32);
-          transform: translateY(-4px);
-        }
+        /* Modern browsers with :has() support */
+        @supports selector(:has(*)) {
+          .project-showcase:has(.project-showcase__panel:first-child:hover) .project-showcase__panel:first-child,
+          .project-showcase:has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:first-child,
+          .project-showcase:has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:nth-child(2),
+          .project-showcase:has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:nth-child(2) {
+            flex-basis: calc((100% - var(--showcase-gap)) * 0.62);
+            background: rgba(255, 255, 255, 0.86);
+            border-color: rgba(26, 26, 26, 0.32);
+            transform: translateY(-4px);
+          }
 
-        .project-showcase:has(.project-showcase__panel:first-child:hover) .project-showcase__panel:nth-child(2),
-        .project-showcase:has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:nth-child(2),
-        .project-showcase:has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:first-child,
-        .project-showcase:has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:first-child {
-          flex-basis: calc((100% - var(--showcase-gap)) * 0.38);
-          opacity: 0.58;
-          transform: translateY(8px);
+          .project-showcase:has(.project-showcase__panel:first-child:hover) .project-showcase__panel:nth-child(2),
+          .project-showcase:has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:nth-child(2),
+          .project-showcase:has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:first-child,
+          .project-showcase:has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:first-child {
+            flex-basis: calc((100% - var(--showcase-gap)) * 0.38);
+            opacity: 0.58;
+            transform: translateY(8px);
+          }
         }
 
         .project-showcase__panel:focus-within {
@@ -245,11 +318,11 @@ export function ProjectShowcase({ groups }: Props) {
         }
 
         @supports not selector(:has(*)) {
+          /* Fallback for older browsers - JS handles the animation */
           .project-showcase__panel:hover,
           .project-showcase__panel:focus-within {
             background: rgba(255, 255, 255, 0.86);
             border-color: rgba(26, 26, 26, 0.32);
-            transform: translateY(-4px);
           }
         }
 
@@ -271,12 +344,14 @@ export function ProjectShowcase({ groups }: Props) {
           transform: translateY(-2px);
         }
 
-        .project-showcase:has(.project-showcase__panel:first-child:hover) .project-showcase__panel:nth-child(2) .project-showcase__cards,
-        .project-showcase:has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:nth-child(2) .project-showcase__cards,
-        .project-showcase:has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:first-child .project-showcase__cards,
-        .project-showcase:has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:first-child .project-showcase__cards {
-          opacity: 0.62;
-          transform: translateX(4px);
+        @supports selector(:has(*)) {
+          .project-showcase:has(.project-showcase__panel:first-child:hover) .project-showcase__panel:nth-child(2) .project-showcase__cards,
+          .project-showcase:has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:nth-child(2) .project-showcase__cards,
+          .project-showcase:has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:first-child .project-showcase__cards,
+          .project-showcase:has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:first-child .project-showcase__cards {
+            opacity: 0.62;
+            transform: translateX(4px);
+          }
         }
 
         @media (max-width: 900px) {

@@ -2,6 +2,8 @@
 
 基于 Astro 构建的个人主页，具备流体背景动效、自定义光标、悬停展开交互等特性。
 
+**在线访问**: [https://jiafeng-yan.github.io/portfolio/](https://jiafeng-yan.github.io/portfolio/)
+
 ## 技术栈
 
 - **Astro** - 静态站点生成器
