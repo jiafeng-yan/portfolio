@@ -1,0 +1,925 @@
+---
+// 统计组件集合：GitHub Calendar、LeetCode Card、ClustrMaps
+// GitHub 用户名: jiafeng-yan
+// LeetCode 中国站用户名: anagke-59
+
+import leetcodeData from '../data/leetcode.json';
+
+const leetcode = leetcodeData as {
+  username: string;
+  solvedCount: number;
+  totalQuestions: number;
+  easySolved: number;
+  easyTotal: number;
+  mediumSolved: number;
+  mediumTotal: number;
+  hardSolved: number;
+  hardTotal: number;
+  ranking: number;
+  contributionPoints: number;
+  totalActiveDays: number;
+  currentStreak: number;
+  activeYears: number[];
+  submissionCalendar: Record<string, number>;
+  scrapedAt: string;
+};
+
+// 生成 LeetCode 贡献图数据
+function generateLeetCodeCalendar(calendar: Record<string, number>) {
+  const today = new Date();
+  const weeks = 53; // 显示过去一年
+  const daysPerWeek = 7;
+
+  // 计算一年前的日期（使用 UTC 时间）
+  const now = new Date();
+  const startDate = new Date(Date.UTC(now.getFullYear() - 1, now.getMonth(), now.getDate()));
+  // 调整到周日
+  startDate.setUTCDate(startDate.getUTCDate() - startDate.getUTCDay());
+
+  const cells: { date: Date; count: number; level: number }[] = [];
+
+  for (let w = 0; w < weeks; w++) {
+    for (let d = 0; d < daysPerWeek; d++) {
+      const cellDate = new Date(startDate);
+      cellDate.setUTCDate(cellDate.getUTCDate() + w * 7 + d);
+
+      // 转换为 Unix 时间戳（秒）- 使用 UTC 午夜时间
+      const timestamp = Math.floor(Date.UTC(
+        cellDate.getUTCFullYear(),
+        cellDate.getUTCMonth(),
+        cellDate.getUTCDate()
+      ) / 1000);
+
+      const count = calendar[timestamp.toString()] || 0;
+
+      // 计算颜色等级 (0-4)
+      let level = 0;
+      if (count > 0) level = 1;
+      if (count >= 4) level = 2;
+      if (count >= 8) level = 3;
+      if (count >= 12) level = 4;
+
+      cells.push({ date: cellDate, count, level });
+    }
+  }
+
+  return cells;
+}
+
+const leetcodeCalendar = leetcode.submissionCalendar ? generateLeetCodeCalendar(leetcode.submissionCalendar) : [];
+
+// 获取月份标签
+function getMonthLabels() {
+  const months = [];
+  const today = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    months.push(date.toLocaleDateString('zh-CN', { month: 'short' }));
+  }
+  return months;
+}
+
+const monthLabels = getMonthLabels();
+const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
+---
+
+<section class="stats-widgets" id="stats" aria-labelledby="stats-title">
+  <div class="stats-widgets__header">
+    <span class="section-kicker">Activity</span>
+    <h2 id="stats-title">动态统计</h2>
+    <p>开源贡献、刷题记录与访客分布的可视化展示。</p>
+  </div>
+
+  <div class="stats-widgets__grid">
+    <!-- 第一行：GitHub + 访客地图 -->
+    <div class="stats-row stats-row--top">
+      <!-- GitHub Contribution Chart -->
+      <div class="stats-widget stats-widget--github">
+        <div class="stats-widget__header">
+          <span class="stats-widget__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.05 1.77 2.745 1.275 3.42.96.105-.78.42-1.275.765-1.575-2.67-.3-5.46-1.335-5.46-5.925 0-1.335.48-2.43 1.23-3.3-.12-.3-.54-1.56.12-3.255 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.695.24 2.955.12 3.255.765.87 1.23 1.965 1.23 3.3 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+          </span>
+          <h3 class="stats-widget__title">GitHub 贡献</h3>
+        </div>
+        <div class="stats-widget__content stats-widget__content--calendar">
+          <div class="github-calendar" id="github-calendar">
+            <img
+              src="https://ghchart.rshah.org/jiafeng-yan"
+              alt="GitHub 贡献图表"
+              loading="lazy"
+            />
+          </div>
+          <p class="github-calendar__note">过去一年的代码贡献记录</p>
+        </div>
+      </div>
+
+      <!-- ClustrMaps 访客地图 -->
+      <div class="stats-widget stats-widget--clustrmaps">
+        <div class="stats-widget__header">
+          <span class="stats-widget__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+            </svg>
+          </span>
+          <h3 class="stats-widget__title">访客地图</h3>
+        </div>
+        <div class="stats-widget__content stats-widget__content--clustrmaps">
+          <div class="clustrmaps-container" id="clustrmaps-container">
+            <script type="text/javascript" id="clustrmaps" src="//clustrmaps.com/map_v2.js?d=E_bP5hegmjAHoYl1b8nwWh0E3o6VQuu3n_b04jgxl3U&cl=ffffff&w=a"></script>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第二行：LeetCode 单独一排 -->
+    <div class="stats-row stats-row--bottom">
+      <div class="stats-widget stats-widget--leetcode">
+        <div class="stats-widget__header">
+          <span class="stats-widget__icon leetcode-icon">
+            <img
+              src="https://static.leetcode.cn/cn-frontendx-assets/production/_next/static/images/logo-ff2b712834cf26bf50a5de58ee27bcef.png"
+              alt="LeetCode"
+              width="20"
+              height="20"
+              loading="lazy"
+            />
+          </span>
+          <h3 class="stats-widget__title">LeetCode 刷题</h3>
+          <a href="https://leetcode.cn/u/anagke-59/" target="_blank" rel="noopener noreferrer" class="leetcode-link-badge">
+            @anagke-59 →
+          </a>
+        </div>
+        <div class="stats-widget__content stats-widget__content--leetcode">
+          {leetcode.solvedCount > 0 ? (
+            <div class="leetcode-stats">
+              <!-- 统计摘要 -->
+              <div class="leetcode-stats__summary">
+                <div class="leetcode-stats__summary-item">
+                  <span class="leetcode-stats__summary-value">{leetcode.solvedCount}</span>
+                  <span class="leetcode-stats__summary-label">已解决</span>
+                </div>
+                <div class="leetcode-stats__summary-item">
+                  <span class="leetcode-stats__summary-value">{leetcode.totalActiveDays}</span>
+                  <span class="leetcode-stats__summary-label">活跃天数</span>
+                </div>
+                <div class="leetcode-stats__summary-item">
+                  <span class="leetcode-stats__summary-value leetcode-stats__summary-value--streak">{leetcode.currentStreak}</span>
+                  <span class="leetcode-stats__summary-label">连续天数</span>
+                </div>
+              </div>
+
+              <!-- LeetCode 贡献图（瓷砖墙） -->
+              <div class="leetcode-calendar">
+                <div class="leetcode-calendar__header">
+                  {monthLabels.map((month, i) => (
+                    <span class="leetcode-calendar__month" key={i}>{month}</span>
+                  ))}
+                </div>
+                <div class="leetcode-calendar__body">
+                  <div class="leetcode-calendar__day-labels">
+                    {dayLabels.map((day, i) => (
+                      <span class="leetcode-calendar__day-label" key={i}>{i % 2 === 0 ? day : ''}</span>
+                    ))}
+                  </div>
+                  <div class="leetcode-calendar__grid">
+                    {leetcodeCalendar.map((cell, i) => (
+                      <div
+                        class={`leetcode-calendar__cell leetcode-calendar__cell--level-${cell.level}`}
+                        key={i}
+                        title={`${cell.date.toLocaleDateString('zh-CN')}: ${cell.count} 题`}
+                        data-count={cell.count}
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+                <div class="leetcode-calendar__legend">
+                  <span class="leetcode-calendar__legend-text">少</span>
+                  {[0, 1, 2, 3, 4].map(level => (
+                    <div class={`leetcode-calendar__cell leetcode-calendar__cell--level-${level}`} key={level}></div>
+                  ))}
+                  <span class="leetcode-calendar__legend-text">多</span>
+                </div>
+              </div>
+
+              <!-- 难度分布 -->
+              <div class="leetcode-stats__progress">
+                <div class="leetcode-progress-item leetcode-progress-item--easy">
+                  <div class="leetcode-progress-item__header">
+                    <span class="leetcode-progress-item__label">简单</span>
+                    <span class="leetcode-progress-item__count">{leetcode.easySolved}/{leetcode.easyTotal}</span>
+                  </div>
+                  <div class="leetcode-progress-item__bar">
+                    <div
+                      class="leetcode-progress-item__fill"
+                      style={`width: ${leetcode.easyTotal > 0 ? (leetcode.easySolved / leetcode.easyTotal * 100) : 0}%`}
+                    ></div>
+                  </div>
+                </div>
+
+                <div class="leetcode-progress-item leetcode-progress-item--medium">
+                  <div class="leetcode-progress-item__header">
+                    <span class="leetcode-progress-item__label">中等</span>
+                    <span class="leetcode-progress-item__count">{leetcode.mediumSolved}/{leetcode.mediumTotal}</span>
+                  </div>
+                  <div class="leetcode-progress-item__bar">
+                    <div
+                      class="leetcode-progress-item__fill"
+                      style={`width: ${leetcode.mediumTotal > 0 ? (leetcode.mediumSolved / leetcode.mediumTotal * 100) : 0}%`}
+                    ></div>
+                  </div>
+                </div>
+
+                <div class="leetcode-progress-item leetcode-progress-item--hard">
+                  <div class="leetcode-progress-item__header">
+                    <span class="leetcode-progress-item__label">困难</span>
+                    <span class="leetcode-progress-item__count">{leetcode.hardSolved}/{leetcode.hardTotal}</span>
+                  </div>
+                  <div class="leetcode-progress-item__bar">
+                    <div
+                      class="leetcode-progress-item__fill"
+                      style={`width: ${leetcode.hardTotal > 0 ? (leetcode.hardSolved / leetcode.hardTotal * 100) : 0}%`}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 更新时间 -->
+              <div class="leetcode-stats__updated">
+                数据更新于 {new Date(leetcode.scrapedAt).toLocaleDateString('zh-CN')}
+              </div>
+            </div>
+          ) : (
+            <div class="leetcode-stats leetcode-stats--empty">
+              <div class="leetcode-stats__empty-icon">
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="#ffa116">
+                  <path d="M13.483 0a1.374 1.374 0 00-1.373 1.374v8.162a1.374 1.374 0 001.373 1.373h8.162a1.374 1.374 0 001.374-1.373V1.374A1.374 1.374 0 0021.645 0zM5.355 12.091a1.374 1.374 0 00-1.374 1.374v8.162a1.374 1.374 0 001.374 1.373h8.162a1.374 1.374 0 001.373-1.373v-8.162a1.374 1.374 0 00-1.373-1.374z"/>
+                </svg>
+              </div>
+              <p class="leetcode-stats__empty-text">数据加载中...</p>
+              <a href="https://leetcode.cn/u/anagke-59/" target="_blank" rel="noopener noreferrer" class="leetcode-stats__empty-link">
+                查看刷题记录 →
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // 统计组件初始化脚本
+  // GitHub Calendar 和其他组件使用直接 <img> 标签，无需额外 JS
+
+  // 检查图片加载状态并显示错误提示
+  document.addEventListener('DOMContentLoaded', () => {
+    const images = document.querySelectorAll('.stats-widget__content img');
+    images.forEach(img => {
+      img.onerror = () => {
+        const parent = img.parentElement;
+        parent.innerHTML = '<p class="stats-widget__error">数据加载中...</p>';
+      };
+    });
+  });
+</script>
+
+<style>
+  .stats-widgets {
+    padding: var(--space-xl) var(--space-lg);
+    max-width: min(1580px, calc(100vw - 0.75rem));
+    margin: 0 auto;
+  }
+
+  .stats-widgets__header {
+    max-width: 82rem;
+    margin-bottom: var(--space-xl);
+    text-align: center;
+  }
+
+  .stats-widgets__header h2 {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    margin: var(--space-sm) 0 var(--space-md);
+  }
+
+  .stats-widgets__header p {
+    color: var(--color-text-muted);
+    line-height: 1.85;
+  }
+
+  .stats-widgets__grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    max-width: 82rem;
+  }
+
+  .stats-row {
+    display: grid;
+    gap: var(--space-lg);
+  }
+
+  .stats-row--top {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stats-row--bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-widget {
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: var(--border-radius-lg);
+    padding: var(--space-lg);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: transform var(--duration-normal) var(--ease-out-expo),
+                box-shadow var(--duration-normal) var(--ease-out-expo),
+                border-color var(--duration-normal) var(--ease-out-expo);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stats-widget:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(0, 0, 0, 0.12);
+  }
+
+  .stats-widget__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+
+  .stats-widget__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--color-primary);
+    color: white;
+    border-radius: var(--border-radius);
+    transition: transform var(--duration-fast) var(--ease-out-expo);
+  }
+
+  .stats-widget:hover .stats-widget__icon {
+    transform: scale(1.05);
+  }
+
+  .leetcode-icon {
+    background: transparent;
+    padding: 6px;
+  }
+
+  .leetcode-icon img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+
+  .stats-widget__title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text);
+    flex: 1;
+  }
+
+  .leetcode-link-badge {
+    font-size: 0.85rem;
+    color: var(--color-primary);
+    text-decoration: none;
+    padding: 4px 10px;
+    background: rgba(184, 112, 74, 0.1);
+    border-radius: var(--border-radius);
+    transition: background var(--duration-fast), transform var(--duration-fast);
+  }
+
+  .leetcode-link-badge:hover {
+    background: rgba(184, 112, 74, 0.18);
+    transform: translateY(-1px);
+  }
+
+  .stats-widget__content {
+    min-height: 120px;
+  }
+
+  /* GitHub Calendar 样式 */
+  .stats-widget__content--calendar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    flex: 1;
+    min-height: 200px;
+  }
+
+  .github-calendar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+  }
+
+  .github-calendar img {
+    border-radius: 8px;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .github-calendar__note {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    opacity: 0.8;
+  }
+
+  /* LeetCode Stats 样式 */
+  .stats-widget__content--leetcode {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .leetcode-stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  /* 统计摘要 */
+  .leetcode-stats__summary {
+    display: flex;
+    justify-content: space-around;
+    padding: var(--space-md);
+    background: rgba(184, 112, 74, 0.06);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(184, 112, 74, 0.12);
+  }
+
+  .leetcode-stats__summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .leetcode-stats__summary-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-text);
+    line-height: 1;
+    font-family: var(--font-mono);
+  }
+
+  .leetcode-stats__summary-value--streak {
+    color: var(--color-primary);
+  }
+
+  .leetcode-stats__summary-label {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  /* LeetCode 贡献图（瓷砖墙） */
+  .leetcode-calendar {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: var(--border-radius);
+    padding: var(--space-sm);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    /* 定宽居中 */
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .leetcode-calendar__header {
+    display: flex;
+    justify-content: flex-start;
+    padding-left: 24px;
+    margin-bottom: 4px;
+    /* 固定宽度与网格对齐 */
+    width: calc(53 * 12px);
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .leetcode-calendar__month {
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+    /* 每月约 4.3 周 */
+    min-width: calc(4.3 * 12px);
+    text-align: left;
+  }
+
+  .leetcode-calendar__body {
+    display: flex;
+    gap: 4px;
+  }
+
+  .leetcode-calendar__day-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-right: 4px;
+    flex-shrink: 0;
+  }
+
+  .leetcode-calendar__day-label {
+    font-size: 0.6rem;
+    color: var(--color-text-muted);
+    height: 10px;
+    line-height: 10px;
+  }
+
+  .leetcode-calendar__grid {
+    display: grid;
+    grid-template-rows: repeat(7, 10px);
+    grid-auto-flow: column;
+    grid-auto-columns: 10px;
+    gap: 2px;
+    /* 固定宽度：53 周 * (10px格子 + 2px间距) */
+    width: calc(53 * 12px - 2px);
+    max-width: 100%;
+  }
+
+  .leetcode-calendar__cell {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background-color: #ebedf0;
+    transition: background-color 0.1s ease;
+  }
+
+  .leetcode-calendar__cell:hover {
+    outline: 1px solid #ffa116;
+    outline-offset: 1px;
+  }
+
+  /* LeetCode 贡献等级颜色 */
+  .leetcode-calendar__cell--level-0 {
+    background-color: #ebedf0;
+  }
+
+  .leetcode-calendar__cell--level-1 {
+    background-color: #c6e48b;
+  }
+
+  .leetcode-calendar__cell--level-2 {
+    background-color: #7bc96f;
+  }
+
+  .leetcode-calendar__cell--level-3 {
+    background-color: #239a3b;
+  }
+
+  .leetcode-calendar__cell--level-4 {
+    background-color: #196127;
+  }
+
+  .leetcode-calendar__legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .leetcode-calendar__legend-text {
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+  }
+
+  .leetcode-calendar__legend .leetcode-calendar__cell {
+    width: 10px;
+    height: 10px;
+  }
+
+  /* 进度条样式 */
+  .leetcode-stats__progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .leetcode-progress-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .leetcode-progress-item__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .leetcode-progress-item__label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .leetcode-progress-item__count {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .leetcode-progress-item__bar {
+    height: 8px;
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .leetcode-progress-item__fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s var(--ease-out-expo);
+  }
+
+  .leetcode-progress-item--easy .leetcode-progress-item__fill {
+    background: linear-gradient(90deg, var(--color-success), #7bc96f);
+  }
+
+  .leetcode-progress-item--medium .leetcode-progress-item__fill {
+    background: linear-gradient(90deg, var(--color-primary-muted), var(--color-accent-warm));
+  }
+
+  .leetcode-progress-item--hard .leetcode-progress-item__fill {
+    background: linear-gradient(90deg, #ff375f, #ff6b8a);
+  }
+
+  .leetcode-stats__updated {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    opacity: 0.7;
+  }
+
+  /* LeetCode 空状态样式 */
+  .leetcode-stats--empty {
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-lg);
+    text-align: center;
+    flex: 1;
+  }
+
+  .leetcode-stats__empty-icon {
+    opacity: 0.4;
+    margin-bottom: var(--space-sm);
+  }
+
+  .leetcode-stats__empty-text {
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+  }
+
+  .leetcode-stats__empty-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity var(--duration-fast);
+  }
+
+  .leetcode-stats__empty-link:hover {
+    opacity: 0.8;
+  }
+
+  /* ClustrMaps 容器样式 */
+  .stats-widget__content--clustrmaps {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+  }
+
+  .clustrmaps-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* ClustrMaps 地图样式调整 */
+  .clustrmaps-container :global(#clustrmaps-widget-v2) {
+    max-width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .clustrmaps-container :global(.clustrmaps-map-container) {
+    border-radius: 8px;
+  }
+
+  /* 错误提示样式 */
+  .stats-widget__error {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    text-align: center;
+    padding: var(--space-lg);
+  }
+
+  /* 响应式布局 */
+  @media (max-width: 1024px) {
+    /* 平板及以下：三个板块竖向排列 */
+    .stats-row--top {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-widget {
+      padding: var(--space-lg);
+    }
+
+    /* 确保 GitHub Calendar 图片不会太大 */
+    .github-calendar img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* 确保 ClustrMaps 地图居中 */
+    .clustrmaps-container {
+      display: flex;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 768px) {
+    /* 移动端：缩小瓷砖墙格子尺寸 */
+    .stats-widgets {
+      padding: var(--space-lg) var(--space-md);
+    }
+
+    .stats-widget {
+      padding: var(--space-md);
+    }
+
+    .stats-widget__header {
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+
+    .leetcode-link-badge {
+      font-size: 0.8rem;
+      padding: 3px 8px;
+    }
+
+    .leetcode-calendar__grid {
+      grid-template-rows: repeat(7, 8px);
+      grid-auto-columns: 8px;
+      width: calc(53 * 10px - 2px);
+    }
+
+    .leetcode-calendar__cell {
+      width: 8px;
+      height: 8px;
+    }
+
+    .leetcode-calendar__day-label {
+      height: 8px;
+      line-height: 8px;
+    }
+
+    .leetcode-calendar__header {
+      width: calc(53 * 10px);
+    }
+
+    .leetcode-calendar__month {
+      min-width: calc(4.3 * 10px);
+    }
+
+    .leetcode-stats__summary {
+      padding: var(--space-sm);
+    }
+
+    .leetcode-stats__summary-value {
+      font-size: 1.5rem;
+    }
+
+    .leetcode-stats__summary-label {
+      font-size: 0.7rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stats-widgets {
+      padding: var(--space-md) var(--space-sm);
+    }
+
+    .stats-widgets__header h2 {
+      font-size: 1.5rem;
+    }
+
+    .stats-widget {
+      padding: var(--space-sm);
+      border-radius: 12px;
+    }
+
+    .stats-widget__title {
+      font-size: 1rem;
+    }
+
+    /* 更小的移动端：瓷砖墙横向滚动 */
+    .leetcode-calendar {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .leetcode-calendar__grid {
+      min-width: calc(53 * 10px - 2px);
+    }
+
+    .leetcode-calendar__header {
+      min-width: calc(53 * 10px);
+    }
+
+    .leetcode-stats__summary {
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    .leetcode-stats__summary-item {
+      flex: 1;
+      min-width: 80px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    /* 超小屏幕：使用更紧凑的布局 */
+    .stats-widget {
+      padding: var(--space-xs);
+    }
+
+    .stats-widget__icon {
+      width: 28px;
+      height: 28px;
+    }
+
+    .leetcode-icon img {
+      width: 18px;
+      height: 18px;
+    }
+
+    .leetcode-calendar__grid {
+      grid-template-rows: repeat(7, 6px);
+      grid-auto-columns: 6px;
+      gap: 1px;
+      width: calc(53 * 7px - 1px);
+      min-width: calc(53 * 7px - 1px);
+    }
+
+    .leetcode-calendar__cell {
+      width: 6px;
+      height: 6px;
+      border-radius: 1px;
+    }
+
+    .leetcode-calendar__day-label {
+      height: 6px;
+      line-height: 6px;
+      font-size: 0.5rem;
+    }
+
+    .leetcode-calendar__header {
+      width: calc(53 * 7px);
+      min-width: calc(53 * 7px);
+    }
+
+    .leetcode-calendar__month {
+      min-width: calc(4.3 * 7px);
+      font-size: 0.55rem;
+    }
+
+    .leetcode-calendar__day-labels {
+      gap: 1px;
+    }
+
+    .leetcode-stats__summary-value {
+      font-size: 1.25rem;
+    }
+
+    .leetcode-progress-item__label,
+    .leetcode-progress-item__count {
+      font-size: 0.8rem;
+    }
+
+    .leetcode-progress-item__bar {
+      height: 6px;
+    }
+
+    .github-calendar img {
+      max-width: 100%;
+      height: auto;
+    }
+  }
+</style>
