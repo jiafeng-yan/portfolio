@@ -381,6 +381,14 @@ const githubMonthLabels = github.contributions && Object.keys(github.contributio
 const githubYearLabels = getGitHubYearLabels(githubMonthLabels, githubWeeksCount);
 
 const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
+
+// 格式化日期为 YYYY/MM/DD 格式
+function formatDate(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}/${month}/${day}`;
+}
 ---
 
 <section class="stats-widgets" id="stats" aria-labelledby="stats-title">
@@ -433,7 +441,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
                   <!-- 年份标签层 -->
                   <div class="github-calendar__years" id="github-calendar-years">
                     {githubYearLabels.map((year, i) => (
-                      <span class="github-calendar__year" key={i} data-start-px={year.startPx} data-end-px={year.endPx}>{year.label}</span>
+                      <span class="github-calendar__year" key={i} data-week-index={year.weekIndex} data-weeks={year.weeks}>{year.label}</span>
                     ))}
                   </div>
                   <!-- 月份标签层 -->
@@ -453,9 +461,9 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
                         <div
                           class={`github-calendar__cell github-calendar__cell--level-${cell.level}`}
                           key={i}
-                          title={`${cell.date.toLocaleDateString('zh-CN')}: ${cell.count} 次贡献`}
+                          title={`${formatDate(cell.date)}: ${cell.count} 次贡献`}
                           data-count={cell.count}
-                          data-date={cell.date.toLocaleDateString('zh-CN')}
+                          data-date={formatDate(cell.date)}
                         ></div>
                       ))}
                     </div>
@@ -559,7 +567,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
                   <!-- 年份标签层 -->
                   <div class="leetcode-calendar__years" id="leetcode-calendar-years">
                     {leetcodeYearLabels.map((year, i) => (
-                      <span class="leetcode-calendar__year" key={i} data-start-px={year.startPx} data-end-px={year.endPx}>{year.label}</span>
+                      <span class="leetcode-calendar__year" key={i} data-week-index={year.weekIndex} data-weeks={year.weeks}>{year.label}</span>
                     ))}
                   </div>
                   <!-- 月份标签层 -->
@@ -579,9 +587,9 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
                         <div
                           class={`leetcode-calendar__cell leetcode-calendar__cell--level-${cell.level}`}
                           key={i}
-                          title={`${cell.date.toLocaleDateString('zh-CN')}: ${cell.count} 题`}
+                          title={`${formatDate(cell.date)}: ${cell.count} 题`}
                           data-count={cell.count}
-                          data-date={cell.date.toLocaleDateString('zh-CN')}
+                          data-date={formatDate(cell.date)}
                         ></div>
                       ))}
                     </div>
@@ -712,13 +720,14 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
 
     const yearElements = yearsContainer.querySelectorAll(`.${type}-calendar__year`);
 
-    const yearRanges: { element: HTMLElement; startPx: number; endPx: number; yearWidth: number }[] = [];
+    // 年份标签范围：存储周索引，动态计算像素位置
+    const yearRanges: { element: HTMLElement; weekIndex: number; weeks: number; yearWidth: number }[] = [];
     yearElements.forEach((el) => {
       const yearEl = el as HTMLElement;
       const yearWidth = yearEl.offsetWidth;
-      const startPx = parseFloat(yearEl.dataset.startPx || '0');
-      const endPx = parseFloat(yearEl.dataset.endPx || '0');
-      yearRanges.push({ element: yearEl, startPx, endPx, yearWidth });
+      const weekIndex = parseInt(yearEl.dataset.weekIndex || '0');
+      const weeks = parseInt(yearEl.dataset.weeks || '0');
+      yearRanges.push({ element: yearEl, weekIndex, weeks, yearWidth });
     });
 
     let rafId: number | null = null;
@@ -730,9 +739,19 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
       lastScrollLeft = scrollLeft;
 
       const containerWidth = scrollContainer!.clientWidth;
+      const calendar = document.querySelector(`.${type}-calendar`);
+      if (!calendar) return;
 
-      yearRanges.forEach(({ element, startPx, endPx }) => {
-        const yearWidth = element.offsetWidth;
+      const style = getComputedStyle(calendar);
+      const cellSize = parseFloat(style.getPropertyValue(`--${type}-cell-size`) || '10');
+      const gap = parseFloat(style.getPropertyValue(`--${type}-gap`) || '2');
+      const weekWidth = cellSize + gap;
+      const paddingLeft = 16; // 固定 padding-left
+
+      yearRanges.forEach(({ element, weekIndex, weeks, yearWidth }) => {
+        const startPx = weekIndex * weekWidth + paddingLeft;
+        const endPx = (weekIndex + weeks) * weekWidth + paddingLeft;
+
         const visibleStart = scrollLeft;
         const visibleEnd = scrollLeft + containerWidth;
 
@@ -844,7 +863,25 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
     // 创建 tooltip 元素
     const tooltip = document.createElement('div');
     tooltip.className = `${calendarType}-calendar__tooltip`;
-    tooltip.style.display = 'none';
+    // 直接设置样式，因为动态创建的元素无法应用 Astro scoped CSS
+    tooltip.style.cssText = `
+      position: absolute;
+      display: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      z-index: 100;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    `;
+    if (calendarType === 'github') {
+      tooltip.style.background = 'rgba(0, 0, 0, 0.9)';
+      tooltip.style.color = 'white';
+    } else {
+      tooltip.style.background = 'linear-gradient(135deg, #ffa116 0%, #ff8c00 100%)';
+      tooltip.style.color = 'white';
+    }
     calendar.appendChild(tooltip);
 
     let activeCell: HTMLElement | null = null;
@@ -868,7 +905,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
 
       // 更新 tooltip 内容
       const unit = calendarType === 'github' ? '次贡献' : '题';
-      tooltip.textContent = `${date}: ${count} ${count === '0' ? '' : unit}`;
+      tooltip.textContent = `${date}: ${count} ${unit}`;
 
       // 计算 tooltip 位置
       const cellRect = target.getBoundingClientRect();
@@ -882,11 +919,25 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
       const cellLeft = cellRect.left - calendarRect.left;
       const cellTop = cellRect.top - calendarRect.top;
       const cellWidth = cellRect.width;
+      const cellHeight = cellRect.height;
       const tooltipWidth = tooltip.offsetWidth;
       const tooltipHeight = tooltip.offsetHeight;
 
-      tooltip.style.left = `${cellLeft + cellWidth / 2 - tooltipWidth / 2}px`;
-      tooltip.style.top = `${cellTop - tooltipHeight - 8}px`;
+      // 计算 tooltip 的水平位置，确保不超出容器边界
+      let tooltipLeft = cellLeft + cellWidth / 2 - tooltipWidth / 2;
+      const minLeft = 4;
+      const maxLeft = calendarRect.width - tooltipWidth - 4;
+      tooltipLeft = Math.max(minLeft, Math.min(tooltipLeft, maxLeft));
+
+      // 计算 tooltip 的垂直位置，确保在格子上方
+      let tooltipTop = cellTop - tooltipHeight - 10;
+      // 如果上方空间不足，显示在格子下方
+      if (tooltipTop < 4) {
+        tooltipTop = cellTop + cellHeight + 10;
+      }
+
+      tooltip.style.left = `${tooltipLeft}px`;
+      tooltip.style.top = `${tooltipTop}px`;
     });
 
     // 点击其他区域隐藏 tooltip
@@ -1190,14 +1241,14 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
     position: relative;
     height: 18px;
     margin-bottom: 2px;
-    padding-left: 18px;
+    padding-left: 16px;
   }
 
   .github-calendar__year {
     position: absolute;
     top: 0;
     left: 0;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--color-text);
     text-align: left;
@@ -1268,26 +1319,27 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
   /* 移动端点击 tooltip */
   .github-calendar__tooltip {
     position: absolute;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.9);
     color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 0.75rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
     white-space: nowrap;
     z-index: 100;
     pointer-events: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateX(0);
   }
 
   .github-calendar__tooltip::after {
     content: '';
     position: absolute;
-    bottom: -5px;
+    bottom: -6px;
     left: 50%;
     transform: translateX(-50%);
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 6px solid rgba(0, 0, 0, 0.85);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid rgba(0, 0, 0, 0.9);
   }
 
   /* GitHub 贡献等级颜色 */
@@ -1473,14 +1525,14 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
     position: relative;
     height: 18px;
     margin-bottom: 2px;
-    padding-left: 18px;
+    padding-left: 16px;
   }
 
   .leetcode-calendar__year {
     position: absolute;
     top: 0;
     left: 0;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--color-text);
     text-align: left;
@@ -1551,26 +1603,27 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
   /* 移动端点击 tooltip */
   .leetcode-calendar__tooltip {
     position: absolute;
-    background: rgba(255, 161, 22, 0.95);
+    background: linear-gradient(135deg, #ffa116 0%, #ff8c00 100%);
     color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 0.75rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
     white-space: nowrap;
     z-index: 100;
     pointer-events: none;
-    box-shadow: 0 2px 8px rgba(255, 161, 22, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 161, 22, 0.4);
+    transform: translateX(0);
   }
 
   .leetcode-calendar__tooltip::after {
     content: '';
     position: absolute;
-    bottom: -5px;
+    bottom: -6px;
     left: 50%;
     transform: translateX(-50%);
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 6px solid rgba(255, 161, 22, 0.95);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #ff8c00;
   }
 
   /* LeetCode 贡献等级颜色 */
@@ -1847,6 +1900,14 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
     .github-calendar__month {
       font-size: 0.6rem;
     }
+
+    .github-calendar__year {
+      font-size: 0.65rem;
+    }
+
+    .leetcode-calendar__year {
+      font-size: 0.65rem;
+    }
   }
 
   @media (max-width: 640px) {
@@ -1966,6 +2027,14 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
 
     .github-calendar__month {
       font-size: 0.55rem;
+    }
+
+    .github-calendar__year {
+      font-size: 0.6rem;
+    }
+
+    .leetcode-calendar__year {
+      font-size: 0.6rem;
     }
 
     .github-calendar__day-labels {
