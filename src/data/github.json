@@ -1,18 +1,69 @@
 {
   "username": "jiafeng-yan",
   "userStats": {
-    "publicRepos": 0,
-    "followers": 0,
-    "following": 0,
-    "createdAt": null,
-    "avatarUrl": null,
+    "publicRepos": 7,
+    "followers": 2,
+    "following": 8,
+    "createdAt": "2022-04-03T13:49:59Z",
+    "avatarUrl": "https://avatars.githubusercontent.com/u/102910729?v=4",
     "bio": null,
     "location": null
   },
-  "contributions": {},
-  "totalContributions": 0,
-  "yearlyStats": {},
-  "activeDays": 0,
-  "scrapedAt": "2026-05-09T00:00:00.000Z",
-  "tokenUsed": false
+  "contributions": {
+    "1648944000": 1,
+    "1678838400": 3,
+    "1698364800": 1,
+    "1731801600": 3,
+    "1736467200": 2,
+    "1740700800": 4,
+    "1743379200": 6,
+    "1743552000": 1,
+    "1743724800": 4,
+    "1744243200": 2,
+    "1744502400": 1,
+    "1744848000": 1,
+    "1745020800": 1,
+    "1745280000": 1,
+    "1745366400": 1,
+    "1745452800": 1,
+    "1749254400": 1,
+    "1749427200": 1,
+    "1749600000": 4,
+    "1762646400": 1,
+    "1764201600": 3,
+    "1765065600": 2,
+    "1765843200": 1,
+    "1776816000": 3,
+    "1777334400": 1,
+    "1777507200": 3,
+    "1777680000": 2,
+    "1778112000": 1,
+    "1778284800": 6
+  },
+  "totalContributions": 62,
+  "yearlyStats": {
+    "2022": {
+      "total": 1,
+      "weeks": 53
+    },
+    "2023": {
+      "total": 4,
+      "weeks": 53
+    },
+    "2024": {
+      "total": 3,
+      "weeks": 53
+    },
+    "2025": {
+      "total": 38,
+      "weeks": 53
+    },
+    "2026": {
+      "total": 16,
+      "weeks": 53
+    }
+  },
+  "activeDays": 29,
+  "scrapedAt": "2026-05-09T08:08:32.894Z",
+  "tokenUsed": true
 }

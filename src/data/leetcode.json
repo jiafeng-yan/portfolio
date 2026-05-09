@@ -1,12 +1,12 @@
 {
   "username": "ΑΝΑΓΚΗ",
-  "solvedCount": 2330,
+  "solvedCount": 2331,
   "totalQuestions": 3500,
   "easySolved": 710,
   "easyTotal": 1061,
   "mediumSolved": 1260,
   "mediumTotal": 2248,
-  "hardSolved": 360,
+  "hardSolved": 361,
   "hardTotal": 999,
   "ranking": 672,
   "contributionPoints": 0,
@@ -1071,7 +1071,7 @@
     "1778025600": 6,
     "1778112000": 3,
     "1778198400": 2,
-    "1778284800": 2
+    "1778284800": 3
   },
-  "scrapedAt": "2026-05-09T04:48:17.848Z"
+  "scrapedAt": "2026-05-09T08:08:28.315Z"
 }
