@@ -5,8 +5,8 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    # 每天 UTC 时间 0:00 运行（北京时间 8:00）
-    - cron: '0 0 * * *'
+    # 每天北京时间 00:02 运行（UTC 16:02 前一天）
+    - cron: '2 16 * * *'
 
 permissions:
   contents: write
@@ -55,12 +55,21 @@ jobs:
         env:
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false'
 
+      - name: Scrape GitHub data
+        run: node scripts/scrape-github.mjs
+        env:
+          # 需要 GH_PAT (Personal Access Token) 来获取用户贡献数据
+          # 创建方法: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens
+          # 权限: 只需要 read:user
+          # 然后在仓库的 Settings → Secrets → Actions 中添加 GH_PAT
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
       - name: Commit scraped data
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add src/data/leetcode.json
-          git diff --quiet && git diff --staged --quiet || git commit -m "chore: update LeetCode data [skip ci]"
+          git add src/data/leetcode.json src/data/github.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "chore: update LeetCode and GitHub data [skip ci]"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

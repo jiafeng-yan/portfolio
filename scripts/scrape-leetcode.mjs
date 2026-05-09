@@ -1,6 +1,7 @@
 /**
  * LeetCode 数据爬虫脚本
  * 使用 Puppeteer 爬取 LeetCode 中国站用户数据
+ * 支持获取多年历史数据
  */
 
 import puppeteer from 'puppeteer';
@@ -43,7 +44,7 @@ async function scrapeLeetCodeData() {
     let calendarData = null;
     let problemStats = null;
     let userProfile = null;
-    let allProblems = null; // 存储所有题目统计
+    let problemCounts = null; // 存储题目总数 { EASY: 1061, MEDIUM: 2248, HARD: 999 }
 
     // 监听响应，拦截 GraphQL 请求
     page.on('response', async (response) => {
@@ -53,28 +54,24 @@ async function scrapeLeetCodeData() {
           const text = await response.text();
           const json = JSON.parse(text);
 
-          // 拦截日历数据
           if (json.data?.userCalendar) {
             console.log('Intercepted calendar data');
             calendarData = json.data.userCalendar;
           }
 
-          // 拦截题目统计
           if (json.data?.userProfileUserQuestionProgress) {
             console.log('Intercepted problem stats');
             problemStats = json.data.userProfileUserQuestionProgress;
           }
 
-          // 拦截用户资料
           if (json.data?.userProfilePublicProfile) {
             console.log('Intercepted user profile');
             userProfile = json.data.userProfilePublicProfile;
           }
 
-          // 拦截所有题目统计（包含总数）
           if (json.data?.problemsetQuestionList) {
             console.log('Intercepted all problems stats');
-            allProblems = json.data.problemsetQuestionList;
+            // 不覆盖 problemCounts，因为这是题目列表数据，不是总数
           }
         } catch (e) {
           // 忽略解析错误
@@ -85,34 +82,27 @@ async function scrapeLeetCodeData() {
     // 访问页面
     console.log('Navigating to LeetCode profile page...');
     await page.goto(LEETCODE_URL, {
-      waitUntil: 'networkidle2',
+      waitUntil: 'domcontentloaded',
       timeout: 60000
     });
 
     // 等待数据加载
     console.log('Waiting for data to load...');
-    await new Promise(r => setTimeout(r, 10000)); // 增加等待时间
-
-    // 如果还没有日历数据，再等一会儿
-    if (!calendarData) {
-      console.log('Waiting more for calendar data...');
-      await new Promise(r => setTimeout(r, 5000));
-    }
+    await new Promise(r => setTimeout(r, 8000));
 
     // 访问题目列表页面获取真实的题目总数
     console.log('Fetching problemset page for total counts...');
     await page.goto('https://leetcode.cn/problemset/', {
-      waitUntil: 'networkidle2',
+      waitUntil: 'domcontentloaded',
       timeout: 30000
     });
-    await new Promise(r => setTimeout(r, 5000));
+    await new Promise(r => setTimeout(r, 3000));
 
     // 如果还没有获取到题目总数，尝试直接调用 API
-    if (!allProblems) {
+    if (!problemCounts) {
       console.log('Trying direct API call for problem counts...');
       const problemCountsResult = await page.evaluate(async () => {
         try {
-          // 分别查询各难度的题目总数
           const difficulties = ['EASY', 'MEDIUM', 'HARD'];
           const counts = {};
 
@@ -143,9 +133,85 @@ async function scrapeLeetCodeData() {
 
       if (problemCountsResult) {
         console.log('Got problem counts from API:', problemCountsResult);
-        allProblems = { counts: problemCountsResult };
+        problemCounts = problemCountsResult;
       }
     }
+
+    // 获取活跃年份列表
+    let activeYears = [];
+    if (calendarData?.activeYears) {
+      activeYears = calendarData.activeYears;
+    }
+
+    console.log('Active years:', activeYears);
+
+    // 获取每年的日历数据 - 使用正确的 API 端点
+    const yearlyData = {};
+    let totalActiveDays = 0;
+    let maxStreak = 0;
+    const allCalendarEntries = {};
+
+    for (const year of activeYears) {
+      console.log(`Fetching calendar data for year ${year}...`);
+
+      // 使用正确的 GraphQL 端点和查询
+      const yearCalendarResult = await page.evaluate(async (userSlug, year) => {
+        try {
+          const response = await fetch('https://leetcode.cn/graphql/noj-go/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: `
+                query userProfileCalendar($userSlug: String!, $year: Int) {
+                  userCalendar(userSlug: $userSlug, year: $year) {
+                    streak
+                    totalActiveDays
+                    submissionCalendar
+                    activeYears
+                  }
+                }
+              `,
+              variables: { userSlug, year }
+            })
+          });
+          const result = await response.json();
+          return result.data?.userCalendar || null;
+        } catch (e) {
+          return null;
+        }
+      }, LEETCODE_USERNAME, year);
+
+      if (yearCalendarResult) {
+        const yearActiveDays = yearCalendarResult.totalActiveDays || 0;
+        const yearStreak = yearCalendarResult.streak || 0;
+
+        yearlyData[year] = {
+          totalActiveDays: yearActiveDays,
+          streak: yearStreak
+        };
+
+        totalActiveDays += yearActiveDays;
+        maxStreak = Math.max(maxStreak, yearStreak);
+
+        // 合并日历数据
+        if (yearCalendarResult.submissionCalendar) {
+          try {
+            const yearCalendar = JSON.parse(yearCalendarResult.submissionCalendar);
+            Object.assign(allCalendarEntries, yearCalendar);
+            console.log(`Year ${year}: ${yearActiveDays} active days, ${yearStreak} streak, ${Object.keys(yearCalendar).length} entries`);
+          } catch (e) {
+            console.log(`Error parsing calendar for year ${year}`);
+          }
+        }
+      } else {
+        console.log(`Year ${year}: No data received`);
+      }
+
+      // 短暂延迟避免请求过快
+      await new Promise(r => setTimeout(r, 500));
+    }
+
+    console.log(`Total: ${totalActiveDays} active days, ${maxStreak} max streak, ${Object.keys(allCalendarEntries).length} calendar entries`);
 
     // 构建用户数据
     const userData = {
@@ -161,8 +227,11 @@ async function scrapeLeetCodeData() {
       ranking: 0,
       contributionPoints: 0,
       totalActiveDays: 0,
+      recentYearActiveDays: 0,
       currentStreak: 0,
+      maxStreak: 0,
       activeYears: [],
+      yearlyData: {},
       submissionCalendar: {},
       scrapedAt: new Date().toISOString()
     };
@@ -191,77 +260,36 @@ async function scrapeLeetCodeData() {
     }
 
     // 处理真实的题目总数
-    if (allProblems?.counts) {
-      userData.easyTotal = allProblems.counts.EASY || 800;
-      userData.mediumTotal = allProblems.counts.MEDIUM || 1800;
-      userData.hardTotal = allProblems.counts.HARD || 900;
-      console.log('Updated problem totals:', {
-        easy: userData.easyTotal,
-        medium: userData.mediumTotal,
-        hard: userData.hardTotal
+    console.log('problemCounts:', JSON.stringify(problemCounts, null, 2));
+    if (problemCounts) {
+      userData.easyTotal = problemCounts.EASY || 800;
+      userData.mediumTotal = problemCounts.MEDIUM || 1800;
+      userData.hardTotal = problemCounts.HARD || 900;
+      console.log('Updated totals from problemCounts:', {
+        easyTotal: userData.easyTotal,
+        mediumTotal: userData.mediumTotal,
+        hardTotal: userData.hardTotal
       });
+    } else {
+      console.log('WARNING: problemCounts is not available, using default values');
     }
 
-    // 处理日历数据
-    if (calendarData) {
-      userData.totalActiveDays = calendarData.totalActiveDays || 0;
+    // 处理日历数据 - 使用新获取的多年度数据
+    userData.activeYears = activeYears;
+    userData.yearlyData = yearlyData;
+    userData.submissionCalendar = allCalendarEntries;
+    userData.totalActiveDays = totalActiveDays;
+    userData.maxStreak = maxStreak;
+
+    // 最近一年的活跃天数（当前年份或最近12个月）
+    const currentYear = new Date().getFullYear();
+    if (yearlyData[currentYear]) {
+      userData.recentYearActiveDays = yearlyData[currentYear].totalActiveDays;
+      userData.currentStreak = yearlyData[currentYear].streak || 0;
+    } else if (calendarData) {
+      // 回退到拦截的数据
+      userData.recentYearActiveDays = calendarData.totalActiveDays || 0;
       userData.currentStreak = calendarData.streak || 0;
-      userData.activeYears = calendarData.activeYears || [];
-
-      // 解析提交日历 JSON 字符串
-      if (calendarData.submissionCalendar) {
-        try {
-          userData.submissionCalendar = JSON.parse(calendarData.submissionCalendar);
-          console.log(`Parsed ${Object.keys(userData.submissionCalendar).length} calendar entries`);
-        } catch (e) {
-          console.error('Failed to parse submissionCalendar:', e.message);
-        }
-      }
-    } else {
-      console.log('Calendar data not intercepted, trying direct API call...');
-
-      // 尝试直接调用 API（可能需要特定的请求头）
-      const apiResult = await page.evaluate(async (username) => {
-        try {
-          const response = await fetch('https://leetcode.cn/graphql/', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              query: `
-                query userCalendar($username: String!) {
-                  userCalendar(username: $username) {
-                    activeYears
-                    streak
-                    totalActiveDays
-                    submissionCalendar
-                  }
-                }
-              `,
-              variables: { username }
-            })
-          });
-
-          const result = await response.json();
-          return result.data?.userCalendar || null;
-        } catch (e) {
-          return null;
-        }
-      }, LEETCODE_USERNAME);
-
-      if (apiResult) {
-        console.log('API call succeeded');
-        userData.totalActiveDays = apiResult.totalActiveDays || 0;
-        userData.currentStreak = apiResult.streak || 0;
-        userData.activeYears = apiResult.activeYears || [];
-        if (apiResult.submissionCalendar) {
-          try {
-            userData.submissionCalendar = JSON.parse(apiResult.submissionCalendar);
-            console.log(`Parsed ${Object.keys(userData.submissionCalendar).length} calendar entries`);
-          } catch (e) {}
-        }
-      }
     }
 
     // 计算总数
@@ -273,8 +301,10 @@ async function scrapeLeetCodeData() {
       easySolved: userData.easySolved,
       mediumSolved: userData.mediumSolved,
       hardSolved: userData.hardSolved,
+      recentYearActiveDays: userData.recentYearActiveDays,
       totalActiveDays: userData.totalActiveDays,
       currentStreak: userData.currentStreak,
+      maxStreak: userData.maxStreak,
       calendarEntries: Object.keys(userData.submissionCalendar).length
     });
 
@@ -294,7 +324,6 @@ async function scrapeLeetCodeData() {
   } catch (error) {
     console.error('Error scraping LeetCode data:', error);
 
-    // 如果爬取失败，尝试使用备用数据
     const fallbackData = {
       username: LEETCODE_USERNAME,
       solvedCount: 0,
@@ -308,7 +337,9 @@ async function scrapeLeetCodeData() {
       ranking: 0,
       contributionPoints: 0,
       totalActiveDays: 0,
+      recentYearActiveDays: 0,
       currentStreak: 0,
+      maxStreak: 0,
       submissionCalendar: {},
       error: error.message,
       scrapedAt: new Date().toISOString()

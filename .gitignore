@@ -8,3 +8,5 @@ output/playwright/
 .env.*
 !.env.example
 .omc/
+${APPDATA}/
+.npmrc
