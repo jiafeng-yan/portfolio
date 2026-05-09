@@ -439,7 +439,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
                   <!-- 月份标签层 -->
                   <div class="github-calendar__header" id="github-calendar-header">
                     {githubMonthLabels.map((month, i) => (
-                      <span class="github-calendar__month" key={i} style={`width: ${month.weeks * 12}px;`}>{month.label}</span>
+                      <span class="github-calendar__month" key={i} data-weeks={month.weeks}>{month.label}</span>
                     ))}
                   </div>
                   <div class="github-calendar__body">
@@ -565,7 +565,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
                   <!-- 月份标签层 -->
                   <div class="leetcode-calendar__header" id="leetcode-calendar-header">
                     {leetcodeMonthLabels.map((month, i) => (
-                      <span class="leetcode-calendar__month" key={i} style={`width: ${month.weeks * 12}px;`}>{month.label}</span>
+                      <span class="leetcode-calendar__month" key={i} data-weeks={month.weeks}>{month.label}</span>
                     ))}
                   </div>
                   <div class="leetcode-calendar__body">
@@ -684,6 +684,31 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
     const grid = document.getElementById(`${type}-calendar-grid`);
 
     if (!scrollContainer || !yearsContainer || !grid) return;
+
+    // 设置月份标签宽度（基于 CSS 变量）
+    function updateMonthWidths() {
+      const months = document.querySelectorAll(`.${type}-calendar__month`);
+      const calendar = document.querySelector(`.${type}-calendar`);
+      if (calendar && months.length > 0) {
+        const style = getComputedStyle(calendar);
+        // 从 CSS 变量获取格子尺寸和间距
+        const cellSize = parseFloat(style.getPropertyValue(`--${type}-cell-size`) || '10');
+        const gap = parseFloat(style.getPropertyValue(`--${type}-gap`) || '2');
+        const weekWidth = cellSize + gap;
+        months.forEach((month) => {
+          const weeks = parseInt((month as HTMLElement).dataset.weeks || '1');
+          (month as HTMLElement).style.width = `${weeks * weekWidth}px`;
+        });
+      }
+    }
+
+    // 初始化时设置月份宽度
+    updateMonthWidths();
+
+    // 监听窗口尺寸变化，重新计算月份宽度
+    window.addEventListener('resize', () => {
+      updateMonthWidths();
+    });
 
     const yearElements = yearsContainer.querySelectorAll(`.${type}-calendar__year`);
 
@@ -812,14 +837,15 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
 
   // 移动端点击弹出 tooltip
   function setupMobileTooltip(calendarType: 'github' | 'leetcode') {
+    const calendar = document.getElementById(`${calendarType}-calendar`);
     const grid = document.getElementById(`${calendarType}-calendar-grid`);
-    if (!grid) return;
+    if (!grid || !calendar) return;
 
     // 创建 tooltip 元素
     const tooltip = document.createElement('div');
     tooltip.className = `${calendarType}-calendar__tooltip`;
     tooltip.style.display = 'none';
-    grid.parentElement?.parentElement?.appendChild(tooltip);
+    calendar.appendChild(tooltip);
 
     let activeCell: HTMLElement | null = null;
 
@@ -846,19 +872,21 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
 
       // 计算 tooltip 位置
       const cellRect = target.getBoundingClientRect();
-      const gridRect = grid.getBoundingClientRect();
+      const calendarRect = calendar.getBoundingClientRect();
 
       // 显示 tooltip
       tooltip.style.display = 'block';
       activeCell = target;
 
       // 使用 CSS 定位，让 tooltip 在格子上方居中
-      const cellLeft = cellRect.left - gridRect.left;
+      const cellLeft = cellRect.left - calendarRect.left;
+      const cellTop = cellRect.top - calendarRect.top;
       const cellWidth = cellRect.width;
       const tooltipWidth = tooltip.offsetWidth;
+      const tooltipHeight = tooltip.offsetHeight;
 
       tooltip.style.left = `${cellLeft + cellWidth / 2 - tooltipWidth / 2}px`;
-      tooltip.style.top = `${cellRect.top - gridRect.top - tooltip.offsetHeight - 8}px`;
+      tooltip.style.top = `${cellTop - tooltipHeight - 8}px`;
     });
 
     // 点击其他区域隐藏 tooltip
@@ -871,7 +899,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
     });
 
     // 滚动时隐藏 tooltip
-    const scrollContainer = grid.closest(`${calendarType}-calendar__scroll-container`);
+    const scrollContainer = grid.closest(`.${calendarType}-calendar__scroll-container`);
     scrollContainer?.addEventListener('scroll', () => {
       if (tooltip.style.display !== 'none') {
         tooltip.style.display = 'none';
@@ -883,14 +911,15 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
   // 检测是否为移动设备（触摸设备）
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-  // 始终设置 tooltip，但只在触摸设备上显示
+  // 始终设置 tooltip
   setupMobileTooltip('github');
   setupMobileTooltip('leetcode');
 
   // 如果不是触摸设备，隐藏 tooltip 元素（使用 hover 的 title 属性）
+  // 但不删除 tooltip，以便在触摸设备切换时可用
   if (!isTouchDevice) {
     document.querySelectorAll('.github-calendar__tooltip, .leetcode-calendar__tooltip').forEach(el => {
-      el.remove();
+      (el as HTMLElement).style.display = 'none';
     });
   }
 </script>
@@ -1180,7 +1209,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
   .github-calendar__header {
     display: flex;
     justify-content: flex-start;
-    padding-left: 18px;
+    padding-left: 16px;
     margin-bottom: 4px;
     width: max-content;
   }
@@ -1191,7 +1220,8 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
     text-align: left;
     white-space: nowrap;
     flex-shrink: 0;
-    /* 使用固定像素宽度，由 inline style 设置 */
+    /* 使用 CSS 变量计算宽度，基于周数 */
+    width: calc(var(--weeks, 1) * var(--github-week-width, 12px));
   }
 
   .github-calendar__body {
@@ -1462,7 +1492,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
   .leetcode-calendar__header {
     display: flex;
     justify-content: flex-start;
-    padding-left: 18px;
+    padding-left: 16px;
     margin-bottom: 4px;
     width: max-content;
   }
@@ -1473,7 +1503,8 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
     text-align: left;
     white-space: nowrap;
     flex-shrink: 0;
-    /* 使用固定像素宽度，由 inline style 设置 */
+    /* 使用 CSS 变量计算宽度，基于周数 */
+    width: calc(var(--weeks, 1) * var(--leetcode-week-width, 12px));
   }
 
   .leetcode-calendar__body {
@@ -1762,8 +1793,8 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
 
     /* 移动端月份标签使用 CSS 变量计算宽度 */
     .leetcode-calendar__month {
-      /* width 通过 inline style 设置，这里确保字体大小 */
       font-size: 0.6rem;
+      /* width 通过 CSS 变量 --weeks 和 --leetcode-week-width 计算 */
     }
 
     .leetcode-calendar__day-label {
