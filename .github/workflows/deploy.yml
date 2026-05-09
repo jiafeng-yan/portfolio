@@ -13,8 +13,13 @@ permissions:
   pages: write
   id-token: write
 
+# 避免并发执行
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  scrape:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -60,40 +65,27 @@ jobs:
         env:
           # 需要 GH_PAT (Personal Access Token) 来获取用户贡献数据
           # 创建方法: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens
-          # 权限: 只需要 read:user
+          # 权限: 只需要 Profile: Read
           # 然后在仓库的 Settings → Secrets → Actions 中添加 GH_PAT
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Build
+        run: npm run build
 
       - name: Commit scraped data
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add src/data/leetcode.json src/data/github.json
-          git diff --quiet && git diff --staged --quiet || git commit -m "chore: update LeetCode and GitHub data [skip ci]"
-          git push
+          if git diff --staged --quiet; then
+            echo "没有更改需要提交"
+          else
+            CURRENT_DATE=$(date '+%Y-%m-%d')
+            git commit -m "chore: update LeetCode and GitHub data - $CURRENT_DATE [skip ci]"
+            git push
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build:
-    needs: scrape
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -101,11 +93,11 @@ jobs:
           path: ./dist
 
   deploy:
-    needs: build
-    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
