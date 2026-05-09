@@ -404,7 +404,7 @@ function formatDate(date: Date): string {
       <!-- GitHub Contribution Chart -->
       <div class="stats-widget stats-widget--github">
         <div class="stats-widget__header">
-          <span class="stats-widget__icon">
+          <span class="stats-widget__icon github-icon">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.05 1.77 2.745 1.275 3.42.96.105-.78.42-1.275.765-1.575-2.67-.3-5.46-1.335-5.46-5.925 0-1.335.48-2.43 1.23-3.3-.12-.3-.54-1.56.12-3.255 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.695.24 2.955.12 3.255.765.87 1.23 1.965 1.23 3.3 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
             </svg>
@@ -504,7 +504,7 @@ function formatDate(date: Date): string {
       <!-- ClustrMaps 访客地图 -->
       <div class="stats-widget stats-widget--clustrmaps">
         <div class="stats-widget__header">
-          <span class="stats-widget__icon">
+          <span class="stats-widget__icon clustrmaps-icon">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
               <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
@@ -875,13 +875,9 @@ function formatDate(date: Date): string {
       pointer-events: none;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     `;
-    if (calendarType === 'github') {
-      tooltip.style.background = 'rgba(0, 0, 0, 0.9)';
-      tooltip.style.color = 'white';
-    } else {
-      tooltip.style.background = 'linear-gradient(135deg, #ffa116 0%, #ff8c00 100%)';
-      tooltip.style.color = 'white';
-    }
+    // 统一使用黑底白字样式
+    tooltip.style.background = 'rgba(0, 0, 0, 0.9)';
+    tooltip.style.color = 'white';
     calendar.appendChild(tooltip);
 
     let activeCell: HTMLElement | null = null;
@@ -1055,14 +1051,22 @@ function formatDate(date: Date): string {
     justify-content: center;
     width: 32px;
     height: 32px;
-    background: var(--color-primary);
-    color: white;
+    background: transparent;
+    color: var(--color-text-muted);
     border-radius: var(--border-radius);
     transition: transform var(--duration-fast) var(--ease-out-expo);
   }
 
   .stats-widget:hover .stats-widget__icon {
     transform: scale(1.05);
+  }
+
+  .github-icon svg {
+    fill: currentColor;
+  }
+
+  .clustrmaps-icon svg {
+    stroke: currentColor;
   }
 
   .leetcode-icon {
@@ -1600,10 +1604,10 @@ function formatDate(date: Date): string {
     outline-offset: 1px;
   }
 
-  /* 移动端点击 tooltip */
+  /* 移动端点击 tooltip - 统一黑底白字样式 */
   .leetcode-calendar__tooltip {
     position: absolute;
-    background: linear-gradient(135deg, #ffa116 0%, #ff8c00 100%);
+    background: rgba(0, 0, 0, 0.9);
     color: white;
     padding: 8px 12px;
     border-radius: 8px;
@@ -1611,7 +1615,7 @@ function formatDate(date: Date): string {
     white-space: nowrap;
     z-index: 100;
     pointer-events: none;
-    box-shadow: 0 4px 12px rgba(255, 161, 22, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transform: translateX(0);
   }
 
@@ -1623,7 +1627,7 @@ function formatDate(date: Date): string {
     transform: translateX(-50%);
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-top: 6px solid #ff8c00;
+    border-top: 6px solid rgba(0, 0, 0, 0.9);
   }
 
   /* LeetCode 贡献等级颜色 */
