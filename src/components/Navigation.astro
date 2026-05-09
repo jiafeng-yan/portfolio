@@ -26,11 +26,28 @@ const sections = [
       ))}
     </ul>
 
-    <a href="mailto:yan.jiafeng@email.cufe.edu.cn" class="nav__cta" data-cursor-hover>
-      Contact
-    </a>
+    <button class="nav__cta" data-cursor-hover data-wechat-btn>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.045c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 01-.023-.156.49.49 0 01.201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-7.062-6.122zm-2.036 2.96c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982z"/>
+      </svg>
+      <span class="nav__cta-text">微信</span>
+    </button>
   </div>
 </nav>
+
+<!-- 微信二维码弹窗 -->
+<div class="wechat-modal" id="wechatModal" aria-hidden="true">
+  <div class="wechat-modal__overlay" data-modal-close></div>
+  <div class="wechat-modal__content">
+    <button class="wechat-modal__close" data-modal-close aria-label="关闭">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+    <h3 class="wechat-modal__title">微信扫码添加好友</h3>
+    <img src="/portfolio/wechat-qr.png" alt="微信二维码" class="wechat-modal__qr" />
+  </div>
+</div>
 
 <style>
   .nav {
@@ -111,12 +128,15 @@ const sections = [
   .nav__cta {
     display: inline-flex;
     align-items: center;
+    gap: 6px;
     padding: var(--space-sm) var(--space-md);
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--color-bg);
-    background: var(--color-text);
+    background: #07C160;
+    border: none;
     border-radius: var(--border-radius);
+    cursor: pointer;
     transition:
       transform var(--duration-fast),
       box-shadow var(--duration-fast);
@@ -125,7 +145,85 @@ const sections = [
   .nav__cta:hover,
   .nav__cta:focus-visible {
     transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 12px rgba(7, 193, 96, 0.3);
+  }
+
+  /* 微信弹窗样式 */
+  .wechat-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--duration-normal) var(--ease-out-expo),
+      visibility var(--duration-normal);
+  }
+
+  .wechat-modal.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .wechat-modal__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .wechat-modal__content {
+    position: relative;
+    background: white;
+    border-radius: var(--border-radius-lg);
+    padding: var(--space-xl);
+    max-width: 320px;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform var(--duration-normal) var(--ease-out-expo);
+  }
+
+  .wechat-modal.is-open .wechat-modal__content {
+    transform: scale(1);
+  }
+
+  .wechat-modal__close {
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-sm);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    transition: background var(--duration-fast), color var(--duration-fast);
+  }
+
+  .wechat-modal__close:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--color-text);
+  }
+
+  .wechat-modal__title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--space-md);
+    color: var(--color-text);
+  }
+
+  .wechat-modal__qr {
+    width: 200px;
+    height: auto;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
   }
 
   @media (max-width: 768px) {
@@ -140,6 +238,20 @@ const sections = [
     .nav__cta {
       font-size: 0.8rem;
       padding: 6px 12px;
+    }
+
+    .nav__cta-text {
+      display: none;
+    }
+
+    .wechat-modal__content {
+      margin: var(--space-md);
+      padding: var(--space-lg);
+    }
+
+    .wechat-modal__qr {
+      width: 180px;
+      height: auto;
     }
   }
 </style>
@@ -180,4 +292,36 @@ const sections = [
   );
 
   sections.forEach((section) => sectionObserver.observe(section));
+
+  // 微信弹窗功能
+  const wechatModal = document.getElementById('wechatModal');
+  const wechatBtns = document.querySelectorAll('[data-wechat-btn]');
+  const closeBtns = document.querySelectorAll('[data-modal-close]');
+
+  function openModal() {
+    wechatModal?.classList.add('is-open');
+    wechatModal?.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    wechatModal?.classList.remove('is-open');
+    wechatModal?.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  wechatBtns.forEach((btn) => {
+    btn.addEventListener('click', openModal);
+  });
+
+  closeBtns.forEach((btn) => {
+    btn.addEventListener('click', closeModal);
+  });
+
+  // ESC 键关闭
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && wechatModal?.classList.contains('is-open')) {
+      closeModal();
+    }
+  });
 </script>

@@ -413,7 +413,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
               <div class="github-stats__summary">
                 <div class="github-stats__summary-item">
                   <span class="github-stats__summary-value">{github.totalContributions.toLocaleString()}</span>
-                  <span class="github-stats__summary-label">总贡献</span>
+                  <span class="github-stats__summary-label">总提交</span>
                 </div>
                 <div class="github-stats__summary-item">
                   <span class="github-stats__summary-value">{github.activeDays}</span>
@@ -461,22 +461,24 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
                     </div>
                   </div>
                 </div>
-                <div class="github-calendar__scroll-hint">
-                  <span class="github-calendar__scroll-hint-text">← 滑动查看更多 →</span>
-                </div>
-                <div class="github-calendar__legend">
-                  <span class="github-calendar__legend-text">少</span>
-                  {[0, 1, 2, 3, 4].map(level => (
-                    <div class={`github-calendar__cell github-calendar__cell--level-${level}`} key={level}></div>
-                  ))}
-                  <span class="github-calendar__legend-text">多</span>
+                <div class="github-calendar__footer">
+                  <div class="github-calendar__scroll-hint" id="github-scroll-hint">
+                    <span class="github-calendar__scroll-hint-text">← 滑动查看更多 →</span>
+                  </div>
+                  <div class="github-calendar__legend">
+                    <span class="github-calendar__legend-text">少</span>
+                    {[0, 1, 2, 3, 4].map(level => (
+                      <div class={`github-calendar__cell github-calendar__cell--level-${level}`} key={level}></div>
+                    ))}
+                    <span class="github-calendar__legend-text">多</span>
+                  </div>
                 </div>
               </div>
 
               <!-- 私有仓库提示 -->
-              {github.tokenUsed && (
+              <!-- {github.tokenUsed && (
                 <p class="github-calendar__note">包含私有仓库贡献</p>
-              )}
+              )} -->
             </div>
           ) : (
             <div class="github-stats github-stats--fallback">
@@ -585,15 +587,17 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
                     </div>
                   </div>
                 </div>
-                <div class="leetcode-calendar__scroll-hint">
-                  <span class="leetcode-calendar__scroll-hint-text">← 滑动查看更多 →</span>
-                </div>
-                <div class="leetcode-calendar__legend">
-                  <span class="leetcode-calendar__legend-text">少</span>
-                  {[0, 1, 2, 3, 4].map(level => (
-                    <div class={`leetcode-calendar__cell leetcode-calendar__cell--level-${level}`} key={level}></div>
-                  ))}
-                  <span class="leetcode-calendar__legend-text">多</span>
+                <div class="leetcode-calendar__footer">
+                  <div class="leetcode-calendar__scroll-hint" id="leetcode-scroll-hint">
+                    <span class="leetcode-calendar__scroll-hint-text">← 滑动查看更多 →</span>
+                  </div>
+                  <div class="leetcode-calendar__legend">
+                    <span class="leetcode-calendar__legend-text">少</span>
+                    {[0, 1, 2, 3, 4].map(level => (
+                      <div class={`leetcode-calendar__cell leetcode-calendar__cell--level-${level}`} key={level}></div>
+                    ))}
+                    <span class="leetcode-calendar__legend-text">多</span>
+                  </div>
                 </div>
               </div>
 
@@ -738,15 +742,42 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
 
     const scrollHint = document.querySelector(`.${type}-calendar__scroll-hint`);
     let hintHidden = false;
+    let hintTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    scrollContainer.addEventListener('scroll', () => {
-      if (!hintHidden && scrollHint) {
+    const hideHint = () => {
+      if (scrollHint) {
         scrollHint.style.opacity = '0';
         setTimeout(() => {
           scrollHint.style.display = 'none';
         }, 300);
+      }
+    };
+
+    const showHint = () => {
+      if (scrollHint) {
+        scrollHint.style.display = 'flex';
+        setTimeout(() => {
+          scrollHint.style.opacity = '1';
+        }, 10);
+      }
+    };
+
+    scrollContainer.addEventListener('scroll', () => {
+      if (!hintHidden) {
+        hideHint();
         hintHidden = true;
       }
+
+      // 清除之前的定时器
+      if (hintTimeout) {
+        clearTimeout(hintTimeout);
+      }
+
+      // 停止滚动 5 秒后重新显示提示
+      hintTimeout = setTimeout(() => {
+        showHint();
+        hintHidden = false;
+      }, 5000);
     });
 
     let isDown = false;
@@ -1101,9 +1132,22 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
     background: rgba(0, 0, 0, 0.3);
   }
 
+  .github-calendar__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 8px;
+    gap: 8px;
+    position: relative;
+  }
+
   .github-calendar__scroll-hint {
-    text-align: center;
-    padding: 4px 0;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: opacity 0.3s ease;
   }
 
@@ -1242,7 +1286,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
     align-items: center;
     justify-content: flex-end;
     gap: 4px;
-    margin-top: 8px;
+    flex-shrink: 0;
   }
 
   .github-calendar__legend-text {
@@ -1370,9 +1414,22 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
     background: rgba(184, 112, 74, 0.5);
   }
 
+  .leetcode-calendar__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 8px;
+    gap: 8px;
+    position: relative;
+  }
+
   .leetcode-calendar__scroll-hint {
-    text-align: center;
-    padding: 4px 0;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: opacity 0.3s ease;
   }
 
@@ -1511,7 +1568,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
     align-items: center;
     justify-content: flex-end;
     gap: 4px;
-    margin-top: 8px;
+    flex-shrink: 0;
   }
 
   .leetcode-calendar__legend-text {
