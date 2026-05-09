@@ -455,6 +455,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
                           key={i}
                           title={`${cell.date.toLocaleDateString('zh-CN')}: ${cell.count} 次贡献`}
                           data-count={cell.count}
+                          data-date={cell.date.toLocaleDateString('zh-CN')}
                         ></div>
                       ))}
                     </div>
@@ -578,6 +579,7 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
                           key={i}
                           title={`${cell.date.toLocaleDateString('zh-CN')}: ${cell.count} 题`}
                           data-count={cell.count}
+                          data-date={cell.date.toLocaleDateString('zh-CN')}
                         ></div>
                       ))}
                     </div>
@@ -774,6 +776,90 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
       const x = e.pageX - scrollContainer.offsetLeft;
       const walk = (x - startX) * 1.5;
       scrollContainer.scrollLeft = scrollLeftPos - walk;
+    });
+  }
+
+  // 移动端点击弹出 tooltip
+  function setupMobileTooltip(calendarType: 'github' | 'leetcode') {
+    const grid = document.getElementById(`${calendarType}-calendar-grid`);
+    if (!grid) return;
+
+    // 创建 tooltip 元素
+    const tooltip = document.createElement('div');
+    tooltip.className = `${calendarType}-calendar__tooltip`;
+    tooltip.style.display = 'none';
+    grid.parentElement?.parentElement?.appendChild(tooltip);
+
+    let activeCell: HTMLElement | null = null;
+
+    // 点击格子显示 tooltip
+    grid.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (!target.classList.contains(`${calendarType}-calendar__cell`)) return;
+
+      const date = target.dataset.date;
+      const count = target.dataset.count;
+
+      if (!date || !count) return;
+
+      // 如果点击的是同一个格子，隐藏 tooltip
+      if (activeCell === target && tooltip.style.display !== 'none') {
+        tooltip.style.display = 'none';
+        activeCell = null;
+        return;
+      }
+
+      // 更新 tooltip 内容
+      const unit = calendarType === 'github' ? '次贡献' : '题';
+      tooltip.textContent = `${date}: ${count} ${count === '0' ? '' : unit}`;
+
+      // 计算 tooltip 位置
+      const cellRect = target.getBoundingClientRect();
+      const gridRect = grid.getBoundingClientRect();
+
+      // 显示 tooltip
+      tooltip.style.display = 'block';
+      activeCell = target;
+
+      // 使用 CSS 定位，让 tooltip 在格子上方居中
+      const cellLeft = cellRect.left - gridRect.left;
+      const cellWidth = cellRect.width;
+      const tooltipWidth = tooltip.offsetWidth;
+
+      tooltip.style.left = `${cellLeft + cellWidth / 2 - tooltipWidth / 2}px`;
+      tooltip.style.top = `${cellRect.top - gridRect.top - tooltip.offsetHeight - 8}px`;
+    });
+
+    // 点击其他区域隐藏 tooltip
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (!target.classList.contains(`${calendarType}-calendar__cell`) && tooltip.style.display !== 'none') {
+        tooltip.style.display = 'none';
+        activeCell = null;
+      }
+    });
+
+    // 滚动时隐藏 tooltip
+    const scrollContainer = grid.closest(`${calendarType}-calendar__scroll-container`);
+    scrollContainer?.addEventListener('scroll', () => {
+      if (tooltip.style.display !== 'none') {
+        tooltip.style.display = 'none';
+        activeCell = null;
+      }
+    });
+  }
+
+  // 检测是否为移动设备（触摸设备）
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  // 始终设置 tooltip，但只在触摸设备上显示
+  setupMobileTooltip('github');
+  setupMobileTooltip('leetcode');
+
+  // 如果不是触摸设备，隐藏 tooltip 元素（使用 hover 的 title 属性）
+  if (!isTouchDevice) {
+    document.querySelectorAll('.github-calendar__tooltip, .leetcode-calendar__tooltip').forEach(el => {
+      el.remove();
     });
   }
 </script>
@@ -1105,6 +1191,31 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
     outline-offset: 1px;
   }
 
+  /* 移动端点击 tooltip */
+  .github-calendar__tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .github-calendar__tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid rgba(0, 0, 0, 0.85);
+  }
+
   /* GitHub 贡献等级颜色 */
   .github-calendar__cell--level-0 {
     background-color: #ebedf0;
@@ -1347,6 +1458,31 @@ const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
   .leetcode-calendar__cell:hover {
     outline: 1px solid #ffa116;
     outline-offset: 1px;
+  }
+
+  /* 移动端点击 tooltip */
+  .leetcode-calendar__tooltip {
+    position: absolute;
+    background: rgba(255, 161, 22, 0.95);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(255, 161, 22, 0.3);
+  }
+
+  .leetcode-calendar__tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid rgba(255, 161, 22, 0.95);
   }
 
   /* LeetCode 贡献等级颜色 */
