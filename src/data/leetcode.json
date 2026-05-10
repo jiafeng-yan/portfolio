@@ -3,15 +3,15 @@
   "solvedCount": 2331,
   "totalQuestions": 3500,
   "easySolved": 710,
-  "easyTotal": 1061,
+  "easyTotal": 1063,
   "mediumSolved": 1260,
-  "mediumTotal": 2248,
+  "mediumTotal": 2252,
   "hardSolved": 361,
-  "hardTotal": 999,
-  "ranking": 672,
+  "hardTotal": 1001,
+  "ranking": 668,
   "contributionPoints": 0,
-  "totalActiveDays": 1028,
-  "recentYearActiveDays": 99,
+  "totalActiveDays": 1029,
+  "recentYearActiveDays": 100,
   "currentStreak": 17,
   "maxStreak": 73,
   "activeYears": [
@@ -39,7 +39,7 @@
       "streak": 63
     },
     "2026": {
-      "totalActiveDays": 99,
+      "totalActiveDays": 100,
       "streak": 17
     }
   },
@@ -1071,7 +1071,8 @@
     "1778025600": 6,
     "1778112000": 3,
     "1778198400": 2,
-    "1778284800": 3
+    "1778284800": 3,
+    "1778371200": 1
   },
-  "scrapedAt": "2026-05-09T16:59:42.096Z"
+  "scrapedAt": "2026-05-10T07:35:15.327Z"
 }
