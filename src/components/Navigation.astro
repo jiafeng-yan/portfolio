@@ -261,6 +261,9 @@ const sections = [
   const navLinks = document.querySelectorAll('[data-nav-link]');
   const sections = document.querySelectorAll('[data-section]');
 
+  const abortController = new AbortController();
+  const { signal } = abortController;
+
   // Show nav after scrolling past hero
   const observer = new IntersectionObserver(
     (entries) => {
@@ -293,7 +296,7 @@ const sections = [
 
   sections.forEach((section) => sectionObserver.observe(section));
 
-  // 微信弹窗功能
+  // WeChat modal functionality
   const wechatModal = document.getElementById('wechatModal');
   const wechatBtns = document.querySelectorAll('[data-wechat-btn]');
   const closeBtns = document.querySelectorAll('[data-modal-close]');
@@ -311,17 +314,23 @@ const sections = [
   }
 
   wechatBtns.forEach((btn) => {
-    btn.addEventListener('click', openModal);
+    btn.addEventListener('click', openModal, { signal });
   });
 
   closeBtns.forEach((btn) => {
-    btn.addEventListener('click', closeModal);
+    btn.addEventListener('click', closeModal, { signal });
   });
 
-  // ESC 键关闭
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && wechatModal?.classList.contains('is-open')) {
       closeModal();
     }
-  });
+  }, { signal });
+
+  // Cleanup on navigation
+  document.addEventListener('astro:before-preparation', () => {
+    observer.disconnect();
+    sectionObserver.disconnect();
+    abortController.abort();
+  }, { once: true });
 </script>

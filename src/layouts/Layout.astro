@@ -8,6 +8,7 @@ interface Props {
 
 const { title, description = '闫家锋 - 中央财经大学计算机科学与技术本科生，关注图像融合、计算机视觉、多模态学习与检索增强系统。已保研，AAAI 2026 Poster 作者。' } = Astro.props;
 const base = import.meta.env.BASE_URL;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!DOCTYPE html>
@@ -19,11 +20,14 @@ const base = import.meta.env.BASE_URL;
     <meta name="author" content="闫家锋" />
     <meta name="keywords" content="闫家锋,计算机视觉,图像融合,多模态,RAG,AAAI,中央财经大学,保研" />
 
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonicalURL} />
+
     <!-- Open Graph -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://jiafeng-yan.github.io/portfolio/" />
+    <meta property="og:url" content={canonicalURL} />
 
     <!-- Favicon as Data URI to avoid path issues with base URL -->
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Ccircle cx='16' cy='16' r='14' stroke='%235a5652' stroke-width='1.5'/%3E%3Ctext x='16' y='20' text-anchor='middle' font-size='12' font-weight='600' fill='%235a5652'%3EJF%3C/text%3E%3C/svg%3E" type="image/svg+xml" />

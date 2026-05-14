@@ -679,14 +679,27 @@ function formatDate(date: Date): string {
   // 统计组件初始化脚本
 
   document.addEventListener('DOMContentLoaded', () => {
+    const abortController = new AbortController();
+    const { signal } = abortController;
+
+    // Astro View Transitions cleanup
+    document.addEventListener('astro:before-preparation', () => {
+      abortController.abort();
+    }, { once: true });
+
     // 初始化 GitHub 贡献图滑动功能
-    initCalendarScroll('github');
+    initCalendarScroll('github', signal);
     // 初始化 LeetCode 贡献图滑动功能
-    initCalendarScroll('leetcode');
+    initCalendarScroll('leetcode', signal);
+    // 设置移动端 tooltip
+    setupMobileTooltip('github', signal);
+    setupMobileTooltip('leetcode', signal);
+    // 动态标记"今天"的单元格
+    highlightTodayCells();
   });
 
   // 通用的日历滑动初始化函数
-  function initCalendarScroll(type: string) {
+  function initCalendarScroll(type: string, signal: AbortSignal) {
     const scrollContainer = document.getElementById(`${type}-scroll-container`);
     const yearsContainer = document.getElementById(`${type}-calendar-years`);
     const grid = document.getElementById(`${type}-calendar-grid`);
@@ -716,7 +729,7 @@ function formatDate(date: Date): string {
     // 监听窗口尺寸变化，重新计算月份宽度
     window.addEventListener('resize', () => {
       updateMonthWidths();
-    });
+    }, { signal });
 
     const yearElements = yearsContainer.querySelectorAll(`.${type}-calendar__year`);
 
@@ -734,11 +747,13 @@ function formatDate(date: Date): string {
     let lastScrollLeft = -1;
 
     function updateYearPositions() {
-      const scrollLeft = scrollContainer!.scrollLeft;
+      if (!scrollContainer) return;
+      
+      const scrollLeft = scrollContainer.scrollLeft;
       if (scrollLeft === lastScrollLeft) return;
       lastScrollLeft = scrollLeft;
 
-      const containerWidth = scrollContainer!.clientWidth;
+      const containerWidth = scrollContainer.clientWidth;
       const calendar = document.querySelector(`.${type}-calendar`);
       if (!calendar) return;
 
@@ -776,11 +791,12 @@ function formatDate(date: Date): string {
       });
     }
 
-    scrollContainer.addEventListener('scroll', scheduleUpdate, { passive: true });
+    scrollContainer.addEventListener('scroll', scheduleUpdate, { passive: true, signal });
     updateYearPositions();
 
     setTimeout(() => {
-      scrollContainer!.scrollLeft = scrollContainer!.scrollWidth;
+      if (!scrollContainer) return;
+      scrollContainer.scrollLeft = scrollContainer.scrollWidth;
       updateYearPositions();
     }, 100);
 
@@ -822,7 +838,7 @@ function formatDate(date: Date): string {
         showHint();
         hintHidden = false;
       }, 5000);
-    });
+    }, { signal });
 
     let isDown = false;
     let startX = 0;
@@ -833,17 +849,17 @@ function formatDate(date: Date): string {
       scrollContainer.style.cursor = 'grabbing';
       startX = e.pageX - scrollContainer.offsetLeft;
       scrollLeftPos = scrollContainer.scrollLeft;
-    });
+    }, { signal });
 
     scrollContainer.addEventListener('mouseleave', () => {
       isDown = false;
       scrollContainer.style.cursor = 'grab';
-    });
+    }, { signal });
 
     scrollContainer.addEventListener('mouseup', () => {
       isDown = false;
       scrollContainer.style.cursor = 'grab';
-    });
+    }, { signal });
 
     scrollContainer.addEventListener('mousemove', (e) => {
       if (!isDown) return;
@@ -851,11 +867,11 @@ function formatDate(date: Date): string {
       const x = e.pageX - scrollContainer.offsetLeft;
       const walk = (x - startX) * 1.5;
       scrollContainer.scrollLeft = scrollLeftPos - walk;
-    });
+    }, { signal });
   }
 
   // 移动端点击弹出 tooltip
-  function setupMobileTooltip(calendarType: 'github' | 'leetcode') {
+  function setupMobileTooltip(calendarType: 'github' | 'leetcode', signal: AbortSignal) {
     const calendar = document.getElementById(`${calendarType}-calendar`);
     const grid = document.getElementById(`${calendarType}-calendar-grid`);
     if (!grid || !calendar) return;
@@ -934,7 +950,7 @@ function formatDate(date: Date): string {
 
       tooltip.style.left = `${tooltipLeft}px`;
       tooltip.style.top = `${tooltipTop}px`;
-    });
+    }, { signal });
 
     // 点击其他区域隐藏 tooltip
     document.addEventListener('click', (e) => {
@@ -943,7 +959,7 @@ function formatDate(date: Date): string {
         tooltip.style.display = 'none';
         activeCell = null;
       }
-    });
+    }, { signal });
 
     // 滚动时隐藏 tooltip
     const scrollContainer = grid.closest(`.${calendarType}-calendar__scroll-container`);
@@ -952,22 +968,7 @@ function formatDate(date: Date): string {
         tooltip.style.display = 'none';
         activeCell = null;
       }
-    });
-  }
-
-  // 检测是否为移动设备（触摸设备）
-  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
-  // 始终设置 tooltip
-  setupMobileTooltip('github');
-  setupMobileTooltip('leetcode');
-
-  // 如果不是触摸设备，隐藏 tooltip 元素（使用 hover 的 title 属性）
-  // 但不删除 tooltip，以便在触摸设备切换时可用
-  if (!isTouchDevice) {
-    document.querySelectorAll('.github-calendar__tooltip, .leetcode-calendar__tooltip').forEach(el => {
-      (el as HTMLElement).style.display = 'none';
-    });
+    }, { signal });
   }
 
   // 动态标记"今天"的单元格（使用客户端本地时间）
@@ -993,9 +994,6 @@ function formatDate(date: Date): string {
       }
     });
   }
-
-  // 在 DOM 加载完成后执行
-  highlightTodayCells();
 </script>
 
 <style>

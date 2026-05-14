@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^5.0.4",
+    "@astrojs/sitemap": "^3.7.2",
     "@gsap/react": "^2.1.1",
     "@paper-design/shaders-react": "^0.0.11",
     "astro": "^6.1.10",
@@ -23,9 +24,17 @@
     "@puppeteer/browsers": "^2.13.1",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.21",
     "cosmiconfig": "^9.0.1",
     "devtools-protocol": "^0.0.1627472",
+    "postcss": "^8.5.3",
     "puppeteer": "^24.0.0",
     "typescript": "^5.0.0"
-  }
+  },
+  "browserslist": [
+    ">0.5%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
 }

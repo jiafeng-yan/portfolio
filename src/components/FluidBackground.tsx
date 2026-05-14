@@ -292,7 +292,7 @@ export function FluidBackground() {
     };
 
     resize();
-    animate(0);
+    animate();
 
     window.addEventListener('resize', resize);
     window.addEventListener('mousemove', handleMouseMove);

@@ -1,0 +1,51 @@
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), interest-cohort=()
+
+/portfolio/
+  Cache-Control: no-cache
+
+/portfolio/*.html
+  Cache-Control: no-cache
+
+/portfolio/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/portfolio/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/portfolio/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/portfolio/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+/portfolio/*.woff
+  Cache-Control: public, max-age=31536000, immutable
+
+/portfolio/*.ttf
+  Cache-Control: public, max-age=31536000, immutable
+
+/portfolio/*.png
+  Cache-Control: public, max-age=86400
+
+/portfolio/*.svg
+  Cache-Control: public, max-age=86400
+
+/portfolio/*.jpg
+  Cache-Control: public, max-age=86400
+
+/portfolio/*.jpeg
+  Cache-Control: public, max-age=86400
+
+/portfolio/*.gif
+  Cache-Control: public, max-age=86400
+
+/portfolio/*.webp
+  Cache-Control: public, max-age=86400
+
+/portfolio/src/data/*.json
+  Cache-Control: public, max-age=21600

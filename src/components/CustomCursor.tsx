@@ -226,7 +226,17 @@ export function CustomCursor() {
     window.addEventListener('pointerup', handleDragEnd);
 
     // Add hover effects to interactive elements
+    const removeHoverListeners = () => {
+      const interactiveElements = document.querySelectorAll('a, button, [data-cursor-hover], input, textarea, [contenteditable="true"], [data-draggable], .github-calendar__scroll-container, .leetcode-calendar__scroll-container');
+      interactiveElements.forEach(el => {
+        el.removeEventListener('mouseenter', handleMouseEnter);
+        el.removeEventListener('mouseleave', handleMouseLeave);
+      });
+    };
+
     const addHoverListeners = () => {
+      // Remove old listeners first to prevent duplicates
+      removeHoverListeners();
       const interactiveElements = document.querySelectorAll('a, button, [data-cursor-hover], input, textarea, [contenteditable="true"], [data-draggable], .github-calendar__scroll-container, .leetcode-calendar__scroll-container');
       interactiveElements.forEach(el => {
         el.addEventListener('mouseenter', handleMouseEnter);
@@ -247,6 +257,7 @@ export function CustomCursor() {
       window.removeEventListener('mouseup', handleMouseUp);
       window.removeEventListener('pointermove', handleDragMove);
       window.removeEventListener('pointerup', handleDragEnd);
+      removeHoverListeners();
       observer.disconnect();
     };
   }, []);
