@@ -389,14 +389,6 @@ function formatDate(date: Date): string {
   const day = String(date.getUTCDate()).padStart(2, '0');
   return `${year}/${month}/${day}`;
 }
-
-// 检测是否是今天（使用 UTC 时间）
-function isToday(date: Date): boolean {
-  const today = new Date();
-  return date.getUTCFullYear() === today.getUTCFullYear() &&
-         date.getUTCMonth() === today.getUTCMonth() &&
-         date.getUTCDate() === today.getUTCDate();
-}
 ---
 
 <section class="stats-widgets" id="stats" aria-labelledby="stats-title">
@@ -466,14 +458,14 @@ function isToday(date: Date): boolean {
                     </div>
                     <div class="github-calendar__grid" id="github-calendar-grid" data-weeks={githubWeeksCount}>
 {githubCalendar.map((cell, i) => (
-                         <div
-                           class={`github-calendar__cell github-calendar__cell--level-${cell.level}${isToday(cell.date) ? ' github-calendar__cell--today' : ''}`}
-                           key={i}
-                           title={`${formatDate(cell.date)}: ${cell.count} 次贡献`}
-                           data-count={cell.count}
-                           data-date={formatDate(cell.date)}
-                         ></div>
-                       ))}
+                          <div
+                            class={`github-calendar__cell github-calendar__cell--level-${cell.level}`}
+                            key={i}
+                            title={`${formatDate(cell.date)}: ${cell.count} 次贡献`}
+                            data-count={cell.count}
+                            data-date={formatDate(cell.date)}
+                          ></div>
+                        ))}
                     </div>
                   </div>
                 </div>
@@ -592,14 +584,14 @@ function isToday(date: Date): boolean {
                     </div>
                     <div class="leetcode-calendar__grid" id="leetcode-calendar-grid" data-weeks={leetcodeWeeksCount}>
 {leetcodeCalendar.map((cell, i) => (
-                         <div
-                           class={`leetcode-calendar__cell leetcode-calendar__cell--level-${cell.level}${isToday(cell.date) ? ' leetcode-calendar__cell--today' : ''}`}
-                           key={i}
-                           title={`${formatDate(cell.date)}: ${cell.count} 题`}
-                           data-count={cell.count}
-                           data-date={formatDate(cell.date)}
-                         ></div>
-                       ))}
+                          <div
+                            class={`leetcode-calendar__cell leetcode-calendar__cell--level-${cell.level}`}
+                            key={i}
+                            title={`${formatDate(cell.date)}: ${cell.count} 题`}
+                            data-count={cell.count}
+                            data-date={formatDate(cell.date)}
+                          ></div>
+                        ))}
                     </div>
                   </div>
                 </div>
@@ -977,6 +969,33 @@ function isToday(date: Date): boolean {
       (el as HTMLElement).style.display = 'none';
     });
   }
+
+  // 动态标记"今天"的单元格（使用客户端本地时间）
+  function highlightTodayCells() {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
+    
+    // GitHub 日历
+    const githubCells = document.querySelectorAll('.github-calendar__cell');
+    githubCells.forEach(cell => {
+      const dateStr = (cell as HTMLElement).dataset.date;
+      if (dateStr === todayStr) {
+        cell.classList.add('github-calendar__cell--today');
+      }
+    });
+    
+    // LeetCode 日历
+    const leetcodeCells = document.querySelectorAll('.leetcode-calendar__cell');
+    leetcodeCells.forEach(cell => {
+      const dateStr = (cell as HTMLElement).dataset.date;
+      if (dateStr === todayStr) {
+        cell.classList.add('leetcode-calendar__cell--today');
+      }
+    });
+  }
+
+  // 在 DOM 加载完成后执行
+  highlightTodayCells();
 </script>
 
 <style>
