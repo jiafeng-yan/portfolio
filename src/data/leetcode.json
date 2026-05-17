@@ -3,11 +3,11 @@
   "solvedCount": 2336,
   "totalQuestions": 3500,
   "easySolved": 712,
-  "easyTotal": 1063,
+  "easyTotal": 1064,
   "mediumSolved": 1261,
-  "mediumTotal": 2252,
+  "mediumTotal": 2254,
   "hardSolved": 363,
-  "hardTotal": 1003,
+  "hardTotal": 1004,
   "ranking": 666,
   "contributionPoints": 0,
   "totalActiveDays": 1036,
@@ -1081,5 +1081,5 @@
     "1778889600": 1,
     "1778976000": 1
   },
-  "scrapedAt": "2026-05-17T02:32:21.289Z"
+  "scrapedAt": "2026-05-17T06:51:07.426Z"
 }
