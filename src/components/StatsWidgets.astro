@@ -55,11 +55,18 @@ function generateGitHubCalendar(contributions: Record<string, number>) {
     return [];
   }
 
+  // 计算最早的日期（从数据中获取）
   const earliestTimestamp = timestamps[0];
-  const latestTimestamp = timestamps[timestamps.length - 1];
-
   const earliestDate = new Date(earliestTimestamp * 1000);
-  const latestDate = new Date(latestTimestamp * 1000);
+
+  // 计算结束日期（使用当前日期，而不是数据中的最新日期）
+  // 这样即使数据未更新，也会显示到今天
+  const today = new Date();
+  const latestDate = new Date(Date.UTC(
+    today.getUTCFullYear(),
+    today.getUTCMonth(),
+    today.getUTCDate()
+  ));
 
   const startDate = new Date(Date.UTC(
     earliestDate.getUTCFullYear(),
@@ -207,12 +214,18 @@ function generateLeetCodeCalendar(calendar: Record<string, number>) {
     return [];
   }
 
-  // 计算最早和最晚的日期
+  // 计算最早的日期（从数据中获取）
   const earliestTimestamp = timestamps[0];
-  const latestTimestamp = timestamps[timestamps.length - 1];
-
   const earliestDate = new Date(earliestTimestamp * 1000);
-  const latestDate = new Date(latestTimestamp * 1000);
+
+  // 计算结束日期（使用当前日期，而不是数据中的最新日期）
+  // 这样即使数据未更新，也会显示到今天
+  const today = new Date();
+  const latestDate = new Date(Date.UTC(
+    today.getUTCFullYear(),
+    today.getUTCMonth(),
+    today.getUTCDate()
+  ));
 
   // 计算起始日期（调整到周日）
   const startDate = new Date(Date.UTC(
