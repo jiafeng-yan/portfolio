@@ -103,9 +103,9 @@ function generateGitHubCalendar(contributions: Record<string, number>) {
 
       let level = 0;
       if (count > 0) level = 1;
-      if (count >= 4) level = 2;
-      if (count >= 8) level = 3;
-      if (count >= 12) level = 4;
+      if (count >= 2) level = 2;
+      if (count >= 4) level = 3;
+      if (count >= 8) level = 4;
 
       cells.push({ date: cellDate, count, level });
     }
@@ -267,9 +267,9 @@ function generateLeetCodeCalendar(calendar: Record<string, number>) {
       // 计算颜色等级 (0-4)
       let level = 0;
       if (count > 0) level = 1;
-      if (count >= 4) level = 2;
-      if (count >= 8) level = 3;
-      if (count >= 12) level = 4;
+      if (count >= 2) level = 2;
+      if (count >= 4) level = 3;
+      if (count >= 8) level = 4;
 
       cells.push({ date: cellDate, count, level });
     }
@@ -488,9 +488,16 @@ function formatDate(date: Date): string {
                   </div>
                   <div class="github-calendar__legend">
                     <span class="github-calendar__legend-text">少</span>
-                    {[0, 1, 2, 3, 4].map(level => (
-                      <div class={`github-calendar__cell github-calendar__cell--level-${level}`} key={level}></div>
-                    ))}
+                    {[0, 1, 2, 3, 4].map(level => {
+                      const thresholds = ['0', '1', '2', '4', '8'];
+                      return (
+                        <div 
+                          class={`github-calendar__cell github-calendar__cell--level-${level}`} 
+                          key={level}
+                          data-threshold={thresholds[level]}
+                        ></div>
+                      );
+                    })}
                     <span class="github-calendar__legend-text">多</span>
                   </div>
                 </div>
@@ -614,9 +621,16 @@ function formatDate(date: Date): string {
                   </div>
                   <div class="leetcode-calendar__legend">
                     <span class="leetcode-calendar__legend-text">少</span>
-                    {[0, 1, 2, 3, 4].map(level => (
-                      <div class={`leetcode-calendar__cell leetcode-calendar__cell--level-${level}`} key={level}></div>
-                    ))}
+                    {[0, 1, 2, 3, 4].map(level => {
+                      const thresholds = ['0', '1', '2', '4', '8'];
+                      return (
+                        <div 
+                          class={`leetcode-calendar__cell leetcode-calendar__cell--level-${level}`} 
+                          key={level}
+                          data-threshold={thresholds[level]}
+                        ></div>
+                      );
+                    })}
                     <span class="leetcode-calendar__legend-text">多</span>
                   </div>
                 </div>
@@ -1447,6 +1461,21 @@ function formatDate(date: Date): string {
   .github-calendar__legend .github-calendar__cell {
     width: 10px;
     height: 10px;
+    position: relative;
+  }
+
+  .github-calendar__legend .github-calendar__cell::before {
+    content: attr(data-threshold);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 7px;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.6);
+    line-height: 1;
+    pointer-events: none;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.9);
   }
 
   .github-calendar__note {
@@ -1757,6 +1786,21 @@ function formatDate(date: Date): string {
   .leetcode-calendar__legend .leetcode-calendar__cell {
     width: 10px;
     height: 10px;
+    position: relative;
+  }
+
+  .leetcode-calendar__legend .leetcode-calendar__cell::before {
+    content: attr(data-threshold);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 7px;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.6);
+    line-height: 1;
+    pointer-events: none;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.9);
   }
 
   /* 进度条样式 */
