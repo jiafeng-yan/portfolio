@@ -47,351 +47,156 @@ const github = githubData as {
   tokenUsed: boolean;
 };
 
-// 生成 GitHub 贡献图数据（所有历史数据）
-function generateGitHubCalendar(contributions: Record<string, number>) {
-  const timestamps = Object.keys(contributions).map(Number).sort((a, b) => a - b);
+type CalendarCell = {
+  date: Date;
+  count: number;
+  level: number;
+  column: number;
+  row: number;
+};
 
-  if (timestamps.length === 0) {
-    return [];
-  }
+type CalendarMonthGroup = {
+  label: string;
+  year: number;
+  month: number;
+  index: number;
+  columns: number;
+  cells: CalendarCell[];
+};
 
-  // 计算最早的日期（从数据中获取）
-  const earliestTimestamp = timestamps[0];
-  const earliestDate = new Date(earliestTimestamp * 1000);
+type CalendarYearLabel = {
+  label: string;
+  year: number;
+  startMonthIndex: number;
+  endMonthIndex: number;
+};
 
-  // 计算结束日期（使用当前日期，而不是数据中的最新日期）
-  // 这样即使数据未更新，也会显示到今天
+type CalendarResult = {
+  months: CalendarMonthGroup[];
+  totalColumns: number;
+};
+
+function getTodayUtcDate() {
   const today = new Date();
-  const latestDate = new Date(Date.UTC(
+  return new Date(Date.UTC(
     today.getUTCFullYear(),
     today.getUTCMonth(),
     today.getUTCDate()
   ));
-
-  const startDate = new Date(Date.UTC(
-    earliestDate.getUTCFullYear(),
-    earliestDate.getUTCMonth(),
-    earliestDate.getUTCDate()
-  ));
-  startDate.setUTCDate(startDate.getUTCDate() - startDate.getUTCDay());
-
-  const endDate = new Date(Date.UTC(
-    latestDate.getUTCFullYear(),
-    latestDate.getUTCMonth(),
-    latestDate.getUTCDate()
-  ));
-  endDate.setUTCDate(endDate.getUTCDate() + (6 - endDate.getUTCDay()));
-
-  const daysDiff = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  const weeksCount = Math.ceil((daysDiff + 1) / 7);
-
-  const daysPerWeek = 7;
-  const cells: { date: Date; count: number; level: number }[] = [];
-
-  for (let w = 0; w < weeksCount; w++) {
-    for (let d = 0; d < daysPerWeek; d++) {
-      const cellDate = new Date(startDate);
-      cellDate.setUTCDate(cellDate.getUTCDate() + w * 7 + d);
-
-      const timestamp = Math.floor(Date.UTC(
-        cellDate.getUTCFullYear(),
-        cellDate.getUTCMonth(),
-        cellDate.getUTCDate()
-      ) / 1000);
-
-      const count = contributions[timestamp.toString()] || 0;
-
-      let level = 0;
-      if (count > 0) level = 1;
-      if (count >= 2) level = 2;
-      if (count >= 4) level = 3;
-      if (count >= 8) level = 4;
-
-      cells.push({ date: cellDate, count, level });
-    }
-  }
-
-  return { cells, weeksCount };
 }
 
-// GitHub 月份标签
-function getGitHubMonthLabels(weeksCount: number, contributions: Record<string, number>) {
-  const timestamps = Object.keys(contributions).map(Number).sort((a, b) => a - b);
-
-  if (timestamps.length === 0) {
-    return [];
-  }
-
-  const earliestTimestamp = timestamps[0];
-  const earliestDate = new Date(earliestTimestamp * 1000);
-
-  const startDate = new Date(Date.UTC(
-    earliestDate.getUTCFullYear(),
-    earliestDate.getUTCMonth(),
-    earliestDate.getUTCDate()
-  ));
-  startDate.setUTCDate(startDate.getUTCDate() - startDate.getUTCDay());
-
-  const months: { label: string; weekIndex: number; year: number; weeks: number }[] = [];
-
-  let currentMonth = -1;
-  let currentYear = -1;
-  let prevWeekIndex = 0;
-
-  for (let w = 0; w < weeksCount; w++) {
-    const weekDate = new Date(startDate);
-    weekDate.setUTCDate(weekDate.getUTCDate() + w * 7);
-
-    const month = weekDate.getUTCMonth();
-    const year = weekDate.getUTCFullYear();
-
-    if (month !== currentMonth || year !== currentYear) {
-      if (currentMonth !== -1) {
-        const lastMonthWeeks = w - prevWeekIndex;
-        months[months.length - 1].weeks = lastMonthWeeks;
-      }
-      currentMonth = month;
-      currentYear = year;
-      prevWeekIndex = w;
-      const monthName = weekDate.toLocaleDateString('zh-CN', { month: 'short' });
-      months.push({
-        label: monthName,
-        weekIndex: w,
-        year: year,
-        weeks: 0
-      });
-    }
-  }
-
-  if (months.length > 0) {
-    months[months.length - 1].weeks = weeksCount - prevWeekIndex;
-  }
-
-  return months;
+function getContributionLevel(count: number) {
+  if (count >= 8) return 4;
+  if (count >= 4) return 3;
+  if (count >= 2) return 2;
+  if (count > 0) return 1;
+  return 0;
 }
 
-// GitHub 年份标签
-function getGitHubYearLabels(monthLabels: { label: string; weekIndex: number; year: number; weeks: number }[], weeksCount: number) {
-  const years: { label: string; weekIndex: number; weeks: number; startPx: number; endPx: number }[] = [];
-  let currentYear = -1;
-  let yearStartWeekIndex = 0;
-
-  for (let i = 0; i < monthLabels.length; i++) {
-    const month = monthLabels[i];
-    if (month.year !== currentYear) {
-      if (currentYear !== -1) {
-        const lastYearWeeks = month.weekIndex - yearStartWeekIndex;
-        years[years.length - 1].weeks = lastYearWeeks;
-        years[years.length - 1].endPx = month.weekIndex * 12 + 18; // 结束位置 = 下一年起始位置
-      }
-      currentYear = month.year;
-      yearStartWeekIndex = month.weekIndex;
-      years.push({
-        label: `${month.year}年`,
-        weekIndex: month.weekIndex,
-        weeks: 0,
-        startPx: month.weekIndex * 12 + 18, // 起始位置 = 周索引 × 12px + padding-left(18px)
-        endPx: 0
-      });
-    }
-  }
-
-  if (years.length > 0) {
-    years[years.length - 1].weeks = weeksCount - yearStartWeekIndex;
-    years[years.length - 1].endPx = weeksCount * 12 + 18;
-  }
-
-  return years;
+function getUtcTimestamp(date: Date) {
+  return Math.floor(Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate()
+  ) / 1000);
 }
 
-// 生成 LeetCode 贡献图数据（所有历史数据）
-function generateLeetCodeCalendar(calendar: Record<string, number>) {
-  // 获取日历数据中的所有时间戳
+// 生成按自然月份分组的瓷砖墙数据：只到今天，不渲染未来日期。
+function generateCalendarMonths(calendar: Record<string, number>): CalendarResult | null {
   const timestamps = Object.keys(calendar).map(Number).sort((a, b) => a - b);
 
   if (timestamps.length === 0) {
-    // 如果没有数据，返回空数组
-    return [];
+    return null;
   }
 
-  // 计算最早的日期（从数据中获取）
-  const earliestTimestamp = timestamps[0];
-  const earliestDate = new Date(earliestTimestamp * 1000);
-
-  // 计算结束日期（使用当前日期，而不是数据中的最新日期）
-  // 这样即使数据未更新，也会显示到今天
-  const today = new Date();
-  const latestDate = new Date(Date.UTC(
-    today.getUTCFullYear(),
-    today.getUTCMonth(),
-    today.getUTCDate()
-  ));
-
-  // 计算起始日期（调整到周日）
-  const startDate = new Date(Date.UTC(
+  const earliestDate = new Date(timestamps[0] * 1000);
+  const today = getTodayUtcDate();
+  const cursor = new Date(Date.UTC(
     earliestDate.getUTCFullYear(),
     earliestDate.getUTCMonth(),
-    earliestDate.getUTCDate()
+    1
   ));
-  startDate.setUTCDate(startDate.getUTCDate() - startDate.getUTCDay());
 
-  // 计算结束日期（调整到周六）
-  const endDate = new Date(Date.UTC(
-    latestDate.getUTCFullYear(),
-    latestDate.getUTCMonth(),
-    latestDate.getUTCDate()
-  ));
-  endDate.setUTCDate(endDate.getUTCDate() + (6 - endDate.getUTCDay()));
+  const months: CalendarMonthGroup[] = [];
+  let totalColumns = 0;
 
-  // 计算总周数
-  const daysDiff = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  const weeksCount = Math.ceil((daysDiff + 1) / 7);
+  while (cursor <= today) {
+    const year = cursor.getUTCFullYear();
+    const month = cursor.getUTCMonth();
+    const monthStart = new Date(Date.UTC(year, month, 1));
+    const naturalMonthEnd = new Date(Date.UTC(year, month + 1, 0));
+    const monthEnd = naturalMonthEnd > today ? today : naturalMonthEnd;
+    const firstWeekday = monthStart.getUTCDay();
+    const cells: CalendarCell[] = [];
+    let columns = 1;
 
-  const daysPerWeek = 7;
-  const cells: { date: Date; count: number; level: number }[] = [];
-
-  for (let w = 0; w < weeksCount; w++) {
-    for (let d = 0; d < daysPerWeek; d++) {
-      const cellDate = new Date(startDate);
-      cellDate.setUTCDate(cellDate.getUTCDate() + w * 7 + d);
-
-      // 转换为 Unix 时间戳（秒）- 使用 UTC 午夜时间
-      const timestamp = Math.floor(Date.UTC(
-        cellDate.getUTCFullYear(),
-        cellDate.getUTCMonth(),
-        cellDate.getUTCDate()
-      ) / 1000);
-
+    for (let day = 1; day <= monthEnd.getUTCDate(); day++) {
+      const cellDate = new Date(Date.UTC(year, month, day));
+      const timestamp = getUtcTimestamp(cellDate);
       const count = calendar[timestamp.toString()] || 0;
+      const column = Math.floor((firstWeekday + day - 1) / 7) + 1;
+      const row = cellDate.getUTCDay() + 1;
 
-      // 计算颜色等级 (0-4)
-      let level = 0;
-      if (count > 0) level = 1;
-      if (count >= 2) level = 2;
-      if (count >= 4) level = 3;
-      if (count >= 8) level = 4;
-
-      cells.push({ date: cellDate, count, level });
-    }
-  }
-
-  return { cells, weeksCount };
-}
-
-// 获取月份标签（根据实际周数，只显示月份）
-// 使用 CSS 变量来控制宽度，让响应式布局能自动调整
-function getMonthLabels(weeksCount: number, calendar: Record<string, number>) {
-  const timestamps = Object.keys(calendar).map(Number).sort((a, b) => a - b);
-
-  if (timestamps.length === 0) {
-    return [];
-  }
-
-  const earliestTimestamp = timestamps[0];
-  const earliestDate = new Date(earliestTimestamp * 1000);
-
-  // 计算起始日期（调整到周日）
-  const startDate = new Date(Date.UTC(
-    earliestDate.getUTCFullYear(),
-    earliestDate.getUTCMonth(),
-    earliestDate.getUTCDate()
-  ));
-  startDate.setUTCDate(startDate.getUTCDate() - startDate.getUTCDay());
-
-  const months: { label: string; weekIndex: number; year: number; weeks: number }[] = [];
-
-  let currentMonth = -1;
-  let currentYear = -1;
-  let prevWeekIndex = 0;
-
-  for (let w = 0; w < weeksCount; w++) {
-    const weekDate = new Date(startDate);
-    weekDate.setUTCDate(weekDate.getUTCDate() + w * 7);
-
-    const month = weekDate.getUTCMonth();
-    const year = weekDate.getUTCFullYear();
-
-    if (month !== currentMonth || year !== currentYear) {
-      if (currentMonth !== -1) {
-        // 计算上一个月的周数
-        const lastMonthWeeks = w - prevWeekIndex;
-        months[months.length - 1].weeks = lastMonthWeeks;
-      }
-      currentMonth = month;
-      currentYear = year;
-      prevWeekIndex = w;
-      // 只显示月份（如 "5月"）
-      const monthName = weekDate.toLocaleDateString('zh-CN', { month: 'short' });
-      months.push({
-        label: monthName,
-        weekIndex: w,
-        year: year,
-        weeks: 0 // 将在下一个月份或结束时计算
+      columns = Math.max(columns, column);
+      cells.push({
+        date: cellDate,
+        count,
+        level: getContributionLevel(count),
+        column,
+        row
       });
     }
+
+    months.push({
+      label: monthStart.toLocaleDateString('zh-CN', { month: 'short' }),
+      year,
+      month,
+      index: months.length,
+      columns,
+      cells
+    });
+    totalColumns += columns;
+    cursor.setUTCMonth(cursor.getUTCMonth() + 1);
   }
 
-  // 计算最后一个月份的周数
-  if (months.length > 0) {
-    months[months.length - 1].weeks = weeksCount - prevWeekIndex;
-  }
-
-  return months;
+  return { months, totalColumns };
 }
 
-// 获取年份标签（根据月份标签计算）
-function getYearLabels(monthLabels: { label: string; weekIndex: number; year: number; weeks: number }[], weeksCount: number) {
-  const years: { label: string; weekIndex: number; weeks: number; startPx: number; endPx: number }[] = [];
-  let currentYear = -1;
-  let yearStartWeekIndex = 0;
+function getYearLabels(monthGroups: CalendarMonthGroup[]): CalendarYearLabel[] {
+  const years: CalendarYearLabel[] = [];
 
-  for (let i = 0; i < monthLabels.length; i++) {
-    const month = monthLabels[i];
-    if (month.year !== currentYear) {
-      if (currentYear !== -1) {
-        // 计算上一个年份的周数
-        const lastYearWeeks = month.weekIndex - yearStartWeekIndex;
-        years[years.length - 1].weeks = lastYearWeeks;
-        years[years.length - 1].endPx = month.weekIndex * 12 + 18; // 结束位置 = 下一年起始位置
-      }
-      currentYear = month.year;
-      yearStartWeekIndex = month.weekIndex;
+  monthGroups.forEach((month) => {
+    const latestYear = years[years.length - 1];
+
+    if (!latestYear || latestYear.year !== month.year) {
       years.push({
         label: `${month.year}年`,
-        weekIndex: month.weekIndex,
-        weeks: 0, // 将在下一个年份或结束时计算
-        startPx: month.weekIndex * 12 + 18, // 起始位置 = 周索引 × 12px + padding-left(18px)
-        endPx: 0 // 将在下一个年份或结束时计算
+        year: month.year,
+        startMonthIndex: month.index,
+        endMonthIndex: month.index
       });
+      return;
     }
-  }
 
-  // 计算最后一个年份的周数和结束位置
-  if (years.length > 0) {
-    years[years.length - 1].weeks = weeksCount - yearStartWeekIndex;
-    years[years.length - 1].endPx = weeksCount * 12 + 18;
-  }
+    latestYear.endMonthIndex = month.index;
+  });
 
   return years;
 }
 
 // 生成日历数据
-const leetcodeCalendarResult = leetcode.submissionCalendar ? generateLeetCodeCalendar(leetcode.submissionCalendar) : null;
-const leetcodeCalendar = leetcodeCalendarResult?.cells || [];
-const leetcodeWeeksCount = leetcodeCalendarResult?.weeksCount || 53;
-const leetcodeMonthLabels = leetcode.submissionCalendar ? getMonthLabels(leetcodeWeeksCount, leetcode.submissionCalendar) : [];
-const leetcodeYearLabels = getYearLabels(leetcodeMonthLabels, leetcodeWeeksCount);
+const leetcodeCalendarResult = leetcode.submissionCalendar ? generateCalendarMonths(leetcode.submissionCalendar) : null;
+const leetcodeMonthGroups = leetcodeCalendarResult?.months || [];
+const leetcodeColumnsCount = leetcodeCalendarResult?.totalColumns || 0;
+const leetcodeYearLabels = getYearLabels(leetcodeMonthGroups);
 
 // GitHub 日历数据
 const githubCalendarResult = github.contributions && Object.keys(github.contributions).length > 0
-  ? generateGitHubCalendar(github.contributions)
+  ? generateCalendarMonths(github.contributions)
   : null;
-const githubCalendar = githubCalendarResult?.cells || [];
-const githubWeeksCount = githubCalendarResult?.weeksCount || 53;
-const githubMonthLabels = github.contributions && Object.keys(github.contributions).length > 0
-  ? getGitHubMonthLabels(githubWeeksCount, github.contributions)
-  : [];
-const githubYearLabels = getGitHubYearLabels(githubMonthLabels, githubWeeksCount);
+const githubMonthGroups = githubCalendarResult?.months || [];
+const githubColumnsCount = githubCalendarResult?.totalColumns || 0;
+const githubYearLabels = getYearLabels(githubMonthGroups);
 
 const dayLabels = ['日', '一', '二', '三', '四', '五', '六'];
 
@@ -428,7 +233,7 @@ function formatDate(date: Date): string {
           </a>
         </div>
         <div class="stats-widget__content stats-widget__content--calendar">
-          {githubCalendar.length > 0 ? (
+          {githubMonthGroups.length > 0 ? (
             <div class="github-stats">
               <!-- GitHub 统计摘要 -->
               <div class="github-stats__summary">
@@ -454,13 +259,27 @@ function formatDate(date: Date): string {
                   <!-- 年份标签层 -->
                   <div class="github-calendar__years" id="github-calendar-years">
                     {githubYearLabels.map((year, i) => (
-                      <span class="github-calendar__year" key={i} data-week-index={year.weekIndex} data-weeks={year.weeks}>{year.label}</span>
+                      <span
+                        class="github-calendar__year"
+                        key={i}
+                        data-start-month-index={year.startMonthIndex}
+                        data-end-month-index={year.endMonthIndex}
+                      >
+                        {year.label}
+                      </span>
                     ))}
                   </div>
                   <!-- 月份标签层 -->
                   <div class="github-calendar__header" id="github-calendar-header">
-                    {githubMonthLabels.map((month, i) => (
-                      <span class="github-calendar__month" key={i} data-weeks={month.weeks}>{month.label}</span>
+                    {githubMonthGroups.map((month) => (
+                      <span
+                        class="github-calendar__month"
+                        key={`${month.year}-${month.month}`}
+                        data-month-index={month.index}
+                        data-columns={month.columns}
+                      >
+                        {month.label}
+                      </span>
                     ))}
                   </div>
                   <div class="github-calendar__body">
@@ -469,16 +288,27 @@ function formatDate(date: Date): string {
                         <span class="github-calendar__day-label" key={i}>{i % 2 === 0 ? day : ''}</span>
                       ))}
                     </div>
-                    <div class="github-calendar__grid" id="github-calendar-grid" data-weeks={githubWeeksCount}>
-{githubCalendar.map((cell, i) => (
-                          <div
-                            class={`github-calendar__cell github-calendar__cell--level-${cell.level}`}
-                            key={i}
-                            title={`${formatDate(cell.date)}: ${cell.count} 次贡献`}
-                            data-count={cell.count}
-                            data-date={formatDate(cell.date)}
-                          ></div>
-                        ))}
+                    <div class="github-calendar__grid" id="github-calendar-grid" data-columns={githubColumnsCount}>
+                      {githubMonthGroups.map((month) => (
+                        <div
+                          class="github-calendar__month-group"
+                          key={`${month.year}-${month.month}`}
+                          data-month-index={month.index}
+                          data-columns={month.columns}
+                          style={`--month-columns: ${month.columns};`}
+                        >
+                          {month.cells.map((cell) => (
+                            <div
+                              class={`github-calendar__cell github-calendar__cell--level-${cell.level}`}
+                              key={formatDate(cell.date)}
+                              style={`grid-column: ${cell.column}; grid-row: ${cell.row};`}
+                              title={`${formatDate(cell.date)}: ${cell.count} 次贡献`}
+                              data-count={cell.count}
+                              data-date={formatDate(cell.date)}
+                            ></div>
+                          ))}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -587,13 +417,27 @@ function formatDate(date: Date): string {
                   <!-- 年份标签层 -->
                   <div class="leetcode-calendar__years" id="leetcode-calendar-years">
                     {leetcodeYearLabels.map((year, i) => (
-                      <span class="leetcode-calendar__year" key={i} data-week-index={year.weekIndex} data-weeks={year.weeks}>{year.label}</span>
+                      <span
+                        class="leetcode-calendar__year"
+                        key={i}
+                        data-start-month-index={year.startMonthIndex}
+                        data-end-month-index={year.endMonthIndex}
+                      >
+                        {year.label}
+                      </span>
                     ))}
                   </div>
                   <!-- 月份标签层 -->
                   <div class="leetcode-calendar__header" id="leetcode-calendar-header">
-                    {leetcodeMonthLabels.map((month, i) => (
-                      <span class="leetcode-calendar__month" key={i} data-weeks={month.weeks}>{month.label}</span>
+                    {leetcodeMonthGroups.map((month) => (
+                      <span
+                        class="leetcode-calendar__month"
+                        key={`${month.year}-${month.month}`}
+                        data-month-index={month.index}
+                        data-columns={month.columns}
+                      >
+                        {month.label}
+                      </span>
                     ))}
                   </div>
                   <div class="leetcode-calendar__body">
@@ -602,16 +446,27 @@ function formatDate(date: Date): string {
                         <span class="leetcode-calendar__day-label" key={i}>{i % 2 === 0 ? day : ''}</span>
                       ))}
                     </div>
-                    <div class="leetcode-calendar__grid" id="leetcode-calendar-grid" data-weeks={leetcodeWeeksCount}>
-{leetcodeCalendar.map((cell, i) => (
-                          <div
-                            class={`leetcode-calendar__cell leetcode-calendar__cell--level-${cell.level}`}
-                            key={i}
-                            title={`${formatDate(cell.date)}: ${cell.count} 题`}
-                            data-count={cell.count}
-                            data-date={formatDate(cell.date)}
-                          ></div>
-                        ))}
+                    <div class="leetcode-calendar__grid" id="leetcode-calendar-grid" data-columns={leetcodeColumnsCount}>
+                      {leetcodeMonthGroups.map((month) => (
+                        <div
+                          class="leetcode-calendar__month-group"
+                          key={`${month.year}-${month.month}`}
+                          data-month-index={month.index}
+                          data-columns={month.columns}
+                          style={`--month-columns: ${month.columns};`}
+                        >
+                          {month.cells.map((cell) => (
+                            <div
+                              class={`leetcode-calendar__cell leetcode-calendar__cell--level-${cell.level}`}
+                              key={formatDate(cell.date)}
+                              style={`grid-column: ${cell.column}; grid-row: ${cell.row};`}
+                              title={`${formatDate(cell.date)}: ${cell.count} 题`}
+                              data-count={cell.count}
+                              data-date={formatDate(cell.date)}
+                            ></div>
+                          ))}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -721,85 +576,112 @@ function formatDate(date: Date): string {
     // 设置移动端 tooltip
     setupMobileTooltip('github', signal);
     setupMobileTooltip('leetcode', signal);
-    // 动态标记"今天"的单元格
-    highlightTodayCells();
   });
 
   // 通用的日历滑动初始化函数
   function initCalendarScroll(type: string, signal: AbortSignal) {
     const scrollContainer = document.getElementById(`${type}-scroll-container`);
     const yearsContainer = document.getElementById(`${type}-calendar-years`);
+    const header = document.getElementById(`${type}-calendar-header`);
     const grid = document.getElementById(`${type}-calendar-grid`);
 
-    if (!scrollContainer || !yearsContainer || !grid) return;
+    if (!scrollContainer || !yearsContainer || !header || !grid) return;
 
-    // 设置月份标签宽度（基于 CSS 变量）
-    function updateMonthWidths() {
-      const months = document.querySelectorAll(`.${type}-calendar__month`);
+    const monthLabels = () => Array.from(
+      header.querySelectorAll(`.${type}-calendar__month`)
+    ) as HTMLElement[];
+    const monthGroups = () => Array.from(
+      grid.querySelectorAll(`.${type}-calendar__month-group`)
+    ) as HTMLElement[];
+    const yearElements = Array.from(
+      yearsContainer.querySelectorAll(`.${type}-calendar__year`)
+    ) as HTMLElement[];
+
+    function getCalendarMetrics() {
       const calendar = document.querySelector(`.${type}-calendar`);
-      if (calendar && months.length > 0) {
-        const style = getComputedStyle(calendar);
-        // 从 CSS 变量获取格子尺寸和间距
-        const cellSize = parseFloat(style.getPropertyValue(`--${type}-cell-size`) || '10');
-        const gap = parseFloat(style.getPropertyValue(`--${type}-gap`) || '2');
-        const weekWidth = cellSize + gap;
-        months.forEach((month) => {
-          const weeks = parseInt((month as HTMLElement).dataset.weeks || '1');
-          (month as HTMLElement).style.width = `${weeks * weekWidth}px`;
-        });
-      }
+      const style = calendar ? getComputedStyle(calendar) : null;
+      const cellSize = parseFloat(style?.getPropertyValue(`--${type}-cell-size`) || '10') || 10;
+      const gap = parseFloat(style?.getPropertyValue(`--${type}-gap`) || '2') || 2;
+
+      return { cellSize, gap, columnWidth: cellSize + gap };
     }
 
-    // 初始化时设置月份宽度
-    updateMonthWidths();
+    function updateMonthLayout() {
+      const labels = monthLabels();
+      const groups = monthGroups();
+      const { cellSize, gap, columnWidth } = getCalendarMetrics();
+      const monthGap = columnWidth * 0.5;
+      const scrollRect = scrollContainer.getBoundingClientRect();
+      const gridStart = grid.getBoundingClientRect().left - scrollRect.left + scrollContainer.scrollLeft;
+
+      header.style.gap = `${monthGap}px`;
+      header.style.paddingLeft = `${gridStart}px`;
+      grid.style.gap = `${monthGap}px`;
+
+      groups.forEach((group, index) => {
+        const columns = parseInt(group.dataset.columns || '1', 10);
+        const groupWidth = columns * cellSize + Math.max(columns - 1, 0) * gap;
+        group.style.width = `${groupWidth}px`;
+        group.style.gridTemplateColumns = `repeat(${columns}, ${cellSize}px)`;
+        group.style.gridTemplateRows = `repeat(7, ${cellSize}px)`;
+        group.style.gap = `${gap}px`;
+
+        const label = labels[index];
+        if (label) {
+          label.style.width = `${groupWidth}px`;
+        }
+      });
+
+      yearsContainer.style.width = `${Math.max(header.scrollWidth, gridStart + grid.scrollWidth)}px`;
+    }
+
+    // 初始化时设置月份与标签宽度
+    updateMonthLayout();
 
     // 监听窗口尺寸变化，重新计算月份宽度
     window.addEventListener('resize', () => {
-      updateMonthWidths();
+      updateMonthLayout();
+      lastScrollLeft = -1;
+      scheduleUpdate();
     }, { signal });
 
-    const yearElements = yearsContainer.querySelectorAll(`.${type}-calendar__year`);
-
-    // 年份标签范围：存储周索引，动态计算像素位置
-    const yearRanges: { element: HTMLElement; weekIndex: number; weeks: number; yearWidth: number }[] = [];
-    yearElements.forEach((el) => {
-      const yearEl = el as HTMLElement;
-      const yearWidth = yearEl.offsetWidth;
-      const weekIndex = parseInt(yearEl.dataset.weekIndex || '0');
-      const weeks = parseInt(yearEl.dataset.weeks || '0');
-      yearRanges.push({ element: yearEl, weekIndex, weeks, yearWidth });
-    });
+    const yearRanges = yearElements.map((element) => ({
+      element,
+      startMonthIndex: parseInt(element.dataset.startMonthIndex || '0', 10),
+      endMonthIndex: parseInt(element.dataset.endMonthIndex || '0', 10)
+    }));
 
     let rafId: number | null = null;
     let lastScrollLeft = -1;
+    let lastContainerWidth = -1;
 
     function updateYearPositions() {
       if (!scrollContainer) return;
       
       const scrollLeft = scrollContainer.scrollLeft;
-      if (scrollLeft === lastScrollLeft) return;
-      lastScrollLeft = scrollLeft;
-
       const containerWidth = scrollContainer.clientWidth;
-      const calendar = document.querySelector(`.${type}-calendar`);
-      if (!calendar) return;
+      if (scrollLeft === lastScrollLeft && containerWidth === lastContainerWidth) return;
+      lastScrollLeft = scrollLeft;
+      lastContainerWidth = containerWidth;
 
-      const style = getComputedStyle(calendar);
-      const cellSize = parseFloat(style.getPropertyValue(`--${type}-cell-size`) || '10');
-      const gap = parseFloat(style.getPropertyValue(`--${type}-gap`) || '2');
-      const weekWidth = cellSize + gap;
-      const paddingLeft = 16; // 固定 padding-left
+      const groups = monthGroups();
+      const scrollRect = scrollContainer.getBoundingClientRect();
 
-      yearRanges.forEach(({ element, weekIndex, weeks, yearWidth }) => {
-        const startPx = weekIndex * weekWidth + paddingLeft;
-        const endPx = (weekIndex + weeks) * weekWidth + paddingLeft;
+      yearRanges.forEach(({ element, startMonthIndex, endMonthIndex }) => {
+        const startMonthGroup = groups[startMonthIndex];
+        const endMonthGroup = groups[endMonthIndex];
+        if (!startMonthGroup || !endMonthGroup) return;
+
+        const yearWidth = element.offsetWidth;
+        const startPx = startMonthGroup.getBoundingClientRect().left - scrollRect.left + scrollLeft;
+        const endPx = endMonthGroup.getBoundingClientRect().right - scrollRect.left + scrollLeft;
 
         const visibleStart = scrollLeft;
         const visibleEnd = scrollLeft + containerWidth;
 
         let labelPosition = startPx;
         if (startPx < visibleStart) {
-          labelPosition = Math.min(visibleStart, endPx - yearWidth);
+          labelPosition = Math.max(startPx, Math.min(visibleStart, endPx - yearWidth));
         }
 
         const isVisible = (endPx > visibleStart && startPx < visibleEnd);
@@ -998,29 +880,6 @@ function formatDate(date: Date): string {
     }, { signal });
   }
 
-  // 动态标记"今天"的单元格（使用客户端本地时间）
-  function highlightTodayCells() {
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
-    
-    // GitHub 日历
-    const githubCells = document.querySelectorAll('.github-calendar__cell');
-    githubCells.forEach(cell => {
-      const dateStr = (cell as HTMLElement).dataset.date;
-      if (dateStr === todayStr) {
-        cell.classList.add('github-calendar__cell--today');
-      }
-    });
-    
-    // LeetCode 日历
-    const leetcodeCells = document.querySelectorAll('.leetcode-calendar__cell');
-    leetcodeCells.forEach(cell => {
-      const dateStr = (cell as HTMLElement).dataset.date;
-      if (dateStr === todayStr) {
-        cell.classList.add('leetcode-calendar__cell--today');
-      }
-    });
-  }
 </script>
 
 <style>
@@ -1225,7 +1084,6 @@ function formatDate(date: Date): string {
   .github-calendar {
     --github-cell-size: 10px;
     --github-gap: 2px;
-    --github-week-width: calc(var(--github-cell-size) + var(--github-gap));
     background: rgba(255, 255, 255, 0.5);
     border-radius: var(--border-radius);
     padding: var(--space-sm);
@@ -1304,7 +1162,7 @@ function formatDate(date: Date): string {
     position: relative;
     height: 18px;
     margin-bottom: 2px;
-    padding-left: 16px;
+    padding-left: 0;
   }
 
   .github-calendar__year {
@@ -1322,7 +1180,9 @@ function formatDate(date: Date): string {
 
   .github-calendar__header {
     display: flex;
+    align-items: center;
     justify-content: flex-start;
+    gap: 6px;
     padding-left: 16px;
     margin-bottom: 4px;
     width: max-content;
@@ -1331,11 +1191,9 @@ function formatDate(date: Date): string {
   .github-calendar__month {
     font-size: 0.65rem;
     color: var(--color-text-muted);
-    text-align: left;
+    text-align: center;
     white-space: nowrap;
     flex-shrink: 0;
-    /* 使用 CSS 变量计算宽度，基于周数 */
-    width: calc(var(--weeks, 1) * var(--github-week-width, 12px));
   }
 
   .github-calendar__body {
@@ -1359,11 +1217,19 @@ function formatDate(date: Date): string {
   }
 
   .github-calendar__grid {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    width: max-content;
+    background: #fff;
+  }
+
+  .github-calendar__month-group {
     display: grid;
     grid-template-rows: repeat(7, var(--github-cell-size, 10px));
-    grid-auto-flow: column;
-    grid-auto-columns: var(--github-cell-size, 10px);
+    grid-template-columns: repeat(var(--month-columns, 1), var(--github-cell-size, 10px));
     gap: var(--github-gap, 2px);
+    flex: 0 0 auto;
   }
 
   .github-calendar__cell {
@@ -1424,25 +1290,6 @@ function formatDate(date: Date): string {
 
   .github-calendar__cell--level-4 {
     background-color: #216e39;
-  }
-
-  /* Today cell highlight - star marker */
-  .github-calendar__cell--today {
-    position: relative;
-    z-index: 10;
-  }
-
-  .github-calendar__cell--today::after {
-    content: '★';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 8px;
-    color: #d4a050;
-    text-shadow: 0 0 2px rgba(212, 160, 80, 0.6);
-    pointer-events: none;
-    line-height: 1;
   }
 
   .github-calendar__legend {
@@ -1550,7 +1397,6 @@ function formatDate(date: Date): string {
   .leetcode-calendar {
     --leetcode-cell-size: 10px;
     --leetcode-gap: 2px;
-    --leetcode-week-width: calc(var(--leetcode-cell-size) + var(--leetcode-gap));
     background: rgba(255, 255, 255, 0.5);
     border-radius: var(--border-radius);
     padding: var(--space-sm);
@@ -1629,7 +1475,7 @@ function formatDate(date: Date): string {
     position: relative;
     height: 18px;
     margin-bottom: 2px;
-    padding-left: 16px;
+    padding-left: 0;
   }
 
   .leetcode-calendar__year {
@@ -1647,7 +1493,9 @@ function formatDate(date: Date): string {
 
   .leetcode-calendar__header {
     display: flex;
+    align-items: center;
     justify-content: flex-start;
+    gap: 6px;
     padding-left: 16px;
     margin-bottom: 4px;
     width: max-content;
@@ -1656,11 +1504,9 @@ function formatDate(date: Date): string {
   .leetcode-calendar__month {
     font-size: 0.65rem;
     color: var(--color-text-muted);
-    text-align: left;
+    text-align: center;
     white-space: nowrap;
     flex-shrink: 0;
-    /* 使用 CSS 变量计算宽度，基于周数 */
-    width: calc(var(--weeks, 1) * var(--leetcode-week-width, 12px));
   }
 
   .leetcode-calendar__body {
@@ -1684,11 +1530,19 @@ function formatDate(date: Date): string {
   }
 
   .leetcode-calendar__grid {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    width: max-content;
+    background: #fff;
+  }
+
+  .leetcode-calendar__month-group {
     display: grid;
     grid-template-rows: repeat(7, var(--leetcode-cell-size));
-    grid-auto-flow: column;
-    grid-auto-columns: var(--leetcode-cell-size);
+    grid-template-columns: repeat(var(--month-columns, 1), var(--leetcode-cell-size));
     gap: var(--leetcode-gap);
+    flex: 0 0 auto;
   }
 
   .leetcode-calendar__cell {
@@ -1749,25 +1603,6 @@ function formatDate(date: Date): string {
 
   .leetcode-calendar__cell--level-4 {
     background-color: #196127;
-  }
-
-  /* Today cell highlight - star marker */
-  .leetcode-calendar__cell--today {
-    position: relative;
-    z-index: 10;
-  }
-
-  .leetcode-calendar__cell--today::after {
-    content: '★';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 8px;
-    color: #d4a050;
-    text-shadow: 0 0 2px rgba(212, 160, 80, 0.6);
-    pointer-events: none;
-    line-height: 1;
   }
 
   .leetcode-calendar__legend {
@@ -1978,14 +1813,12 @@ function formatDate(date: Date): string {
     .leetcode-calendar {
       --leetcode-cell-size: 8px;
       --leetcode-gap: 2px;
-      --leetcode-week-width: 10px;
       width: 100%;
     }
 
-    /* 移动端月份标签使用 CSS 变量计算宽度 */
+    /* 移动端月份标签随月份组宽度同步 */
     .leetcode-calendar__month {
       font-size: 0.6rem;
-      /* width 通过 CSS 变量 --weeks 和 --leetcode-week-width 计算 */
     }
 
     .leetcode-calendar__day-label {
@@ -2016,12 +1849,6 @@ function formatDate(date: Date): string {
     .github-calendar {
       --github-cell-size: 8px;
       --github-gap: 2px;
-      --github-week-width: 10px;
-    }
-
-    .github-calendar__grid {
-      grid-template-rows: repeat(7, 8px);
-      grid-auto-columns: 8px;
     }
 
     .github-calendar__cell {
@@ -2045,15 +1872,6 @@ function formatDate(date: Date): string {
 
     .leetcode-calendar__year {
       font-size: 0.65rem;
-    }
-
-    /* Adjust today star marker for 8px cells */
-    .github-calendar__cell--today::after {
-      font-size: 6px;
-    }
-
-    .leetcode-calendar__cell--today::after {
-      font-size: 6px;
     }
   }
 
@@ -2113,7 +1931,6 @@ function formatDate(date: Date): string {
     .leetcode-calendar {
       --leetcode-cell-size: 6px;
       --leetcode-gap: 1px;
-      --leetcode-week-width: 7px;
       width: 100%;
     }
 
@@ -2152,12 +1969,6 @@ function formatDate(date: Date): string {
     .github-calendar {
       --github-cell-size: 6px;
       --github-gap: 1px;
-      --github-week-width: 7px;
-    }
-
-    .github-calendar__grid {
-      grid-template-rows: repeat(7, 6px);
-      grid-auto-columns: 6px;
     }
 
     .github-calendar__cell {
@@ -2186,15 +1997,6 @@ function formatDate(date: Date): string {
 
     .github-calendar__day-labels {
       gap: 1px;
-    }
-
-    /* Adjust today star marker for smaller cells */
-    .github-calendar__cell--today::after {
-      font-size: 5px;
-    }
-
-    .leetcode-calendar__cell--today::after {
-      font-size: 5px;
     }
 
     .github-calendar img {
