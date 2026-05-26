@@ -7,12 +7,12 @@
   "mediumSolved": 1262,
   "mediumTotal": 2259,
   "hardSolved": 364,
-  "hardTotal": 1006,
+  "hardTotal": 1007,
   "ranking": 670,
   "contributionPoints": 0,
-  "totalActiveDays": 1044,
-  "recentYearActiveDays": 115,
-  "currentStreak": 26,
+  "totalActiveDays": 1045,
+  "recentYearActiveDays": 116,
+  "currentStreak": 27,
   "maxStreak": 73,
   "activeYears": [
     2026,
@@ -39,8 +39,8 @@
       "streak": 63
     },
     "2026": {
-      "totalActiveDays": 115,
-      "streak": 26
+      "totalActiveDays": 116,
+      "streak": 27
     }
   },
   "submissionCalendar": {
@@ -1087,7 +1087,8 @@
     "1779408000": 1,
     "1779494400": 1,
     "1779580800": 1,
-    "1779667200": 1
+    "1779667200": 1,
+    "1779753600": 1
   },
-  "scrapedAt": "2026-05-25T17:50:58.689Z"
+  "scrapedAt": "2026-05-26T07:59:20.372Z"
 }
