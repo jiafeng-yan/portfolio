@@ -1,8 +1,8 @@
 {
   "username": "ΑΝΑΓΚΗ",
-  "solvedCount": 2338,
+  "solvedCount": 2339,
   "totalQuestions": 3500,
-  "easySolved": 712,
+  "easySolved": 713,
   "easyTotal": 1066,
   "mediumSolved": 1262,
   "mediumTotal": 2259,
@@ -10,9 +10,9 @@
   "hardTotal": 1007,
   "ranking": 671,
   "contributionPoints": 0,
-  "totalActiveDays": 1047,
-  "recentYearActiveDays": 118,
-  "currentStreak": 29,
+  "totalActiveDays": 1048,
+  "recentYearActiveDays": 119,
+  "currentStreak": 30,
   "maxStreak": 73,
   "activeYears": [
     2026,
@@ -39,8 +39,8 @@
       "streak": 63
     },
     "2026": {
-      "totalActiveDays": 118,
-      "streak": 29
+      "totalActiveDays": 119,
+      "streak": 30
     }
   },
   "submissionCalendar": {
@@ -1090,7 +1090,8 @@
     "1779667200": 1,
     "1779753600": 1,
     "1779840000": 1,
-    "1779926400": 1
+    "1779926400": 1,
+    "1780012800": 1
   },
-  "scrapedAt": "2026-05-28T18:42:07.761Z"
+  "scrapedAt": "2026-05-29T08:07:32.232Z"
 }
