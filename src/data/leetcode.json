@@ -8,10 +8,10 @@
   "mediumTotal": 2261,
   "hardSolved": 364,
   "hardTotal": 1008,
-  "ranking": 673,
+  "ranking": 674,
   "contributionPoints": 0,
-  "totalActiveDays": 1050,
-  "recentYearActiveDays": 121,
+  "totalActiveDays": 1051,
+  "recentYearActiveDays": 122,
   "currentStreak": 30,
   "maxStreak": 73,
   "activeYears": [
@@ -39,7 +39,7 @@
       "streak": 63
     },
     "2026": {
-      "totalActiveDays": 121,
+      "totalActiveDays": 122,
       "streak": 30
     }
   },
@@ -1093,7 +1093,8 @@
     "1779926400": 1,
     "1780012800": 1,
     "1780185600": 1,
-    "1780272000": 1
+    "1780272000": 1,
+    "1780358400": 1
   },
-  "scrapedAt": "2026-06-01T09:34:20.610Z"
+  "scrapedAt": "2026-06-01T20:23:53.838Z"
 }
