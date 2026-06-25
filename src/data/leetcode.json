@@ -1,17 +1,17 @@
 {
   "username": "anagke-59",
-  "solvedCount": 2359,
+  "solvedCount": 2363,
   "totalQuestions": 3500,
-  "easySolved": 717,
+  "easySolved": 720,
   "easyTotal": 1071,
-  "mediumSolved": 1273,
+  "mediumSolved": 1274,
   "mediumTotal": 2272,
   "hardSolved": 369,
   "hardTotal": 1018,
   "ranking": 0,
   "contributionPoints": 0,
-  "totalActiveDays": 1071,
-  "recentYearActiveDays": 142,
+  "totalActiveDays": 1073,
+  "recentYearActiveDays": 144,
   "currentStreak": 30,
   "maxStreak": 73,
   "activeYears": [
@@ -39,7 +39,7 @@
       "streak": 63
     },
     "2026": {
-      "totalActiveDays": 142,
+      "totalActiveDays": 144,
       "streak": 30
     }
   },
@@ -1114,7 +1114,9 @@
     "1781913600": 1,
     "1782000000": 2,
     "1782086400": 2,
-    "1782259200": 1
+    "1782259200": 1,
+    "1782345600": 5,
+    "1782432000": 2
   },
-  "scrapedAt": "2026-06-25T07:53:09.912Z"
+  "scrapedAt": "2026-06-25T18:21:39.328Z"
 }
