@@ -1,18 +1,18 @@
 {
-  "username": "ΑΝΑΓΚΗ",
-  "solvedCount": 2338,
+  "username": "anagke-59",
+  "solvedCount": 2364,
   "totalQuestions": 3500,
-  "easySolved": 712,
-  "easyTotal": 1066,
-  "mediumSolved": 1262,
-  "mediumTotal": 2259,
-  "hardSolved": 364,
-  "hardTotal": 1007,
-  "ranking": 670,
+  "easySolved": 720,
+  "easyTotal": 1071,
+  "mediumSolved": 1275,
+  "mediumTotal": 2272,
+  "hardSolved": 369,
+  "hardTotal": 1018,
+  "ranking": 0,
   "contributionPoints": 0,
-  "totalActiveDays": 1045,
-  "recentYearActiveDays": 116,
-  "currentStreak": 27,
+  "totalActiveDays": 1074,
+  "recentYearActiveDays": 145,
+  "currentStreak": 30,
   "maxStreak": 73,
   "activeYears": [
     2026,
@@ -39,8 +39,8 @@
       "streak": 63
     },
     "2026": {
-      "totalActiveDays": 116,
-      "streak": 27
+      "totalActiveDays": 145,
+      "streak": 30
     }
   },
   "submissionCalendar": {
@@ -1088,7 +1088,36 @@
     "1779494400": 1,
     "1779580800": 1,
     "1779667200": 1,
-    "1779753600": 1
+    "1779753600": 1,
+    "1779840000": 1,
+    "1779926400": 1,
+    "1780012800": 1,
+    "1780185600": 1,
+    "1780272000": 1,
+    "1780358400": 1,
+    "1780444800": 1,
+    "1780531200": 1,
+    "1780617600": 5,
+    "1780704000": 1,
+    "1780790400": 4,
+    "1780876800": 1,
+    "1780963200": 1,
+    "1781136000": 2,
+    "1781222400": 6,
+    "1781308800": 2,
+    "1781395200": 1,
+    "1781481600": 1,
+    "1781568000": 5,
+    "1781654400": 4,
+    "1781740800": 1,
+    "1781827200": 1,
+    "1781913600": 1,
+    "1782000000": 2,
+    "1782086400": 2,
+    "1782259200": 1,
+    "1782345600": 5,
+    "1782432000": 2,
+    "1782518400": 2
   },
-  "scrapedAt": "2026-05-26T07:59:20.372Z"
+  "scrapedAt": "2026-06-27T07:25:09.126Z"
 }
