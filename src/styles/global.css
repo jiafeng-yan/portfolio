@@ -199,7 +199,7 @@ a[data-cursor-hover]:hover {
 }
 
 /* Button-style links */
-.hero__links a:hover {
+.hero__links > *:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -270,7 +270,7 @@ a[data-cursor-hover]:hover {
     transform: none;
   }
 
-  .hero__links a:hover {
+  .hero__links > *:hover {
     transform: none;
     box-shadow: none;
   }

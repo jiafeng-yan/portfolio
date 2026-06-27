@@ -8,4 +8,5 @@ output/playwright/
 .env.*
 !.env.example
 .omc/
+.omo/
 .npmrc
