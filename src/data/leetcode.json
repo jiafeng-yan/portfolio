@@ -2,10 +2,10 @@
   "username": "anagke-59",
   "solvedCount": 2417,
   "totalQuestions": 3500,
-  "easySolved": 731,
-  "easyTotal": 1076,
-  "mediumSolved": 1304,
-  "mediumTotal": 2286,
+  "easySolved": 730,
+  "easyTotal": 1075,
+  "mediumSolved": 1305,
+  "mediumTotal": 2287,
   "hardSolved": 382,
   "hardTotal": 1025,
   "ranking": 0,
@@ -1140,5 +1140,5 @@
     "1784592000": 22,
     "1784678400": 4
   },
-  "scrapedAt": "2026-07-22T06:39:58.725Z"
+  "scrapedAt": "2026-07-22T17:35:48.538Z"
 }
