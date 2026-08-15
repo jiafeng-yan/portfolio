@@ -70,8 +70,8 @@ export function ProjectCard({ project }: Props) {
     const normY = (y / rect.height - 0.5) * 2;
 
     tiltTarget.current = {
-      x: -normY * 3.5, // tilt X (pitch)
-      y: normX * 3.5   // tilt Y (yaw)
+      x: -normY * 1.5, // tilt X (pitch)
+      y: normX * 1.5   // tilt Y (yaw)
     };
 
     gsap.to(card, {

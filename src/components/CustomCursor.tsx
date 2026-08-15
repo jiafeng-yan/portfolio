@@ -8,7 +8,6 @@ export function CustomCursor() {
   const cursorInnerRef = useRef<HTMLDivElement>(null);
   const [cursorState, setCursorState] = useState<CursorState>('default');
   const lastMousePos = useRef({ x: -1000, y: -1000 });
-  const mouseVelocity = useRef({ x: 0, y: 0, speed: 0 });
   const isDragging = useRef(false);
   const dragTarget = useRef<HTMLElement | null>(null);
   const currentMagneticTarget = useRef<HTMLElement | null>(null);
@@ -24,39 +23,6 @@ export function CustomCursor() {
     // Movement & Velocity deformation
     const moveCursor = (e: MouseEvent) => {
       const { clientX: x, clientY: y } = e;
-
-      // Compute velocity
-      if (lastMousePos.current.x !== -1000) {
-        const vx = x - lastMousePos.current.x;
-        const vy = y - lastMousePos.current.y;
-        const speed = Math.sqrt(vx * vx + vy * vy);
-        mouseVelocity.current = { x: vx, y: vy, speed };
-
-        // Velocity stretch & orientation when moving briskly
-        if (speed > 8 && cursorState === 'default' && !currentMagneticTarget.current) {
-          const angle = Math.atan2(vy, vx) * (180 / Math.PI);
-          const stretch = Math.min(1 + speed * 0.012, 1.45);
-          const squeeze = Math.max(1 - speed * 0.008, 0.75);
-
-          gsap.to(cursor, {
-            scaleX: stretch,
-            scaleY: squeeze,
-            rotation: angle,
-            duration: 0.12,
-            ease: 'power1.out',
-            overwrite: 'auto'
-          });
-        } else if (cursorState === 'default' && !currentMagneticTarget.current) {
-          gsap.to(cursor, {
-            scaleX: 1,
-            scaleY: 1,
-            rotation: 0,
-            duration: 0.25,
-            ease: 'power2.out',
-            overwrite: 'auto'
-          });
-        }
-      }
 
       lastMousePos.current = { x, y };
 
