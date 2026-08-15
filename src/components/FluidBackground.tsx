@@ -162,8 +162,8 @@ export function FluidBackground() {
       height = window.innerHeight;
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
-      canvas.style.width = ${width}px;
-      canvas.style.height = ${height}px;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       // Re-center orb base targets
