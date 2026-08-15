@@ -95,9 +95,55 @@ section {
 .hero__stats,
 .hero__link,
 .skills__item,
-.profile__row {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+.profile__row,
+.recognition-list__group,
+.experience__item {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Spotlight Card System (GPU accelerated dynamic radial glow) */
+.spotlight-card,
+[data-spotlight] {
+  position: relative;
+  --mouse-x: -1000px;
+  --mouse-y: -1000px;
+  --spotlight-color: rgba(212, 165, 116, 0.12);
+  --spotlight-border-color: rgba(184, 112, 74, 0.35);
+  --spotlight-radius: 360px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .spotlight-card::before,
+  [data-spotlight]::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      var(--spotlight-radius) circle at var(--mouse-x) var(--mouse-y),
+      var(--spotlight-color),
+      transparent 80%
+    );
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-out-expo);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .spotlight-card:hover::before,
+  [data-spotlight]:hover::before {
+    opacity: 1;
+  }
+}
+
+/* Section divider line growth */
+.section-line {
+  width: 100%;
+  height: 1px;
+  background: rgba(44, 40, 37, 0.12);
+  transform-origin: left center;
+  will-change: transform;
 }
 
 /* Hide cursor on desktop, show on touch devices */
@@ -107,7 +153,7 @@ section {
   }
 
   /* Hide default cursor on interactive elements */
-  a, button, [data-cursor-hover] {
+  a, button, [data-cursor-hover], [data-magnetic] {
     cursor: none;
   }
 }

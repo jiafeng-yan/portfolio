@@ -49,7 +49,7 @@ const experiences = [
   <div class="experience__content">
     <div class="recognition-list" aria-label="竞赛与所获表彰">
       {recognitions.map((group) => (
-        <article class="recognition-list__group">
+        <article class="recognition-list__group spotlight-card" data-spotlight data-cursor-hover>
           <h3>{group.label}</h3>
           <ul>
             {group.items.map((item) => (
@@ -62,7 +62,7 @@ const experiences = [
 
     <div class="experience__timeline" aria-label="学生工作与实践经历">
       {experiences.map((item) => (
-        <article class="experience__item">
+        <article class="experience__item spotlight-card" data-spotlight data-cursor-hover>
           <div class="experience__item-meta">
             <span>{item.time}</span>
           </div>
@@ -112,8 +112,17 @@ const experiences = [
     display: grid;
     grid-template-columns: 7rem minmax(0, 1fr);
     gap: var(--space-lg);
-    padding: var(--space-lg) 0;
+    padding: var(--space-lg) var(--space-md);
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius);
+    transition:
+      background var(--duration-fast),
+      transform var(--duration-normal) var(--ease-out-expo);
+  }
+
+  .recognition-list__group:hover {
+    background: rgba(255, 255, 255, 0.65);
+    transform: translateX(4px);
   }
 
   .recognition-list__group h3 {
@@ -137,8 +146,17 @@ const experiences = [
     display: grid;
     grid-template-columns: 8rem minmax(0, 1fr);
     gap: var(--space-lg);
-    padding: var(--space-lg) 0;
+    padding: var(--space-lg) var(--space-md);
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius);
+    transition:
+      background var(--duration-fast),
+      transform var(--duration-normal) var(--ease-out-expo);
+  }
+
+  .experience__item:hover {
+    background: rgba(255, 255, 255, 0.65);
+    transform: translateX(4px);
   }
 
   .experience__item-meta {

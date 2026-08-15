@@ -55,62 +55,90 @@ const LinkLabels = {
 export function ProjectCard({ project }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
+  const tiltTarget = useRef({ x: 0, y: 0 });
 
-  const animate = (expanded: boolean) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const card = cardRef.current;
+    if (!card || window.matchMedia('(hover: none)').matches) return;
+
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Normalize -1 to 1
+    const normX = (x / rect.width - 0.5) * 2;
+    const normY = (y / rect.height - 0.5) * 2;
+
+    tiltTarget.current = {
+      x: -normY * 3.5, // tilt X (pitch)
+      y: normX * 3.5   // tilt Y (yaw)
+    };
+
+    gsap.to(card, {
+      rotateX: tiltTarget.current.x,
+      rotateY: tiltTarget.current.y,
+      transformPerspective: 1000,
+      duration: 0.25,
+      ease: 'power1.out',
+      overwrite: 'auto'
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setIsExpanded(false);
     const card = cardRef.current;
     if (!card) return;
 
     gsap.to(card, {
-      y: expanded ? -8 : 0,
-      boxShadow: expanded ? '0 20px 60px rgba(44, 40, 37, 0.12)' : '0 0 0 rgba(44, 40, 37, 0)',
-      borderColor: expanded ? 'rgba(184, 112, 74, 0.25)' : 'rgba(44, 40, 37, 0.10)',
-      duration: 0.4,
+      rotateX: 0,
+      rotateY: 0,
+      y: 0,
+      boxShadow: '0 0 0 rgba(44, 40, 37, 0)',
+      borderColor: 'rgba(44, 40, 37, 0.10)',
+      duration: 0.45,
+      ease: 'power2.out'
+    });
+  };
+
+  const handleMouseEnter = () => {
+    setIsExpanded(true);
+    const card = cardRef.current;
+    if (!card) return;
+
+    gsap.to(card, {
+      y: -6,
+      boxShadow: '0 20px 50px rgba(44, 40, 37, 0.10), 0 0 0 1px rgba(184, 112, 74, 0.15)',
+      borderColor: 'rgba(184, 112, 74, 0.35)',
+      duration: 0.35,
       ease: 'power2.out'
     });
 
     // Animate tech tags with stagger
     const techItems = card.querySelectorAll('.project-card__tech-item');
     gsap.to(techItems, {
-      y: expanded ? -2 : 0,
-      scale: expanded ? 1.02 : 1,
-      duration: 0.3,
+      y: -2,
+      scale: 1.02,
+      duration: 0.25,
       stagger: 0.02,
       ease: 'power2.out'
     });
-
-    // Animate links
-    const links = card.querySelectorAll('.project-card__link');
-    gsap.to(links, {
-      x: expanded ? 4 : 0,
-      duration: 0.3,
-      stagger: 0.03,
-      ease: 'power2.out'
-    });
-  };
-
-  const expand = () => {
-    setIsExpanded(true);
-    animate(true);
-  };
-
-  const collapse = () => {
-    setIsExpanded(false);
-    animate(false);
   };
 
   return (
     <article
       ref={cardRef}
-      className="project-card"
+      className="project-card spotlight-card"
       data-cursor-hover
+      data-spotlight
       tabIndex={0}
       aria-expanded={isExpanded}
-      onMouseEnter={expand}
-      onMouseLeave={collapse}
-      onFocus={expand}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onFocus={handleMouseEnter}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-          collapse();
+          handleMouseLeave();
         }
       }}
     >
@@ -156,6 +184,7 @@ export function ProjectCard({ project }: Props) {
                   rel="noopener noreferrer"
                   className="project-card__link"
                   data-cursor-hover
+                  data-magnetic
                 >
                   {LinkIcons[link.type]}
                   <span className="project-card__link-label">{LinkLabels[link.type]}</span>

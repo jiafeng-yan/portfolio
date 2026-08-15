@@ -39,7 +39,7 @@ const profileRows = [
 
   <div class="profile__rows">
     {profileRows.map((row) => (
-      <article class="profile__row">
+      <article class="profile__row spotlight-card" data-spotlight data-cursor-hover>
         <span class="profile__row-label">{row.label}</span>
         <div>
           <h3>{row.title}</h3>
@@ -88,9 +88,18 @@ const profileRows = [
     display: grid;
     grid-template-columns: 7rem minmax(0, 1fr) auto;
     gap: var(--space-lg);
-    padding: var(--space-lg) 0;
+    padding: var(--space-lg) var(--space-md);
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius);
     align-items: start;
+    transition:
+      background var(--duration-fast),
+      transform var(--duration-normal) var(--ease-out-expo);
+  }
+
+  .profile__row:hover {
+    background: rgba(255, 255, 255, 0.65);
+    transform: translateX(4px);
   }
 
   .profile__row-label,

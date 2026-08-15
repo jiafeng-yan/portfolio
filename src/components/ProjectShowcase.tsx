@@ -160,7 +160,8 @@ export function ProjectShowcase({ groups }: Props) {
         return (
           <section
             key={group.id}
-            className="project-showcase__panel"
+            className="project-showcase__panel spotlight-card"
+            data-spotlight
             aria-labelledby={`${group.id}-title`}
           >
             <header className="project-showcase__header">
