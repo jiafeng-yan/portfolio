@@ -16,6 +16,8 @@ interface Project {
   highlights?: string[];
   links?: ProjectLink[];
   status?: string;
+  thumbnail?: string;  // 缩略图 URL
+  thumbnailAlt?: string;  // 缩略图描述
 }
 
 interface ProjectGroup {

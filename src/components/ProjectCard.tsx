@@ -16,6 +16,8 @@ interface Project {
   highlights?: string[];
   links?: ProjectLink[];
   status?: string;
+  thumbnail?: string;
+  thumbnailAlt?: string;
 }
 
 interface Props {
@@ -144,6 +146,16 @@ export function ProjectCard({ project }: Props) {
         }
       }}
     >
+      {project.thumbnail && (
+        <div className="project-card__thumbnail">
+          <img
+            src={project.thumbnail}
+            alt={project.thumbnailAlt || project.title}
+            loading="lazy"
+          />
+        </div>
+      )}
+
       <div className="project-card__header">
         <div className="project-card__meta">
           <span className="project-card__venue">{project.venue}</span>
@@ -209,6 +221,26 @@ export function ProjectCard({ project }: Props) {
           will-change: transform;
           outline: none;
           backdrop-filter: blur(8px);
+        }
+
+        .project-card__thumbnail {
+          width: 100%;
+          aspect-ratio: 16 / 9;
+          border-radius: var(--border-radius);
+          overflow: hidden;
+          margin-bottom: var(--space-md);
+          background: var(--color-bg);
+        }
+
+        .project-card__thumbnail img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .project-card:hover .project-card__thumbnail img {
+          transform: scale(1.05);
         }
 
         .project-card:hover,
