@@ -13,6 +13,7 @@ import { SmoothScroll } from '../components/SmoothScroll';
 import { PageTransition } from '../components/PageTransition';
 import { ReadingProgress } from '../components/ReadingProgress';
 import { ToastManager } from '../components/ToastManager';
+import { BackToTop } from '../components/BackToTop';
 import StatsWidgets from '../components/StatsWidgets.astro';
 
 const projects = [
@@ -166,6 +167,7 @@ const projectGroups = [
 <Layout title="闫家锋 | 计算机视觉与多模态 AI">
   <ReadingProgress client:load />
   <ToastManager client:load />
+  <BackToTop client:load />
   <FluidBackground client:idle />
   <CustomCursor client:load />
   <ScrollAnimations client:visible />

@@ -16,6 +16,10 @@ const sections = [
       <span class="nav__logo-text">YJF</span>
     </a>
 
+    <button class="nav__menu-toggle" data-menu-toggle aria-label="菜单" aria-expanded="false">
+      <span class="nav__menu-icon"></span>
+    </button>
+
     <ul class="nav__links">
       {sections.map((section) => (
         <li>
@@ -231,8 +235,79 @@ const sections = [
       padding: var(--space-sm) var(--space-md);
     }
 
+    .nav__menu-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      position: relative;
+      z-index: 101;
+    }
+
+    .nav__menu-icon {
+      width: 20px;
+      height: 2px;
+      background: var(--color-text);
+      position: relative;
+      transition: background 0.3s;
+    }
+
+    .nav__menu-icon::before,
+    .nav__menu-icon::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 2px;
+      background: var(--color-text);
+      transition: transform 0.3s;
+    }
+
+    .nav__menu-icon::before {
+      top: -6px;
+    }
+
+    .nav__menu-icon::after {
+      top: 6px;
+    }
+
+    .nav__menu-toggle[aria-expanded="true"] .nav__menu-icon {
+      background: transparent;
+    }
+
+    .nav__menu-toggle[aria-expanded="true"] .nav__menu-icon::before {
+      transform: rotate(45deg) translateY(6px);
+    }
+
+    .nav__menu-toggle[aria-expanded="true"] .nav__menu-icon::after {
+      transform: rotate(-45deg) translateY(-6px);
+    }
+
     .nav__links {
-      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--color-bg);
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: var(--space-md);
+      transform: translateX(100%);
+      transition: transform 0.3s var(--ease-out-expo);
+    }
+
+    .nav__links.is-open {
+      transform: translateX(0);
+    }
+
+    .nav__link {
+      font-size: 1.2rem;
     }
 
     .nav__cta {
@@ -252,6 +327,12 @@ const sections = [
     .wechat-modal__qr {
       width: 180px;
       height: auto;
+    }
+  }
+
+  @media (min-width: 769px) {
+    .nav__menu-toggle {
+      display: none;
     }
   }
 </style>
@@ -333,4 +414,24 @@ const sections = [
     sectionObserver.disconnect();
     abortController.abort();
   }, { once: true });
+
+  // Mobile menu toggle
+  const menuToggle = document.querySelector('[data-menu-toggle]');
+  const navLinksEl = document.querySelector('.nav__links');
+
+  menuToggle?.addEventListener('click', () => {
+    const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+    menuToggle.setAttribute('aria-expanded', String(!isOpen));
+    navLinksEl?.classList.toggle('is-open');
+    document.body.style.overflow = isOpen ? '' : 'hidden';
+  }, { signal });
+
+  // Close menu on link click
+  navLinks.forEach((link) => {
+    link.addEventListener('click', () => {
+      menuToggle?.setAttribute('aria-expanded', 'false');
+      navLinksEl?.classList.remove('is-open');
+      document.body.style.overflow = '';
+    }, { signal });
+  });
 </script>
