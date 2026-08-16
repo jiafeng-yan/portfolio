@@ -1,3 +1,100 @@
+/* 欢迎提示 - 右上角 3 秒倒计时 */
+.keyboard-welcome {
+  position: fixed;
+  top: var(--space-lg);
+  right: var(--space-lg);
+  z-index: 10002;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition:
+    opacity 0.3s var(--ease-out-expo),
+    visibility 0.3s,
+    transform 0.3s var(--ease-out-expo);
+}
+
+.keyboard-welcome--visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.keyboard-welcome__content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--color-text);
+  color: var(--color-bg);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-xl);
+}
+
+.keyboard-welcome__countdown {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.keyboard-welcome__text {
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.keyboard-welcome__text strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.keyboard-welcome__text p {
+  margin: 0;
+  opacity: 0.85;
+}
+
+.keyboard-welcome__text kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+/* 常驻入口 - 右上角小按钮 */
+.keyboard-trigger {
+  position: fixed;
+  top: var(--space-lg);
+  right: var(--space-lg);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-text);
+  color: var(--color-bg);
+  border: none;
+  border-radius: var(--border-radius);
+  opacity: 0.4;
+  transition:
+    opacity var(--duration-fast),
+    transform var(--duration-fast);
+  cursor: pointer;
+  z-index: 99;
+}
+
+.keyboard-trigger:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+/* 帮助面板 */
 .keyboard-help {
   position: fixed;
   inset: 0;
@@ -75,6 +172,22 @@
   margin: 0;
   color: var(--color-text-muted);
   font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .keyboard-welcome {
+    top: var(--space-md);
+    right: var(--space-md);
+    left: var(--space-md);
+  }
+
+  .keyboard-welcome__content {
+    width: 100%;
+  }
+
+  .keyboard-trigger {
+    display: none;
+  }
 }
 
 @media (max-width: 640px) {

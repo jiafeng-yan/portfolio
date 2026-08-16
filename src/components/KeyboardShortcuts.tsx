@@ -3,59 +3,76 @@ import './KeyboardShortcuts.css';
 
 export function KeyboardShortcuts() {
   const [showHelp, setShowHelp] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [countdown, setCountdown] = useState(3);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // 首次访问显示欢迎提示
+    const hasVisited = localStorage.getItem('kb-shortcuts-seen');
+    if (!hasVisited) {
+      setShowWelcome(true);
+      localStorage.setItem('kb-shortcuts-seen', 'true');
+
+      const interval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setTimeout(() => setShowWelcome(false), 500);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // 显示帮助面板：? 或 Shift+/
-      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+      // 如果在输入框中，不触发快捷键
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // ? - 显示帮助
+      if (e.key === '?' && e.shiftKey) {
         e.preventDefault();
         setShowHelp(prev => !prev);
         return;
       }
 
-      // ESC 关闭帮助
+      // ESC - 关闭帮助
       if (e.key === 'Escape') {
         setShowHelp(false);
         return;
       }
 
-      // 数字键导航到各个区域
+      // H - 回到顶部
+      if (e.key === 'h' || e.key === 'H') {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      // B - 回到底部
+      if (e.key === 'b' || e.key === 'B') {
+        e.preventDefault();
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        return;
+      }
+
+      // 数字键 1-5 - 跳转到各区域
       const sections = ['hero', 'profile', 'projects', 'skills', 'experience'];
       const num = parseInt(e.key);
       if (num >= 1 && num <= sections.length) {
         e.preventDefault();
         const section = document.querySelector(`[data-section="${sections[num - 1]}"]`);
         section?.scrollIntoView({ behavior: 'smooth' });
-        return;
-      }
-
-      // G 然后 H：回到顶部
-      if (e.key === 'g' || e.key === 'G') {
-        const nextKey = (nextE: KeyboardEvent) => {
-          if (nextE.key === 'h' || nextE.key === 'H') {
-            nextE.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-          window.removeEventListener('keydown', nextKey);
-        };
-        window.addEventListener('keydown', nextKey, { once: true });
-        setTimeout(() => window.removeEventListener('keydown', nextKey), 1000);
-        return;
-      }
-
-      // G 然后 B：回到底部
-      if (e.key === 'g' || e.key === 'G') {
-        const nextKey = (nextE: KeyboardEvent) => {
-          if (nextE.key === 'b' || nextE.key === 'B') {
-            nextE.preventDefault();
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-          }
-          window.removeEventListener('keydown', nextKey);
-        };
-        window.addEventListener('keydown', nextKey, { once: true });
-        setTimeout(() => window.removeEventListener('keydown', nextKey), 1000);
       }
     };
 
@@ -64,33 +81,60 @@ export function KeyboardShortcuts() {
   }, []);
 
   return (
-    <div className={`keyboard-help ${showHelp ? 'keyboard-help--visible' : ''}`}>
-      <div className="keyboard-help__overlay" onClick={() => setShowHelp(false)} />
-      <div className="keyboard-help__content">
-        <h3>键盘快捷键</h3>
-        <dl className="keyboard-help__list">
-          <div>
-            <dt><kbd>?</kbd></dt>
-            <dd>显示/隐藏快捷键</dd>
+    <>
+      {/* 欢迎提示 */}
+      <div className={`keyboard-welcome ${showWelcome ? 'keyboard-welcome--visible' : ''}`}>
+        <div className="keyboard-welcome__content">
+          <div className="keyboard-welcome__countdown">{countdown}</div>
+          <div className="keyboard-welcome__text">
+            <strong>快捷键可用</strong>
+            <p>按 <kbd>?</kbd> 查看所有快捷键</p>
           </div>
-          <div>
-            <dt><kbd>1-5</kbd></dt>
-            <dd>跳转到各区域</dd>
-          </div>
-          <div>
-            <dt><kbd>G</kbd> <kbd>H</kbd></dt>
-            <dd>回到顶部</dd>
-          </div>
-          <div>
-            <dt><kbd>G</kbd> <kbd>B</kbd></dt>
-            <dd>回到底部</dd>
-          </div>
-          <div>
-            <dt><kbd>ESC</kbd></dt>
-            <dd>关闭弹窗</dd>
-          </div>
-        </dl>
+        </div>
       </div>
-    </div>
+
+      {/* 常驻入口 - 右上角小图标 */}
+      <button
+        className="keyboard-trigger"
+        onClick={() => setShowHelp(true)}
+        aria-label="查看快捷键"
+        title="快捷键 (?)"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="4" y="4" width="16" height="16" rx="2" />
+          <path d="M9 10h.01M15 10h.01M9 14h6" />
+        </svg>
+      </button>
+
+      {/* 帮助面板 */}
+      <div className={`keyboard-help ${showHelp ? 'keyboard-help--visible' : ''}`}>
+        <div className="keyboard-help__overlay" onClick={() => setShowHelp(false)} />
+        <div className="keyboard-help__content">
+          <h3>键盘快捷键</h3>
+          <dl className="keyboard-help__list">
+            <div>
+              <dt><kbd>?</kbd></dt>
+              <dd>显示此帮助</dd>
+            </div>
+            <div>
+              <dt><kbd>H</kbd></dt>
+              <dd>回到顶部</dd>
+            </div>
+            <div>
+              <dt><kbd>B</kbd></dt>
+              <dd>回到底部</dd>
+            </div>
+            <div>
+              <dt><kbd>1-5</kbd></dt>
+              <dd>跳转到各区域</dd>
+            </div>
+            <div>
+              <dt><kbd>ESC</kbd></dt>
+              <dd>关闭弹窗</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </>
   );
 }
