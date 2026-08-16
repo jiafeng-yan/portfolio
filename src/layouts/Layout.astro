@@ -39,8 +39,41 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="preload"
+      href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
 
     <title>{title}</title>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "闫家锋",
+      "jobTitle": "计算机科学与技术本科生",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "中央财经大学"
+      },
+      "alumniOf": "中央财经大学",
+      "knowsAbout": [
+        "计算机视觉",
+        "图像融合",
+        "多模态学习",
+        "检索增强系统",
+        "RAG"
+      ],
+      "url": canonicalURL.href,
+      "sameAs": [
+        "https://github.com/jiafeng-yan"
+      ],
+      "email": "yan.jiafeng@email.cufe.edu.cn",
+      "telephone": "+86-13935252657"
+    })} />
   </head>
   <body>
     <slot />

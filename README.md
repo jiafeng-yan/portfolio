@@ -1,8 +1,20 @@
-# 闫家锋 - 个人主页
+# 个人主页
 
-基于 Astro 构建的个人主页，具备流体背景动效、自定义光标、悬停展开交互等特性。
+闫家锋的个人主页 - 基于 Astro 构建，展示项目、技能与成就。
 
 **在线访问**: [https://jiafeng-yan.github.io/portfolio/](https://jiafeng-yan.github.io/portfolio/)
+
+## ✨ 最新更新 (2026-08-16)
+
+- 🌙 深色模式支持（自动跟随系统）
+- 📊 阅读进度条
+- 🎬 页面加载动画（GSAP ScrollTrigger）
+- 🔔 Toast 通知系统
+- 📋 一键复制联系方式
+- ⚡ 性能优化（代码分割、字体预加载）
+- 🔍 SEO 增强（Schema.org 结构化数据）
+
+详见 [docs/CHANGELOG.md](docs/CHANGELOG.md) | [完整优化建议](docs/OPTIMIZATION_SUGGESTIONS.md)
 
 ## 技术栈
 

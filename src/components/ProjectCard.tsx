@@ -93,6 +93,7 @@ export function ProjectCard({ project }: Props) {
       rotateX: 0,
       rotateY: 0,
       y: 0,
+      scale: 1,
       boxShadow: '0 0 0 rgba(44, 40, 37, 0)',
       borderColor: 'rgba(44, 40, 37, 0.10)',
       duration: 0.45,
@@ -107,8 +108,9 @@ export function ProjectCard({ project }: Props) {
 
     gsap.to(card, {
       y: -6,
-      boxShadow: '0 20px 50px rgba(44, 40, 37, 0.10), 0 0 0 1px rgba(184, 112, 74, 0.15)',
+      boxShadow: '0 20px 60px rgba(44, 40, 37, 0.15), 0 0 0 1px rgba(184, 112, 74, 0.1)',
       borderColor: 'rgba(184, 112, 74, 0.35)',
+      scale: 1.01,
       duration: 0.35,
       ease: 'power2.out'
     });

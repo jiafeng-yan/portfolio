@@ -10,6 +10,9 @@ import { FluidBackground } from '../components/FluidBackground';
 import { CustomCursor } from '../components/CustomCursor';
 import { ScrollAnimations } from '../components/ScrollAnimations';
 import { SmoothScroll } from '../components/SmoothScroll';
+import { PageTransition } from '../components/PageTransition';
+import { ReadingProgress } from '../components/ReadingProgress';
+import { ToastManager } from '../components/ToastManager';
 import StatsWidgets from '../components/StatsWidgets.astro';
 
 const projects = [
@@ -161,10 +164,13 @@ const projectGroups = [
 ---
 
 <Layout title="闫家锋 | 计算机视觉与多模态 AI">
-  <FluidBackground client:visible />
+  <ReadingProgress client:load />
+  <ToastManager client:load />
+  <FluidBackground client:idle />
   <CustomCursor client:load />
   <ScrollAnimations client:visible />
   <SmoothScroll client:load />
+  <PageTransition client:load />
   <Navigation />
 
   <main>

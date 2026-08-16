@@ -1,0 +1,22 @@
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    var(--color-primary),
+    var(--color-accent-warm)
+  );
+  transform-origin: left center;
+  z-index: 9999;
+  transition: transform 0.1s ease-out;
+  box-shadow: 0 0 10px rgba(184, 112, 74, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reading-progress {
+    transition: none;
+  }
+}
