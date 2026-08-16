@@ -13,9 +13,13 @@ export function Toast({ message, type = 'success', duration = 3000, onClose }: T
 
   useEffect(() => {
     // 触发进入动画
-    requestAnimationFrame(() => {
+    if (typeof window !== 'undefined') {
+      requestAnimationFrame(() => {
+        setIsVisible(true);
+      });
+    } else {
       setIsVisible(true);
-    });
+    }
 
     const timer = setTimeout(() => {
       setIsVisible(false);

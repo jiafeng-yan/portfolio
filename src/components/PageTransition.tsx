@@ -3,7 +3,9 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export function PageTransition() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -18,7 +20,7 @@ export function PageTransition() {
   }, []);
 
   useGSAP(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || typeof window === 'undefined') return;
 
     // Hero 区域淡入
     gsap.from('[data-section="hero"]', {
@@ -69,7 +71,7 @@ export function PageTransition() {
         toggleActions: 'play none none none'
       }
     });
-  }, { dependencies: [isLoaded], scope: document });
+  }, { dependencies: [isLoaded] });
 
   return null;
 }

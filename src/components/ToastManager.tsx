@@ -6,6 +6,8 @@ export function ToastManager() {
   const { showToast } = useToast();
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const handleShowToast = (event: CustomEvent) => {
       const { message, type } = event.detail;
       showToast(message, type);
