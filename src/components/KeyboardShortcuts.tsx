@@ -39,8 +39,8 @@ export function KeyboardShortcuts() {
         return;
       }
 
-      // ? - 显示帮助
-      if (e.key === '?' && e.shiftKey) {
+      // H - 显示帮助
+      if (e.key === 'h' || e.key === 'H') {
         e.preventDefault();
         setShowHelp(prev => !prev);
         return;
@@ -52,15 +52,15 @@ export function KeyboardShortcuts() {
         return;
       }
 
-      // H - 回到顶部
-      if (e.key === 'h' || e.key === 'H') {
+      // ↑ - 回到顶部
+      if (e.key === 'ArrowUp') {
         e.preventDefault();
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
 
-      // B - 回到底部
-      if (e.key === 'b' || e.key === 'B') {
+      // ↓ - 回到底部
+      if (e.key === 'ArrowDown') {
         e.preventDefault();
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         return;
@@ -88,7 +88,7 @@ export function KeyboardShortcuts() {
           <div className="keyboard-welcome__countdown">{countdown}</div>
           <div className="keyboard-welcome__text">
             <strong>快捷键可用</strong>
-            <p>按 <kbd>?</kbd> 查看所有快捷键</p>
+            <p>按 <kbd>H</kbd> 查看所有快捷键</p>
           </div>
         </div>
       </div>
@@ -98,7 +98,7 @@ export function KeyboardShortcuts() {
         className="keyboard-trigger"
         onClick={() => setShowHelp(true)}
         aria-label="查看快捷键"
-        title="快捷键 (?)"
+        title="快捷键 (H)"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="4" y="4" width="16" height="16" rx="2" />
@@ -113,15 +113,15 @@ export function KeyboardShortcuts() {
           <h3>键盘快捷键</h3>
           <dl className="keyboard-help__list">
             <div>
-              <dt><kbd>?</kbd></dt>
+              <dt><kbd>H</kbd></dt>
               <dd>显示此帮助</dd>
             </div>
             <div>
-              <dt><kbd>H</kbd></dt>
+              <dt><kbd>↑</kbd></dt>
               <dd>回到顶部</dd>
             </div>
             <div>
-              <dt><kbd>B</kbd></dt>
+              <dt><kbd>↓</kbd></dt>
               <dd>回到底部</dd>
             </div>
             <div>
