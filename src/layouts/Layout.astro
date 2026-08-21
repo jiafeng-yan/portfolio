@@ -39,14 +39,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <link
-      rel="preload"
-      href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-
     <title>{title}</title>
 
     <!-- Structured Data -->
@@ -76,6 +68,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     })} />
   </head>
   <body>
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
     <slot />
   </body>
 </html>
@@ -83,5 +76,23 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 <style is:global>
   html {
     scroll-behavior: auto;
+  }
+
+  .skip-link {
+    position: fixed;
+    z-index: 10000;
+    top: var(--space-sm);
+    left: var(--space-sm);
+    padding: 0.7rem 1rem;
+    border-radius: 999px;
+    background: var(--color-text);
+    color: var(--color-bg);
+    font-weight: 600;
+    transform: translateY(-160%);
+    transition: transform var(--duration-fast) ease;
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
   }
 </style>

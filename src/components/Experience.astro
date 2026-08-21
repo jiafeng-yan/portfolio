@@ -2,19 +2,57 @@
 const recognitions = [
   {
     label: '数学竞赛',
-    items: ['大学生数学竞赛 · 国家级三等奖']
+    items: [
+      {
+        text: '大学生数学竞赛 · 国家级三等奖',
+        proof: '/portfolio/previews/awards/math-national-third.jpg',
+        proofAlt: '全国大学生数学竞赛国家级三等奖证明'
+      }
+    ]
   },
   {
     label: '算法竞赛',
-    items: ['CSP 认证 · 前 5.83%', '蓝桥杯大赛算法竞赛 · 省部级二等奖']
+    items: [
+      {
+        text: 'CSP 认证 · 前 5.83%',
+        proof: '/portfolio/previews/awards/ccf-csp-top-6.jpg',
+        proofAlt: '第 38 次 CCF CSP 认证成绩证明'
+      },
+      {
+        text: '蓝桥杯大赛算法竞赛 · 省部级二等奖',
+        proof: '/portfolio/previews/awards/lanqiao-beijing-second.jpg',
+        proofAlt: '蓝桥杯北京赛区二等奖证明'
+      }
+    ]
   },
   {
     label: '创新创业',
-    items: ['全国大学生能源经济学术创意大赛 · 省部级二等奖', '中国国际大学生创新大赛 · 省部级三等奖']
+    items: [
+      {
+        text: '全国大学生能源经济学术创意大赛 · 省部级二等奖',
+        proof: '/portfolio/previews/awards/energy-economics-second.jpg',
+        proofAlt: '全国大学生能源经济学术创意大赛北京赛区二等奖证明'
+      },
+      {
+        text: '中国国际大学生创新大赛 · 省部级三等奖',
+        proof: '/portfolio/previews/awards/innovation-beijing-third.jpg',
+        proofAlt: '中国国际大学生创新大赛北京赛区三等奖证明'
+      }
+    ]
   },
   {
     label: '荣誉奖励',
-    items: ['校级三好学生', '全面发展奖学金一等 · 校级 3%', '智育奖学金', '学术科研奖学金', '求实奖励基金 · 院级 3%']
+    items: [
+      { text: '校级三好学生' },
+      { text: '全面发展奖学金一等 · 校级 3%' },
+      { text: '智育奖学金' },
+      {
+        text: '学术科研奖学金',
+        proof: '/portfolio/previews/awards/academic-scholarship.jpg',
+        proofAlt: '学术科研奖学金证明'
+      },
+      { text: '求实奖励基金 · 院级 3%' }
+    ]
   }
 ];
 
@@ -53,7 +91,22 @@ const experiences = [
           <h3>{group.label}</h3>
           <ul>
             {group.items.map((item) => (
-              <li>{item}</li>
+              <li>
+                <span>{item.text}</span>
+                {item.proof && (
+                  <a
+                    class="recognition-list__proof"
+                    href={item.proof}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`查看${item.text}证明`}
+                    data-cursor-hover
+                  >
+                    <img src={item.proof} alt={item.proofAlt} loading="lazy" decoding="async" />
+                    <span aria-hidden="true">查看证明</span>
+                  </a>
+                )}
+              </li>
             ))}
           </ul>
         </article>
@@ -138,8 +191,45 @@ const experiences = [
   }
 
   .recognition-list__group li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-sm);
+    align-items: center;
     color: var(--color-text-muted);
     line-height: 1.7;
+  }
+
+  .recognition-list__proof {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-beige);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    white-space: nowrap;
+  }
+
+  .recognition-list__proof img {
+    width: 2.5rem;
+    height: 2rem;
+    border-radius: 5px;
+    border: 1px solid rgba(44, 40, 37, 0.12);
+    object-fit: cover;
+    object-position: top center;
+    transition: transform var(--duration-normal) var(--ease-out-expo), box-shadow var(--duration-normal);
+  }
+
+  .recognition-list__proof:hover img,
+  .recognition-list__proof:focus-visible img {
+    transform: scale(1.12) translateX(-2px);
+    box-shadow: 0 10px 24px rgba(44, 40, 37, 0.18);
+  }
+
+  .recognition-list__proof:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+    border-radius: 4px;
   }
 
   .experience__item {
@@ -210,6 +300,14 @@ const experiences = [
       grid-template-columns: 1fr;
       gap: var(--space-sm);
       padding: var(--space-md) 0;
+    }
+
+    .recognition-list__group li {
+      align-items: start;
+    }
+
+    .recognition-list__proof > span {
+      display: none;
     }
   }
 </style>
