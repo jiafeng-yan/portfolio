@@ -16,9 +16,6 @@ interface Project {
   highlights?: string[];
   links?: ProjectLink[];
   status?: string;
-  thumbnail?: string;
-  thumbnailAlt?: string;
-  thumbnailLabel?: string;
 }
 
 interface Props {
@@ -147,20 +144,6 @@ export function ProjectCard({ project }: Props) {
         }
       }}
     >
-      {project.thumbnail && (
-        <div className="project-card__thumbnail">
-          <img
-            src={project.thumbnail}
-            alt={project.thumbnailAlt || project.title}
-            loading="lazy"
-            decoding="async"
-          />
-          {project.thumbnailLabel && (
-            <span className="project-card__thumbnail-label">{project.thumbnailLabel}</span>
-          )}
-        </div>
-      )}
-
       <div className="project-card__header">
         <div className="project-card__meta">
           <span className="project-card__venue">{project.venue}</span>
@@ -226,43 +209,6 @@ export function ProjectCard({ project }: Props) {
           will-change: transform;
           outline: none;
           backdrop-filter: blur(8px);
-        }
-
-        .project-card__thumbnail {
-          position: relative;
-          width: 100%;
-          aspect-ratio: 16 / 9;
-          border-radius: var(--border-radius);
-          overflow: hidden;
-          margin-bottom: var(--space-md);
-          background: var(--color-bg);
-          border: 1px solid rgba(44, 40, 37, 0.08);
-        }
-
-        .project-card__thumbnail img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          object-position: top center;
-          transition: transform var(--duration-normal) var(--ease-out-expo);
-        }
-
-        .project-card__thumbnail-label {
-          position: absolute;
-          left: var(--space-sm);
-          bottom: var(--space-sm);
-          padding: 4px 9px;
-          border-radius: 999px;
-          background: rgba(26, 24, 22, 0.76);
-          color: rgba(255, 255, 255, 0.92);
-          font-family: var(--font-mono);
-          font-size: 0.64rem;
-          letter-spacing: 0.04em;
-          backdrop-filter: blur(8px);
-        }
-
-        .project-card:hover .project-card__thumbnail img {
-          transform: scale(1.05);
         }
 
         .project-card:hover,

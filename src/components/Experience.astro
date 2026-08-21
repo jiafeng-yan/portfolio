@@ -91,20 +91,23 @@ const experiences = [
           <h3>{group.label}</h3>
           <ul>
             {group.items.map((item) => (
-              <li>
+              <li
+                class="recognition-list__item"
+                tabindex={item.proof ? 0 : undefined}
+                aria-label={item.proof ? `${item.text}，悬浮或聚焦查看证明` : undefined}
+              >
                 <span>{item.text}</span>
                 {item.proof && (
-                  <a
+                  <span
                     class="recognition-list__proof"
-                    href={item.proof}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`查看${item.text}证明`}
-                    data-cursor-hover
+                    aria-hidden="true"
                   >
-                    <img src={item.proof} alt={item.proofAlt} loading="lazy" decoding="async" />
-                    <span aria-hidden="true">查看证明</span>
-                  </a>
+                    <span class="recognition-list__proof-label">证明</span>
+                    <span class="recognition-list__proof-popover">
+                      <img src={item.proof} alt="" decoding="async" />
+                      <span>{item.proofAlt}</span>
+                    </span>
+                  </span>
                 )}
               </li>
             ))}
@@ -176,6 +179,7 @@ const experiences = [
   .recognition-list__group:hover {
     background: rgba(255, 255, 255, 0.65);
     transform: translateX(4px);
+    z-index: 10;
   }
 
   .recognition-list__group h3 {
@@ -190,7 +194,8 @@ const experiences = [
     gap: var(--space-xs);
   }
 
-  .recognition-list__group li {
+  .recognition-list__item {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--space-sm);
@@ -199,37 +204,82 @@ const experiences = [
     line-height: 1.7;
   }
 
+  .recognition-list__item:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 5px;
+    border-radius: 4px;
+  }
+
   .recognition-list__proof {
-    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    justify-content: end;
     color: var(--color-beige);
     font-family: var(--font-mono);
     font-size: 0.66rem;
     white-space: nowrap;
   }
 
-  .recognition-list__proof img {
-    width: 2.5rem;
-    height: 2rem;
-    border-radius: 5px;
-    border: 1px solid rgba(44, 40, 37, 0.12);
-    object-fit: cover;
+  .recognition-list__proof-label {
+    padding: 3px 7px;
+    border: 1px solid rgba(184, 112, 74, 0.28);
+    border-radius: 999px;
+    background: rgba(184, 112, 74, 0.06);
+    transition: background var(--duration-fast), color var(--duration-fast);
+  }
+
+  .recognition-list__proof-popover {
+    position: absolute;
+    z-index: 20;
+    left: calc(100% + var(--space-md));
+    top: calc(100% + var(--space-sm));
+    width: min(360px, 34vw);
+    padding: 0.55rem;
+    border: 1px solid rgba(44, 40, 37, 0.14);
+    border-radius: var(--border-radius-lg);
+    background: var(--color-bg-elevated);
+    box-shadow: var(--shadow-xl);
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transform: translateX(-8px) scale(0.96);
+    transform-origin: left center;
+    transition:
+      opacity var(--duration-normal) var(--ease-out-expo),
+      transform var(--duration-normal) var(--ease-out-expo),
+      visibility var(--duration-normal);
+  }
+
+  .recognition-list__proof-popover img {
+    display: block;
+    width: 100%;
+    max-height: 320px;
+    border-radius: calc(var(--border-radius-lg) - 4px);
+    object-fit: contain;
     object-position: top center;
-    transition: transform var(--duration-normal) var(--ease-out-expo), box-shadow var(--duration-normal);
+    background: var(--color-bg);
   }
 
-  .recognition-list__proof:hover img,
-  .recognition-list__proof:focus-visible img {
-    transform: scale(1.12) translateX(-2px);
-    box-shadow: 0 10px 24px rgba(44, 40, 37, 0.18);
+  .recognition-list__proof-popover > span {
+    display: block;
+    margin-top: 0.45rem;
+    color: var(--color-text-muted);
+    font-size: 0.68rem;
+    line-height: 1.45;
+    white-space: normal;
   }
 
-  .recognition-list__proof:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 3px;
-    border-radius: 4px;
+  .recognition-list__item:hover .recognition-list__proof-label,
+  .recognition-list__item:focus-visible .recognition-list__proof-label {
+    color: var(--color-text);
+    background: rgba(184, 112, 74, 0.14);
+  }
+
+  .recognition-list__item:hover .recognition-list__proof-popover,
+  .recognition-list__item:focus-visible .recognition-list__proof-popover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0) scale(1);
   }
 
   .experience__item {
@@ -302,12 +352,21 @@ const experiences = [
       padding: var(--space-md) 0;
     }
 
-    .recognition-list__group li {
+    .recognition-list__item {
       align-items: start;
     }
 
-    .recognition-list__proof > span {
-      display: none;
+    .recognition-list__proof-popover {
+      left: 0;
+      top: calc(100% + var(--space-sm));
+      width: min(320px, calc(100vw - 2rem));
+      transform: translateY(-8px) scale(0.96);
+      transform-origin: left top;
+    }
+
+    .recognition-list__item:hover .recognition-list__proof-popover,
+    .recognition-list__item:focus-visible .recognition-list__proof-popover {
+      transform: translateY(0) scale(1);
     }
   }
 </style>
