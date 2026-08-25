@@ -175,18 +175,10 @@
 }
 
 @media (max-width: 768px) {
-  .keyboard-welcome {
-    top: var(--space-md);
-    right: var(--space-md);
-    left: var(--space-md);
-  }
-
-  .keyboard-welcome__content {
-    width: 100%;
-  }
-
+  .keyboard-welcome,
+  .keyboard-help,
   .keyboard-trigger {
-    display: none;
+    display: none !important;
   }
 }
 

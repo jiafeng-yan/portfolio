@@ -9,6 +9,8 @@ export function KeyboardShortcuts() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    if (window.matchMedia('(max-width: 768px)').matches) return;
+
     // 首次访问显示欢迎提示
     const hasVisited = localStorage.getItem('kb-shortcuts-seen');
     if (!hasVisited) {
@@ -32,6 +34,8 @@ export function KeyboardShortcuts() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    if (window.matchMedia('(max-width: 768px)').matches) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // 如果在输入框中，不触发快捷键

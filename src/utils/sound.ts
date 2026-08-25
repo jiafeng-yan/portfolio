@@ -1,16 +1,58 @@
-// 轻量级音效系统
 class SoundManager {
-  private enabled: boolean = true;
+  private enabled = true;
   private audioContext: AudioContext | null = null;
 
   constructor() {
-    if (typeof window !== 'undefined' && 'AudioContext' in window) {
+    if (typeof window === 'undefined') return;
+
+    const storedPreference = window.localStorage.getItem('interaction-sound-enabled');
+    if (storedPreference !== null) {
+      this.enabled = storedPreference === 'true';
+    }
+  }
+
+  private getAudioContext() {
+    if (typeof window === 'undefined' || !('AudioContext' in window)) return null;
+
+    if (!this.audioContext) {
+      // Create the context on the first user interaction so browsers allow playback.
       this.audioContext = new AudioContext();
     }
+
+    if (this.audioContext.state === 'suspended') {
+      void this.audioContext.resume();
+    }
+
+    return this.audioContext;
+  }
+
+  private playTone(frequency: number, duration: number, volume: number, delay = 0) {
+    if (!this.enabled) return;
+
+    const context = this.getAudioContext();
+    if (!context) return;
+
+    const startTime = context.currentTime + delay;
+    const oscillator = context.createOscillator();
+    const gainNode = context.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(context.destination);
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(frequency, startTime);
+    gainNode.gain.setValueAtTime(volume, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration);
   }
 
   toggle() {
     this.enabled = !this.enabled;
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('interaction-sound-enabled', String(this.enabled));
+    }
+
     return this.enabled;
   }
 
@@ -18,81 +60,44 @@ class SoundManager {
     return this.enabled;
   }
 
-  // 点击音效（短促的咔哒声）
   playClick() {
-    if (!this.enabled || !this.audioContext) return;
-
-    const ctx = this.audioContext;
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    oscillator.frequency.value = 800;
-    oscillator.type = 'sine';
-
-    gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
-
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.05);
+    this.playTone(720, 0.055, 0.045);
   }
 
-  // 悬停音效（柔和的嗡鸣）
   playHover() {
-    if (!this.enabled || !this.audioContext) return;
-
-    const ctx = this.audioContext;
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    oscillator.frequency.value = 600;
-    oscillator.type = 'sine';
-
-    gainNode.gain.setValueAtTime(0.05, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.1);
+    this.playTone(520, 0.07, 0.018);
   }
 
-  // 成功音效（上升音调）
   playSuccess() {
-    if (!this.enabled || !this.audioContext) return;
-
-    const ctx = this.audioContext;
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    oscillator.frequency.setValueAtTime(600, ctx.currentTime);
-    oscillator.frequency.linearRampToValueAtTime(900, ctx.currentTime + 0.15);
-    oscillator.type = 'sine';
-
-    gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.2);
+    this.playTone(620, 0.11, 0.045);
+    this.playTone(880, 0.14, 0.04, 0.08);
   }
 }
 
 export const soundManager = new SoundManager();
 
-// 自动为按钮添加音效
 if (typeof window !== 'undefined') {
-  window.addEventListener('DOMContentLoaded', () => {
-    document.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      if (target.matches('button, a[href], [data-cursor-hover]')) {
-        soundManager.playClick();
-      }
-    });
+  const getSoundTarget = (target: EventTarget | null) => {
+    if (!(target instanceof Element)) return null;
+    return target.closest<HTMLElement>('button, a[href], [data-cursor-hover]');
+  };
+
+  document.addEventListener('click', (event) => {
+    const target = getSoundTarget(event.target);
+    if (target && !target.matches('[data-sound-control]')) {
+      soundManager.playClick();
+    }
+  });
+
+  document.addEventListener('pointerover', (event) => {
+    if (event.pointerType !== 'mouse') return;
+
+    const target = getSoundTarget(event.target);
+    if (!target || target.matches('[data-sound-control]')) return;
+
+    const previousTarget = event.relatedTarget;
+    if (previousTarget instanceof Node && target.contains(previousTarget)) return;
+
+    soundManager.playHover();
   });
 }

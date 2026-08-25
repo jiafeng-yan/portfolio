@@ -150,18 +150,18 @@ const projects = [
 
 const projectGroups = [
   {
-    id: 'research',
-    eyebrow: 'Research',
-    title: '科研项目',
-    summary: '围绕红外-可见光融合、多退化恢复、扩散桥、遥感推理分割和低碳转型研究展开，强调从问题建模、数据构建到可复现实验与论文产出的完整闭环。',
-    projects: projects.filter((project) => project.category === 'research')
-  },
-  {
     id: 'build',
     eyebrow: 'Build',
     title: '开发与课程项目',
     summary: '把检索增强、多模态解析、文献搜索和图神经网络异常检测落成可运行系统或完整课程设计，覆盖原型搭建、后端链路、索引管理与前端交互呈现。',
     projects: projects.filter((project) => project.category === 'build')
+  },
+  {
+    id: 'research',
+    eyebrow: 'Research',
+    title: '科研项目',
+    summary: '围绕红外-可见光融合、多退化恢复、扩散桥、遥感推理分割和低碳转型研究展开，强调从问题建模、数据构建到可复现实验与论文产出的完整闭环。',
+    projects: projects.filter((project) => project.category === 'research')
   }
 ];
 ---
