@@ -278,11 +278,8 @@ a[data-cursor-hover]:hover {
   transform: translateY(-1px);
 }
 
-/* Button-style links */
-.hero__links > *:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
+/* 文本型链接的 hover 由各组件自行定义，这里不再统一加位移与阴影 */
+
 
 /* ============================================
    RESPONSIVE DESIGN
@@ -348,11 +345,6 @@ a[data-cursor-hover]:hover {
   /* Remove hover-dependent transforms on touch */
   a[data-cursor-hover]:hover {
     transform: none;
-  }
-
-  .hero__links > *:hover {
-    transform: none;
-    box-shadow: none;
   }
 }
 

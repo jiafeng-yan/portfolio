@@ -1,5 +1,6 @@
 class SoundManager {
-  private enabled = true;
+  private static readonly VOLUME_SCALE = 1.5;
+  private enabled = false;
   private audioContext: AudioContext | null = null;
 
   constructor() {
@@ -40,7 +41,7 @@ class SoundManager {
     gainNode.connect(context.destination);
     oscillator.type = 'sine';
     oscillator.frequency.setValueAtTime(frequency, startTime);
-    gainNode.gain.setValueAtTime(volume, startTime);
+    gainNode.gain.setValueAtTime(volume * SoundManager.VOLUME_SCALE, startTime);
     gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
     oscillator.start(startTime);
     oscillator.stop(startTime + duration);

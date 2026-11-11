@@ -3,7 +3,7 @@ import { soundManager } from '../utils/sound';
 import './SoundToggle.css';
 
 export function SoundToggle() {
-  const [enabled, setEnabled] = useState(true);
+  const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
     setEnabled(soundManager.isEnabled());

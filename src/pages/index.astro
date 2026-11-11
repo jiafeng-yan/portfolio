@@ -14,7 +14,6 @@ import { ReadingProgress } from '../components/ReadingProgress';
 import { ToastManager } from '../components/ToastManager';
 import { BackToTop } from '../components/BackToTop';
 import { SoundToggle } from '../components/SoundToggle';
-import { KeyboardShortcuts } from '../components/KeyboardShortcuts';
 import StatsWidgets from '../components/StatsWidgets.astro';
 
 const projects = [
@@ -170,7 +169,6 @@ const projectGroups = [
   <ToastManager client:load />
   <BackToTop client:load />
   <SoundToggle client:load />
-  <KeyboardShortcuts client:load />
   <FluidBackground client:idle />
   <CustomCursor client:load />
   <ScrollAnimations client:visible />

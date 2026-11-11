@@ -11,25 +11,8 @@ export function KeyboardShortcuts() {
 
     if (window.matchMedia('(max-width: 768px)').matches) return;
 
-    // 首次访问显示欢迎提示
-    const hasVisited = localStorage.getItem('kb-shortcuts-seen');
-    if (!hasVisited) {
-      setShowWelcome(true);
-      localStorage.setItem('kb-shortcuts-seen', 'true');
-
-      const interval = setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            setTimeout(() => setShowWelcome(false), 500);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
+    // 不再在首次访问时自动弹出欢迎提示：保留快捷键本身，把打扰降到最低
+    localStorage.setItem('kb-shortcuts-seen', 'true');
   }, []);
 
   useEffect(() => {

@@ -2,12 +2,12 @@
   position: fixed;
   bottom: var(--space-lg);
   right: var(--space-lg);
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: var(--color-text);
-  color: var(--color-bg);
-  border: none;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -19,7 +19,6 @@
     visibility var(--duration-normal) var(--ease-out-expo),
     transform var(--duration-normal) var(--ease-out-expo);
   z-index: 999;
-  box-shadow: var(--shadow-lg);
   cursor: pointer;
 }
 
@@ -29,9 +28,11 @@
   transform: translateY(0);
 }
 
-.back-to-top:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-xl);
+.back-to-top:hover,
+.back-to-top:focus-visible {
+  transform: translateY(-2px);
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
 }
 
 .back-to-top:active {
