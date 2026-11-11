@@ -712,9 +712,36 @@ function formatDate(date: Date): string {
 
     window.addEventListener('resize', updateMonthLayout, { signal });
 
+    // 鼠标滚轮横向滑动（与项目面板的内嵌滚动同一套逻辑）
+    const handleWheel = (event: WheelEvent) => {
+      const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+      if (maxScroll <= 1) return;
+
+      const unit =
+        event.deltaMode === WheelEvent.DOM_DELTA_LINE
+          ? 16
+          : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+            ? scrollContainer.clientHeight
+            : 1;
+      // 触控板横向手势优先，否则把纵向滚轮转成横向位移
+      const raw = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+      const delta = raw * unit;
+      if (!delta) return;
+
+      const atStart = scrollContainer.scrollLeft <= 0;
+      const atEnd = scrollContainer.scrollLeft >= maxScroll - 1;
+      if ((delta < 0 && atStart) || (delta > 0 && atEnd)) return; // 到头了，交给页面滚动
+
+      event.preventDefault();
+      // 阻止冒泡到 Lenis，否则页面会跟着一起滚
+      event.stopPropagation();
+      scrollContainer.scrollLeft = Math.min(maxScroll, Math.max(0, scrollContainer.scrollLeft + delta));
+    };
+    scrollContainer.addEventListener('wheel', handleWheel, { passive: false, signal });
+
     setTimeout(() => {
       if (!scrollContainer) return;
-      scrollContainer.scrollLeft = scrollContainer.scrollWidth;
+      scrollContainer.scrollTo({ left: scrollContainer.scrollWidth, behavior: 'smooth' });
     }, 100);
 
     const scrollHint = document.querySelector(`.${type}-calendar__scroll-hint`);
@@ -1111,7 +1138,6 @@ function formatDate(date: Date): string {
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
     -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
     max-width: 100%;
     box-sizing: border-box;
     /* scrollbar-gutter only works for vertical scrollbars, use padding instead */
@@ -1427,7 +1453,6 @@ function formatDate(date: Date): string {
     scrollbar-width: thin;
     scrollbar-color: rgba(184, 112, 74, 0.3) rgba(0, 0, 0, 0.05);
     -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
     max-width: 100%;
     box-sizing: border-box;
     /* scrollbar-gutter only works for vertical scrollbars, use padding instead */
