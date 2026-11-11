@@ -259,14 +259,14 @@ function formatDate(date: Date): string {
                   <!-- 年份标签层 -->
                   <div class="github-calendar__years" id="github-calendar-years">
                     {githubYearLabels.map((year, i) => (
-                      <span
-                        class="github-calendar__year"
+                      <div
+                        class="github-calendar__year-block"
                         key={i}
                         data-start-month-index={year.startMonthIndex}
                         data-end-month-index={year.endMonthIndex}
                       >
-                        {year.label}
-                      </span>
+                        <span class="github-calendar__year">{year.label}</span>
+                      </div>
                     ))}
                   </div>
                   <!-- 月份标签层 -->
@@ -417,14 +417,14 @@ function formatDate(date: Date): string {
                   <!-- 年份标签层 -->
                   <div class="leetcode-calendar__years" id="leetcode-calendar-years">
                     {leetcodeYearLabels.map((year, i) => (
-                      <span
-                        class="leetcode-calendar__year"
+                      <div
+                        class="leetcode-calendar__year-block"
                         key={i}
                         data-start-month-index={year.startMonthIndex}
                         data-end-month-index={year.endMonthIndex}
                       >
-                        {year.label}
-                      </span>
+                        <span class="leetcode-calendar__year">{year.label}</span>
+                      </div>
                     ))}
                   </div>
                   <!-- 月份标签层 -->
@@ -606,17 +606,33 @@ function formatDate(date: Date): string {
       return { cellSize, gap, columnWidth: cellSize + gap };
     }
 
+    // ---- 布局基准 ----
+    // 年份标签用 position: sticky（见样式）由浏览器在滚动层内解析，
+    // 这里只负责在布局变化时算准「年块宽度」与「月份标签缩进」。
+    // 所有尺寸都取同一滚动上下文内两个 rect 的差值，与 scrollLeft 无关：
+    // 惯性滚动或地址栏收起导致 rect / scrollLeft 短暂不同步时，也不会把位置写歪。
+    const body = grid.parentElement as HTMLElement | null;
+    const yearBlocks = Array.from(
+      yearsContainer.querySelectorAll(`.${type}-calendar__year-block`)
+    ) as HTMLElement[];
+
     function updateMonthLayout() {
+      if (!body) return;
+
       const labels = monthLabels();
       const groups = monthGroups();
       const { cellSize, gap, columnWidth } = getCalendarMetrics();
       const monthGap = columnWidth * 0.5;
-      const scrollRect = scrollContainer.getBoundingClientRect();
-      const gridStart = grid.getBoundingClientRect().left - scrollRect.left + scrollContainer.scrollLeft;
+
+      // body 与 grid 同处一个滚动内容，两者 rect 差值即左侧星期标签的宽度
+      const bodyRect = body.getBoundingClientRect();
+      const gutter = Math.max(0, Math.round(grid.getBoundingClientRect().left - bodyRect.left));
 
       header.style.gap = `${monthGap}px`;
-      header.style.paddingLeft = `${gridStart}px`;
+      header.style.paddingLeft = `${gutter}px`;
       grid.style.gap = `${monthGap}px`;
+      yearsContainer.style.gap = `${monthGap}px`;
+      yearsContainer.style.paddingLeft = `${gutter}px`;
 
       groups.forEach((group, index) => {
         const columns = parseInt(group.dataset.columns || '1', 10);
@@ -632,81 +648,49 @@ function formatDate(date: Date): string {
         }
       });
 
-      yearsContainer.style.width = `${Math.max(header.scrollWidth, gridStart + grid.scrollWidth)}px`;
+      const offsets: { start: number; end: number }[] = [];
+      groups.forEach((group, index) => {
+        const rect = group.getBoundingClientRect();
+        offsets[index] = {
+          start: rect.left - bodyRect.left,
+          end: rect.right - bodyRect.left
+        };
+      });
+
+      // 年块宽度 = 该年首月到末月的整段跨度，和网格逐像素一致
+      yearBlocks.forEach((block) => {
+        const start = parseInt(block.dataset.startMonthIndex || '0', 10);
+        const end = parseInt(block.dataset.endMonthIndex || '0', 10);
+        const first = offsets[start];
+        const last = offsets[end];
+        if (first && last) {
+          block.style.width = `${Math.max(0, last.end - first.start)}px`;
+        }
+      });
+
+      yearsContainer.style.width = `${Math.max(header.scrollWidth, gutter + grid.scrollWidth)}px`;
     }
 
-    // 初始化时设置月份与标签宽度
+    // 初始化测量
     updateMonthLayout();
 
-    // 监听窗口尺寸变化，重新计算月份宽度
-    window.addEventListener('resize', () => {
+    // 宽度变化（旋转、字体缩放、断点切换）时重新测量。
+    // 只在宽度真的变化时重算，避免观察自身写入导致回调循环
+    let lastMeasuredWidth = scrollContainer.clientWidth;
+    const layoutObserver = new ResizeObserver(() => {
+      const width = scrollContainer.clientWidth;
+      if (width === lastMeasuredWidth) return;
+      lastMeasuredWidth = width;
       updateMonthLayout();
-      lastScrollLeft = -1;
-      scheduleUpdate();
-    }, { signal });
+    });
+    layoutObserver.observe(scrollContainer);
+    signal.addEventListener('abort', () => layoutObserver.disconnect(), { once: true });
 
-    const yearRanges = yearElements.map((element) => ({
-      element,
-      startMonthIndex: parseInt(element.dataset.startMonthIndex || '0', 10),
-      endMonthIndex: parseInt(element.dataset.endMonthIndex || '0', 10)
-    }));
-
-    let rafId: number | null = null;
-    let lastScrollLeft = -1;
-    let lastContainerWidth = -1;
-
-    function updateYearPositions() {
-      if (!scrollContainer) return;
-      
-      const scrollLeft = scrollContainer.scrollLeft;
-      const containerWidth = scrollContainer.clientWidth;
-      if (scrollLeft === lastScrollLeft && containerWidth === lastContainerWidth) return;
-      lastScrollLeft = scrollLeft;
-      lastContainerWidth = containerWidth;
-
-      const groups = monthGroups();
-      const scrollRect = scrollContainer.getBoundingClientRect();
-
-      yearRanges.forEach(({ element, startMonthIndex, endMonthIndex }) => {
-        const startMonthGroup = groups[startMonthIndex];
-        const endMonthGroup = groups[endMonthIndex];
-        if (!startMonthGroup || !endMonthGroup) return;
-
-        const yearWidth = element.offsetWidth;
-        const startPx = startMonthGroup.getBoundingClientRect().left - scrollRect.left + scrollLeft;
-        const endPx = endMonthGroup.getBoundingClientRect().right - scrollRect.left + scrollLeft;
-
-        const visibleStart = scrollLeft;
-        const visibleEnd = scrollLeft + containerWidth;
-
-        let labelPosition = startPx;
-        if (startPx < visibleStart) {
-          labelPosition = Math.max(startPx, Math.min(visibleStart, endPx - yearWidth));
-        }
-
-        const isVisible = (endPx > visibleStart && startPx < visibleEnd);
-        const opacity = isVisible ? '1' : '0.3';
-
-        element.style.transform = `translateX(${labelPosition}px)`;
-        element.style.opacity = opacity;
-      });
-    }
-
-    function scheduleUpdate() {
-      if (rafId !== null) return;
-      rafId = requestAnimationFrame(() => {
-        updateYearPositions();
-        rafId = null;
-      });
-    }
-
-    scrollContainer.addEventListener('scroll', scheduleUpdate, { passive: true, signal });
-    updateYearPositions();
+    window.addEventListener('resize', updateMonthLayout, { signal });
 
     setTimeout(() => {
       if (!scrollContainer) return;
       scrollContainer.scrollLeft = scrollContainer.scrollWidth;
-      updateYearPositions();
     }, 100);
 
     const scrollHint = document.querySelector(`.${type}-calendar__scroll-hint`);
@@ -1160,23 +1144,28 @@ function formatDate(date: Date): string {
   }
 
   .github-calendar__years {
-    position: relative;
+    display: flex;
+    align-items: flex-start;
     height: 18px;
     margin-bottom: 2px;
-    padding-left: 0;
   }
 
+  .github-calendar__year-block {
+    flex: 0 0 auto;
+    height: 18px;
+  }
+
+  /* 粘性定位：由浏览器在滚动层内解析，和网格永远处于同一坐标系，
+     不会像 JS 追踪 scrollLeft 那样在惯性滚动中落后于实际画面 */
   .github-calendar__year {
-    position: absolute;
-    top: 0;
+    position: sticky;
     left: 0;
+    display: inline-block;
     font-size: 0.7rem;
     font-weight: 600;
     color: var(--color-text);
     text-align: left;
     white-space: nowrap;
-    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
-    /* 初始位置通过 JavaScript 设置，不使用 CSS 变量 */
   }
 
   .github-calendar__header {
@@ -1473,23 +1462,26 @@ function formatDate(date: Date): string {
   }
 
   .leetcode-calendar__years {
-    position: relative;
+    display: flex;
+    align-items: flex-start;
     height: 18px;
     margin-bottom: 2px;
-    padding-left: 0;
+  }
+
+  .leetcode-calendar__year-block {
+    flex: 0 0 auto;
+    height: 18px;
   }
 
   .leetcode-calendar__year {
-    position: absolute;
-    top: 0;
+    position: sticky;
     left: 0;
+    display: inline-block;
     font-size: 0.7rem;
     font-weight: 600;
     color: var(--color-text);
     text-align: left;
     white-space: nowrap;
-    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
-    /* 初始位置通过 JavaScript 设置，不使用 CSS 变量 */
   }
 
   .leetcode-calendar__header {
