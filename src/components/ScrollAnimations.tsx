@@ -114,20 +114,23 @@ export function ScrollAnimations() {
       });
 
       // 4. Section reveal animations
+      // 用 onEnter 触发而不是预先设 opacity:0，
+      // 避免锚点直达、整页截图、脚本异常时整段内容不可见
       gsap.utils.toArray<HTMLElement>('[data-section]').forEach((section) => {
         if (section.classList.contains('hero')) return;
 
-        gsap.from(section, {
-          scrollTrigger: {
-            trigger: section,
-            start: 'top 85%',
-            end: 'bottom 15%',
-            toggleActions: 'play none none reverse'
-          },
-          y: isMobile ? 20 : 35,
-          opacity: 0,
-          duration: 0.7,
-          ease: 'power3.out'
+        ScrollTrigger.create({
+          trigger: section,
+          start: 'top 88%',
+          once: true,
+          onEnter: () => {
+            gsap.from(section, {
+              y: isMobile ? 16 : 28,
+              opacity: 0,
+              duration: 0.7,
+              ease: 'power3.out'
+            });
+          }
         });
       });
 
