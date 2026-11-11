@@ -27,99 +27,52 @@ export function ScrollAnimations() {
       });
 
       heroTl
-        .from('.hero__badge', {
-          y: 16,
-          scale: 0.94,
-          opacity: 0,
-          duration: 0.6
-        })
-        .from('.hero__eyebrow', {
-          y: 16,
-          opacity: 0,
-          duration: 0.5
-        }, '-=0.35')
-        .from('.hero__name-first', {
-          y: isMobile ? 30 : 60,
-          opacity: 0,
-          duration: 0.85,
-          ease: 'power4.out'
-        }, '-=0.35')
-        .from('.hero__name-last', {
-          y: isMobile ? 30 : 60,
-          opacity: 0,
-          duration: 0.85,
-          ease: 'power4.out'
-        }, '-=0.68')
-        .from(['.hero__title', '.hero__subtitle'], {
-          y: 20,
-          opacity: 0,
-          duration: 0.6,
-          stagger: 0.08
-        }, '-=0.45')
-        .from('.hero__stats', {
-          y: 20,
-          scale: 0.96,
-          opacity: 0,
-          duration: 0.6
-        }, '-=0.35')
-        .from('.hero__intro', {
-          y: 16,
+        .from('.hero__meta', {
+          y: 12,
           opacity: 0,
           duration: 0.55
-        }, '-=0.3')
-        .from('.hero__links', {
-          y: 14,
+        })
+        .from('.hero__thesis', {
+          y: isMobile ? 18 : 26,
+          opacity: 0,
+          duration: 0.9,
+          ease: 'power3.out'
+        }, '-=0.35')
+        .from('.hero__bio', {
+          y: 16,
+          opacity: 0,
+          duration: 0.7
+        }, '-=0.55')
+        .from('.hero__signature', {
+          y: 10,
           opacity: 0,
           duration: 0.5
-        }, '-=0.25')
-        .from('.hero__signal', {
-          scale: 0.85,
+        }, '-=0.45')
+        .from('.hero__links', {
+          y: 10,
           opacity: 0,
-          duration: 1.0,
+          duration: 0.5
+        }, '-=0.35')
+        .from('.hero__status', {
+          opacity: 0,
+          duration: 0.4
+        }, '-=0.3')
+        .from('.hero__index li', {
+          y: 12,
+          opacity: 0,
+          stagger: 0.06,
+          duration: 0.5,
           ease: 'power2.out'
-        }, '-=0.75')
-        .from('.hero__scroll-indicator', {
+        }, '-=0.55')
+        .from('.hero__signal', {
+          scale: 0.9,
           opacity: 0,
-          y: -10,
-          duration: 0.6
-        }, '-=0.4');
+          duration: 1.1,
+          ease: 'power2.out'
+        }, '-=0.9');
 
       // 2. Parallax effect on hero elements
       if (!isMobile) {
-        gsap.to('.hero__name-first', {
-          scrollTrigger: {
-            trigger: '.hero',
-            start: 'top top',
-            end: 'bottom top',
-            scrub: 1
-          },
-          y: -60,
-          ease: 'none'
-        });
-
-        gsap.to('.hero__name-last', {
-          scrollTrigger: {
-            trigger: '.hero',
-            start: 'top top',
-            end: 'bottom top',
-            scrub: 1.2
-          },
-          y: -80,
-          ease: 'none'
-        });
-
-        gsap.to('.hero__subtitle', {
-          scrollTrigger: {
-            trigger: '.hero',
-            start: 'top top',
-            end: 'bottom top',
-            scrub: 0.8
-          },
-          y: -35,
-          opacity: 0.4,
-          ease: 'none'
-        });
-
         gsap.to('.hero__signal', {
           scrollTrigger: {
             trigger: '.hero',
@@ -127,8 +80,19 @@ export function ScrollAnimations() {
             end: 'bottom top',
             scrub: 1
           },
-          y: 80,
-          rotation: 30,
+          y: 90,
+          rotation: 24,
+          ease: 'none'
+        });
+
+        gsap.to('.hero__index', {
+          scrollTrigger: {
+            trigger: '.hero',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 0.9
+          },
+          y: -40,
           ease: 'none'
         });
       }
