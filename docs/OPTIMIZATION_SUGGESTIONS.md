@@ -1,185 +1,75 @@
-# 个人主页优化建议
+# 优化清单与现状
 
-完整的优化建议文档，包含 80+ 优化项。
+本文件只记录**还没做的事**和**已经决定不做的事**。已落地的实现说明见 [`../README.md`](../README.md)，设计取舍见 [`../PREFERENCE.md`](../PREFERENCE.md)。
 
-## 已实施 ✅
-
-### 高优先级
-- [x] 深色模式支持
-- [x] 页面加载动画
-- [x] 阅读进度条
-- [x] Toast 通知系统
-- [x] 性能优化（代码分割、字体域名预连接）
-- [x] SEO 优化（Schema.org 结构化数据）
-- [x] 项目卡片悬停效果增强
-- [x] 一键复制联系方式
-- [x] 移动端汉堡菜单 - 当前导航在小屏幕不够友好
-- [x] 图片优化 - 使用 Astro Image 组件，WebP 格式
-- [x] 错误边界 - React Error Boundary 处理组件崩溃
-- [x] 返回顶部按钮：滚动超过500px显示，平滑滚动
-
-### 中优先级
-- [x] 字体渲染优化
-- [x] 可访问性改进（ARIA 属性）
-
-### 低优先级（锦上添花）
-- [x] **音效反馈** - 按钮点击音效（可选）
-- [x] **键盘快捷键** - 快捷导航（如 Cmd+K 搜索）
+最后同步：2026-11-11（对应提交 `56a90e8` 之后）
 
 ---
 
-## 待实施 📋
+## 一、已完成（勿重复实施）
 
-### 中优先级（可选功能）
-- [ ] **项目图片预览** - 本轮撤回项目截图方案，恢复文字信息与 GitHub / arXiv 等跳转标签，避免低质量截图干扰项目阅读
-- [x] **成就证明预览** - 数学竞赛、CSP、蓝桥杯、创新创业和学术科研奖学金支持条目悬浮/聚焦浮出证明；公开素材中的身份证号、注册号等敏感字段已遮挡
+| 项 | 现状 | 备注 |
+|---|---|---|
+| 移动端导航 | 全屏菜单，logo 左、微信与菜单按钮右 | 修复过「菜单被顶栏 `transform` 困住」的包含块 bug |
+| 返回顶部 | 滚动超过 500px 出现，40px 浅色描边圆 | 与音效按钮成对，不压正文 |
+| 阅读进度 | 顶部 2px 单色半透明条 | 原 3px 渐变 + 发光已收敛 |
+| Toast | 相同文案去重，最多堆叠 3 条 | 复制邮箱 / 微信时触发 |
+| 获奖证明预览 | 悬停或聚焦条目展开证书，向下对齐右缘 | 身份证号等敏感字段已遮挡 |
+| SEO | canonical、Open Graph、Schema.org Person、sitemap、robots.txt | `@astrojs/sitemap` 生成 |
+| 可访问性 | skip link、ARIA、`:focus-visible`、`prefers-reduced-motion` | 关键文字对比度已全部 ≥4.5:1 |
+| 性能 | React 岛屿按需 hydration、字体 preconnect、GSAP 按需 | 无 CSS 框架、无 WebGL |
+| 数据管道 | 每日两次抓取 → 构建 → 部署 → 回写仓库 | 失败保留上一次快照，不再用 0 覆盖 |
+| 日历移动端对齐 | 年份标签 `position: sticky` | 不再用 JS 追踪 `scrollLeft` |
+| 日历滚轮横滑 | 指针在日历上时纵向滚轮转横向 | 到两端交还页面 |
+| arXiv / GitHub 入口 | 按类型彩色填充 | 与灰色技术标签区分 |
 
-### 本轮评估后暂不实施
-- [ ] **技能雷达图 / 进度条** - 熟练度百分比缺乏客观标尺，容易传达不可靠的精确度，必要性低
-- [ ] **联系表单** - 当前邮件、微信、电话入口已覆盖联系需求；引入第三方表单会增加隐私、垃圾消息和运维成本
-- [ ] **3D Hero / 粒子效果增强** - 与当前克制的研究型视觉方向冲突，并增加首屏性能负担
-- [ ] **动态 OG 图片生成** - 单页站点收益有限，后续有稳定品牌主视觉时再统一制作
-
----
-
-## 详细优化建议
-
-### 1. 移动端导航优化
-
-**问题**：当前导航在移动端可能显示不全
-
-**解决方案**：
-```tsx
-// 创建 MobileNav.tsx
-- 汉堡菜单图标
-- 全屏覆盖导航
-- 滑动过渡动画
-- 支持手势关闭
-```
-
-### 2. 项目预览
-
-**实现**：
-```tsx
-// 项目卡片保留标题、摘要、技术标签和 GitHub / arXiv 跳转链接。
-// 不使用低质量静态截图作为项目主视觉。
-```
-
-### 3. 技能可视化
-
-**方案 A: 雷达图（Chart.js）**
-```tsx
-import { Radar } from 'react-chartjs-2';
-
-<Radar 
-  data={{
-    labels: ['Python', 'PyTorch', 'React', 'GSAP'],
-    datasets: [{
-      data: [90, 85, 75, 80]
-    }]
-  }}
-/>
-```
-
-**方案 B: 进度条**
-```tsx
-<div className="skill-bar">
-  <div className="skill-bar__fill" style={{ width: '90%' }} />
-</div>
-```
-
-### 4. 联系表单
-
-**推荐方案：Formspree**
-```tsx
-<form action="https://formspree.io/f/your-id" method="POST">
-  <input type="email" name="email" required />
-  <textarea name="message" required />
-  <button type="submit">发送</button>
-</form>
-```
+> 历史误标说明：早期清单里的「深色模式支持」现已**有意移除**（见决策表）；「键盘快捷键」的组件没有挂载，实际不可用。
 
 ---
 
-## 性能优化清单
+## 二、已决策不实施
 
-### 已完成
-- [x] 代码分割（client:load / client:idle / client:visible）
-- [x] 字体域名预连接（避免对 Google Fonts 内部版本路径做易失效的手工预加载）
-- [x] GSAP ScrollTrigger 懒加载
-
-### 待优化
-- [x] 图片懒加载（奖励证明和统计模块）
-- [ ] Service Worker（离线支持）
-- [ ] 资源预获取（prefetch）
-- [ ] Bundle 分析（rollup-plugin-visualizer）
-
----
-
-## SEO 优化清单
-
-### 已完成
-- [x] Schema.org 结构化数据
-- [x] Open Graph 元标签
-- [x] Canonical URL
-
-### 待优化
-- [x] Sitemap 生成（@astrojs/sitemap）
-- [x] Robots.txt
-- [ ] 动态 OG 图片生成
-- [ ] 404 页面
+| 项 | 决定 | 原因 |
+|---|---|---|
+| 项目面板纵向平铺 | 保留 630px 定高 + 内滚的双面板 | 用户明确要求保留「抽屉」手感；滚轮已代理，不会滚不动 |
+| 自定义光标关闭选项 | 保留自绘光标 | 用户明确要求不修改；属于空间感的一部分 |
+| 技能雷达图 / 进度条 | 不做 | 熟练度百分比缺乏客观标尺，传达不可靠的精确度 |
+| 联系表单 | 不做 | 邮件 / 微信 / 电话已覆盖需求，第三方表单增加隐私与运维成本 |
+| 3D Hero / 粒子增强 | 不做 | 与克制的研究型视觉方向冲突，增加首屏负担 |
+| 动态 OG 图片生成 | 暂不做 | 单页收益有限，等有稳定主视觉再统一制作 |
+| 项目截图作主视觉 | 不做 | 低质量截图干扰阅读，保留文字信息 + 论文 / 仓库链接 |
+| 深色模式 | 不做（保持浅色纸面） | Canvas 背景固定米白，做全需同时改背景、卡片、阴影、边框，成本高且非必需 |
 
 ---
 
-## 可访问性清单
+## 三、待办（按优先级）
 
-### 已完成
-- [x] ARIA 属性（role, aria-label）
-- [x] 键盘导航支持
-- [x] 焦点样式
-- [x] prefers-reduced-motion
+### P1 · 影响可信度或维护成本
 
-### 待优化
-- [x] 跳转到主内容链接
-- [ ] 颜色对比度检查（WCAG AA）
-- [ ] 屏幕阅读器测试
-- [ ] 语义化 HTML 完善
+- [ ] **证书图片压缩**：`public/previews/awards/*.jpg` 共 6 张、约 2.1MB（单张最大 482KB），实际只在 320px 浮层里显示。转 WebP / 限制长边到 1200px，可降到 300KB 以内
+- [ ] **清理未挂载组件**：`KeyboardShortcuts.*`、`PageTransition.tsx`、`ProjectCategory.tsx`、`ErrorBoundary.tsx` 目前零引用。要么接入（ErrorBoundary 包住 React 岛屿），要么删除，避免文档与代码再次漂移
+- [ ] **`public/_headers` 实际无效**：该文件只被 Netlify / Cloudflare Pages 读取，GitHub Pages 会忽略。安全响应头需要 CDN 或自建反代才能生效，当前不承诺
 
----
+### P2 · 可选增强
 
-## 工具与资源
+- [ ] 静态 OG 分享图（1200×630，`og:image` 目前缺失）
+- [ ] 自定义 404 页面（`src/pages/404.astro`）
+- [ ] 项目详情页（先有足够内容再做，避免空壳页）
+- [ ] 博客 / 笔记模块（同上）
+- [ ] 屏幕阅读器与语义化 HTML 走查（目前只做了基础 ARIA）
+- [ ] Bundle 体积检查（`rollup-plugin-visualizer`）
 
-### 推荐库
-- **动画**: framer-motion, GSAP
-- **图表**: Chart.js, recharts
-- **表单**: react-hook-form, Formspree
-- **3D**: three.js, @react-three/fiber
-- **图标**: lucide-react, react-icons
+### P3 · 观望
 
-### 测试工具
-- **性能**: Lighthouse, WebPageTest
-- **可访问性**: axe DevTools, WAVE
-- **SEO**: Google Search Console, Ahrefs
-- **跨浏览器**: BrowserStack
+- [ ] 资源预取（prefetch 下一节资源；单页收益有限）
+- [ ] Service Worker 离线支持（静态单页价值不高）
+- [ ] 深色模式（若未来重做背景层，可一并实现）
 
 ---
 
-## 实施建议
+## 四、实施约定
 
-### 优先级排序
-1. 修复明显问题（移动端导航）
-2. 完善核心功能（表单、图片）
-3. 增强视觉效果（证明浮层、图表）
-4. 添加高级特性（3D、动效）
-
-### 时间分配
-- 高优先级：1-2 周
-- 中优先级：2-4 周
-- 低优先级：可持续迭代
-
-### 渐进式实施
-建议每次实施 2-3 个优化项，测试无误后再继续，避免一次性改动过大导致问题难以排查。
-
----
-
-完整的代码示例和实现细节，请参考项目代码或随时询问。
+1. 一次只做一件事，改完跑 `npm run build` + `scripts/review-shots.mjs` 目视回归
+2. 动到布局或日历，再跑 `scripts/debug-calendar-sweep.mjs` 确认年份与日期仍对应
+3. 新增颜色必须过 4.5:1；装饰色不得用于正文
+4. 新增区块要同步 `Navigation.astro` 的 `sections` 与 `Hero.astro` 的索引
