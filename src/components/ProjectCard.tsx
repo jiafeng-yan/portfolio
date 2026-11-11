@@ -146,7 +146,9 @@ export function ProjectCard({ project }: Props) {
     >
       <div className="project-card__header">
         <div className="project-card__meta">
-          <span className="project-card__venue">{project.venue}</span>
+          {project.venue && (
+            <span className="project-card__venue">{project.venue}</span>
+          )}
           {project.status && (
             <span className="project-card__status">{project.status}</span>
           )}

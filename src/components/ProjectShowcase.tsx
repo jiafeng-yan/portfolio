@@ -63,8 +63,8 @@ export function ProjectShowcase({ groups }: Props) {
           // Shrink other panel
           if (otherPanel) {
             otherPanel.style.flexBasis = 'calc((100% - var(--showcase-gap)) * 0.38)';
-            otherPanel.style.opacity = '0.58';
-            otherPanel.style.transform = 'translateY(8px)';
+            otherPanel.style.opacity = '0.72';
+            otherPanel.style.transform = 'translateY(3px)';
           }
         } else {
           // Reset both panels
@@ -174,12 +174,6 @@ export function ProjectShowcase({ groups }: Props) {
 
             <p className="project-showcase__summary">{group.summary}</p>
 
-            <ol className="project-showcase__preview" aria-label={`${group.title}列表`}>
-              {group.projects.map((project) => (
-                <li key={project.id}>{project.title}</li>
-              ))}
-            </ol>
-
             <div className="project-showcase__cards">
               {group.projects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
@@ -237,8 +231,8 @@ export function ProjectShowcase({ groups }: Props) {
           .project-showcase:has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:first-child,
           .project-showcase:has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:first-child {
             flex-basis: calc((100% - var(--showcase-gap)) * 0.38);
-            opacity: 0.58;
-            transform: translateY(8px);
+            opacity: 0.72;
+            transform: translateY(3px);
           }
         }
 
@@ -257,53 +251,34 @@ export function ProjectShowcase({ groups }: Props) {
         .project-showcase__eyebrow {
           display: block;
           margin-bottom: var(--space-xs);
-          color: var(--color-beige);
-          font-family: var(--font-mono);
+          color: var(--color-primary-ink);
           font-size: 0.72rem;
-          text-transform: uppercase;
+          letter-spacing: 0.12em;
         }
 
         .project-showcase__header h3 {
-          font-size: clamp(1.35rem, 2.3vw, 2rem);
+          font-size: clamp(1.3rem, 2vw, 1.75rem);
         }
 
         .project-showcase__count {
-          min-width: 2.2rem;
-          height: 2.2rem;
+          min-width: 2.1rem;
+          height: 2.1rem;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           border: 1px solid rgba(0, 0, 0, 0.12);
           border-radius: 999px;
-          font-family: var(--font-mono);
-          color: var(--color-text-muted);
+          font-size: 0.78rem;
+          color: var(--color-text-subtle);
         }
 
         .project-showcase__summary {
           color: var(--color-text-muted);
-          font-size: 0.96rem;
-          line-height: 1.8;
+          font-size: 0.92rem;
+          line-height: 1.85;
           margin-bottom: var(--space-md);
           max-width: 64rem;
           text-wrap: pretty;
-        }
-
-        .project-showcase__preview {
-          list-style: decimal-leading-zero;
-          list-style-position: inside;
-          color: var(--color-gray);
-          font-family: var(--font-mono);
-          font-size: 0.75rem;
-          line-height: 1.8;
-          margin-bottom: var(--space-md);
-          flex: 0 0 auto;
-          transition: opacity 0.35s var(--ease-out-expo), transform 0.35s var(--ease-out-expo);
-        }
-
-        .project-showcase__preview li {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
         }
 
         .project-showcase__cards {
@@ -350,7 +325,7 @@ export function ProjectShowcase({ groups }: Props) {
           .project-showcase:has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:nth-child(2) .project-showcase__cards,
           .project-showcase:has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:first-child .project-showcase__cards,
           .project-showcase:has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:first-child .project-showcase__cards {
-            opacity: 0.62;
+            opacity: 0.72;
             transform: translateX(4px);
           }
         }

@@ -21,7 +21,7 @@ const projects = [
     id: 'dehazing-fusion',
     title: 'Dehazing in Fusion: Joint Dehazing-Fusion of Inf-Vis Images via Synergistic Learning',
     subtitle: '学生一作 · 特征解耦与协同学习网络',
-    venue: '科研项目',
+    venue: '',
     category: 'research',
     description: '针对红外与可见光图像在雾霾等复杂环境下的融合难题，提出基于特征解耦的协同学习框架，同时执行去雾和融合任务，并通过协同机制让两个任务相互促进。',
     highlights: [
@@ -35,7 +35,7 @@ const projects = [
     id: 'mdaif',
     title: 'MdaIF: Robust One-Stop Multi-Degradation Image Fusion with Language-Driven Semantics',
     subtitle: '学生二作 · VLM 驱动的多退化感知融合',
-    venue: '科研项目',
+    venue: '',
     category: 'research',
     description: '面向雾、雨、雪等恶劣天气下纹理丢失与固定网络泛化弱的问题，提出基于 VLM 的“一站式”多退化感知图像融合框架，端到端联合优化恢复与融合。',
     highlights: [
@@ -52,7 +52,7 @@ const projects = [
     id: 'dcdb',
     title: 'DCDB: Dynamic Conditional Dual Diffusion Bridge',
     subtitle: '第二作者 · 动态条件双扩散桥',
-    venue: '科研项目',
+    venue: '',
     category: 'research',
     description: '针对扩散模型处理去雾与融合等病态多任务时依赖 GT 且采用静态引导的问题，设计双扩散桥架构，将主任务与条件生成解耦，并用随时间步演变的动态条件降低学习难度。',
     highlights: [
@@ -69,7 +69,7 @@ const projects = [
     id: 'grasp',
     title: 'GRASP: Geospatial Reasoning Segmentation via Adaptive Structured Policy Learning',
     subtitle: '第三作者 · 遥感推理分割',
-    venue: '科研项目',
+    venue: '',
     category: 'research',
     description: '针对遥感文本-掩码推理任务依赖昂贵像素级标注且 OOD 泛化弱的问题，提出由 MLLM 生成框/点弱提示、冻结分割模型生成精细掩码的级联框架，并引入强化学习优化。',
     highlights: [
@@ -111,7 +111,7 @@ const projects = [
     links: [
       { type: 'github', url: 'https://github.com/jiafeng-yan/LiveStreamRAG' }
     ],
-    status: '个人项目'
+    status: '已开源'
   },
   {
     id: 'search-engine',
@@ -148,18 +148,18 @@ const projects = [
 
 const projectGroups = [
   {
-    id: 'build',
-    eyebrow: 'Build',
-    title: '开发与课程项目',
-    summary: '把检索增强、多模态解析、文献搜索和图神经网络异常检测落成可运行系统或完整课程设计，覆盖原型搭建、后端链路、索引管理与前端交互呈现。',
-    projects: projects.filter((project) => project.category === 'build')
+    id: 'research',
+    eyebrow: 'A · 研究',
+    title: '科研项目',
+    summary: '围绕红外-可见光融合、多退化恢复、扩散桥、遥感推理分割和低碳转型展开。多数从一篇没读懂的论文开始，最后变成一次投稿。',
+    projects: projects.filter((project) => project.category === 'research')
   },
   {
-    id: 'research',
-    eyebrow: 'Research',
-    title: '科研项目',
-    summary: '围绕红外-可见光融合、多退化恢复、扩散桥、遥感推理分割和低碳转型研究展开，强调从问题建模、数据构建到可复现实验与论文产出的完整闭环。',
-    projects: projects.filter((project) => project.category === 'research')
+    id: 'build',
+    eyebrow: 'B · 工程',
+    title: '开发与课程项目',
+    summary: '把检索、多模态解析、文献搜索和图神经网络落成能跑的系统或完整课设。做的时候更在意它能不能被别人顺利打开。',
+    projects: projects.filter((project) => project.category === 'build')
   }
 ];
 ---
@@ -181,10 +181,10 @@ const projectGroups = [
 
     <section class="projects" id="projects" data-section="projects" aria-labelledby="projects-title">
       <div class="projects__header">
-        <span class="section-kicker">Selected Work</span>
-        <h2 id="projects-title">代表项目</h2>
+        <span class="section-kicker">02 / 项目</span>
+        <h2 id="projects-title">研究与工程</h2>
         <p>
-          科研项目突出算法创新、实验闭环与论文产出；开发项目突出系统实现、检索链路和课程设计中的工程完整度，统一展示从想法验证到可运行结果的能力。
+          研究在前，工程在后。每个项目都试着留下可以验证的结果——一篇论文、一个仓库，或一组说得清的数字。
         </p>
       </div>
 
