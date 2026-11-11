@@ -80,8 +80,9 @@ const experiences = [
 
 <section class="experience" id="experience" data-section="experience" aria-labelledby="experience-title">
   <div class="experience__header">
-    <span class="section-kicker">Recognition</span>
-    <h2 id="experience-title">竞赛、表彰与补充经历</h2>
+    <span class="section-kicker">04 / 经历</span>
+    <h2 id="experience-title">比赛、荣誉与课外</h2>
+    <p>前面是比赛和奖状，后面是学生工作和一次实习。它们和论文无关，但构成了我做事的方式。</p>
   </div>
 
   <div class="experience__content">
@@ -94,19 +95,25 @@ const experiences = [
               <li
                 class="recognition-list__item"
                 tabindex={item.proof ? 0 : undefined}
-                aria-label={item.proof ? `${item.text}，悬浮或聚焦查看证明` : undefined}
+                aria-label={item.proof ? `${item.text}，悬浮或聚焦查看证明，点击预览查看原图` : undefined}
               >
                 <span>{item.text}</span>
                 {item.proof && (
                   <span
                     class="recognition-list__proof"
-                    aria-hidden="true"
                   >
                     <span class="recognition-list__proof-label">证明</span>
-                    <span class="recognition-list__proof-popover">
+                    <a
+                      class="recognition-list__proof-popover"
+                      href={item.proof}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`查看原图：${item.proofAlt}`}
+                      data-cursor-hover
+                    >
                       <img src={item.proof} alt="" decoding="async" />
-                      <span>{item.proofAlt}</span>
-                    </span>
+                      <span>{item.proofAlt} · 点击查看原图</span>
+                    </a>
                   </span>
                 )}
               </li>
@@ -216,10 +223,11 @@ const experiences = [
   }
 
   .recognition-list__proof {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: end;
-    color: var(--color-beige);
+    color: var(--color-primary-ink);
     font-family: var(--font-mono);
     font-size: 0.66rem;
     white-space: nowrap;
@@ -236,10 +244,10 @@ const experiences = [
   .recognition-list__proof-popover {
     position: absolute;
     z-index: 20;
-    left: calc(100% + var(--space-md));
+    right: 0;
     top: calc(100% + var(--space-sm));
-    width: min(360px, 34vw);
-    padding: 0.55rem;
+    width: min(320px, 30vw);
+    padding: 0.5rem;
     border: 1px solid rgba(44, 40, 37, 0.14);
     border-radius: var(--border-radius-lg);
     background: var(--color-bg-elevated);
@@ -247,18 +255,27 @@ const experiences = [
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
-    transform: translateX(-8px) scale(0.96);
-    transform-origin: left center;
+    transform: translateY(-6px) scale(0.97);
+    transform-origin: right top;
     transition:
       opacity var(--duration-normal) var(--ease-out-expo),
       transform var(--duration-normal) var(--ease-out-expo),
       visibility var(--duration-normal);
   }
 
+  .recognition-list__proof-popover::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(-1 * var(--space-sm) - 2px);
+    height: calc(var(--space-sm) + 2px);
+  }
+
   .recognition-list__proof-popover img {
     display: block;
     width: 100%;
-    max-height: 320px;
+    max-height: 240px;
     border-radius: calc(var(--border-radius-lg) - 4px);
     object-fit: contain;
     object-position: top center;
@@ -275,16 +292,17 @@ const experiences = [
   }
 
   .recognition-list__item:hover .recognition-list__proof-label,
-  .recognition-list__item:focus-visible .recognition-list__proof-label {
+  .recognition-list__item:focus-within .recognition-list__proof-label {
     color: var(--color-text);
     background: rgba(184, 112, 74, 0.14);
   }
 
   .recognition-list__item:hover .recognition-list__proof-popover,
-  .recognition-list__item:focus-visible .recognition-list__proof-popover {
+  .recognition-list__item:focus-within .recognition-list__proof-popover {
     opacity: 1;
+    pointer-events: auto;
     visibility: visible;
-    transform: translateX(0) scale(1);
+    transform: translateY(0) scale(1);
   }
 
   .experience__item {
@@ -370,7 +388,7 @@ const experiences = [
     }
 
     .recognition-list__item:hover .recognition-list__proof-popover,
-    .recognition-list__item:focus-visible .recognition-list__proof-popover {
+    .recognition-list__item:focus-within .recognition-list__proof-popover {
       transform: translateY(0) scale(1);
     }
   }
