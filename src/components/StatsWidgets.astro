@@ -211,9 +211,9 @@ function formatDate(date: Date): string {
 
 <section class="stats-widgets" id="stats" data-section="stats" aria-labelledby="stats-title">
   <div class="stats-widgets__header">
-    <span class="section-kicker">Activity</span>
-    <h2 id="stats-title">动态统计</h2>
-    <p>开源贡献、刷题记录与访客分布的可视化展示。</p>
+    <span class="section-kicker">05 / 痕迹</span>
+    <h2 id="stats-title">时间留下的一点痕迹</h2>
+    <p>提交、刷题，还有谁在这里停留过。它们不代表能力，只代表我确实在这里待了很久。</p>
   </div>
 
   <div class="stats-widgets__grid">
@@ -351,38 +351,13 @@ function formatDate(date: Date): string {
         </div>
       </div>
 
-      <!-- ClustrMaps 访客地图 -->
-      <div class="stats-widget stats-widget--clustrmaps">
-        <div class="stats-widget__header">
-          <span class="stats-widget__icon clustrmaps-icon">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-            </svg>
-          </span>
-          <h3 class="stats-widget__title">访客地图</h3>
-        </div>
-        <div class="stats-widget__content stats-widget__content--clustrmaps">
-          <div class="clustrmaps-container" id="clustrmaps-container">
-            <script type="text/javascript" id="clustrmaps" src="//clustrmaps.com/map_v2.js?d=E_bP5hegmjAHoYl1b8nwWh0E3o6VQuu3n_b04jgxl3U&cl=ffffff&w=a"></script>
-          </div>
-        </div>
-      </div>
+      <!-- ClustrMaps 访客地图已移除：第三方脚本经常加载失败，且对读者无信息价值 -->
     </div>
 
     <!-- 第二行：LeetCode 单独一排 -->
     <div class="stats-row stats-row--bottom">
       <div class="stats-widget stats-widget--leetcode">
         <div class="stats-widget__header">
-          <span class="stats-widget__icon leetcode-icon">
-            <img
-              src="https://static.leetcode.cn/cn-frontendx-assets/production/_next/static/images/logo-ff2b712834cf26bf50a5de58ee27bcef.png"
-              alt="LeetCode"
-              width="20"
-              height="20"
-              loading="lazy"
-            />
-          </span>
           <h3 class="stats-widget__title">LeetCode 刷题</h3>
           <a href="https://leetcode.cn/u/anagke-59/" target="_blank" rel="noopener noreferrer" class="leetcode-link-badge">
             @ΑΝΑΓΚΗ →
@@ -904,7 +879,7 @@ function formatDate(date: Date): string {
   }
 
   .stats-row--top {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .stats-row--bottom {
@@ -1028,11 +1003,10 @@ function formatDate(date: Date): string {
 
   .github-stats__summary {
     display: flex;
-    justify-content: space-around;
-    padding: var(--space-md);
-    background: rgba(0, 0, 0, 0.03);
-    border-radius: var(--border-radius);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    justify-content: flex-start;
+    max-width: 34rem;
+    gap: 3.5rem;
+    padding: 0 0 var(--space-sm);
   }
 
   .github-stats__summary-item {
@@ -1263,23 +1237,23 @@ function formatDate(date: Date): string {
 
   /* GitHub 贡献等级颜色 */
   .github-calendar__cell--level-0 {
-    background-color: #ebedf0;
+    background-color: #ece7e1;
   }
 
   .github-calendar__cell--level-1 {
-    background-color: #9be9a8;
+    background-color: #ecd9c8;
   }
 
   .github-calendar__cell--level-2 {
-    background-color: #40c463;
+    background-color: #dcc0a4;
   }
 
   .github-calendar__cell--level-3 {
-    background-color: #30a14e;
+    background-color: #c29371;
   }
 
   .github-calendar__cell--level-4 {
-    background-color: #216e39;
+    background-color: #96603c;
   }
 
   .github-calendar__legend {
@@ -1316,10 +1290,9 @@ function formatDate(date: Date): string {
   }
 
   .github-calendar__note {
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    text-align: center;
-    opacity: 0.8;
+    font-size: 0.72rem;
+    color: var(--color-text-subtle);
+    text-align: left;
   }
 
   /* GitHub Fallback 样式 */
@@ -1352,11 +1325,10 @@ function formatDate(date: Date): string {
   /* 统计摘要 */
   .leetcode-stats__summary {
     display: flex;
-    justify-content: space-around;
-    padding: var(--space-md);
-    background: rgba(184, 112, 74, 0.06);
-    border-radius: var(--border-radius);
-    border: 1px solid rgba(184, 112, 74, 0.12);
+    justify-content: flex-start;
+    max-width: 44rem;
+    gap: 3.5rem;
+    padding: 0 0 var(--space-sm);
   }
 
   .leetcode-stats__summary-item {
@@ -1579,23 +1551,23 @@ function formatDate(date: Date): string {
 
   /* LeetCode 贡献等级颜色 */
   .leetcode-calendar__cell--level-0 {
-    background-color: #ebedf0;
+    background-color: #ece7e1;
   }
 
   .leetcode-calendar__cell--level-1 {
-    background-color: #c6e48b;
+    background-color: #dbe4ea;
   }
 
   .leetcode-calendar__cell--level-2 {
-    background-color: #7bc96f;
+    background-color: #c2d2dd;
   }
 
   .leetcode-calendar__cell--level-3 {
-    background-color: #239a3b;
+    background-color: #94b0c5;
   }
 
   .leetcode-calendar__cell--level-4 {
-    background-color: #196127;
+    background-color: #5d7f99;
   }
 
   .leetcode-calendar__legend {
@@ -1636,6 +1608,7 @@ function formatDate(date: Date): string {
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
+    max-width: 32rem;
   }
 
   .leetcode-progress-item {
@@ -1663,9 +1636,9 @@ function formatDate(date: Date): string {
   }
 
   .leetcode-progress-item__bar {
-    height: 8px;
+    height: 5px;
     background: rgba(0, 0, 0, 0.06);
-    border-radius: 4px;
+    border-radius: 3px;
     overflow: hidden;
   }
 
@@ -1676,22 +1649,21 @@ function formatDate(date: Date): string {
   }
 
   .leetcode-progress-item--easy .leetcode-progress-item__fill {
-    background: linear-gradient(90deg, var(--color-success), #7bc96f);
+    background: #b6bfae;
   }
 
   .leetcode-progress-item--medium .leetcode-progress-item__fill {
-    background: linear-gradient(90deg, var(--color-primary-muted), var(--color-accent-warm));
+    background: #c9a88c;
   }
 
   .leetcode-progress-item--hard .leetcode-progress-item__fill {
-    background: linear-gradient(90deg, #ff375f, #ff6b8a);
+    background: #9c5b38;
   }
 
   .leetcode-stats__updated {
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
-    text-align: center;
-    opacity: 0.7;
+    font-size: 0.72rem;
+    color: var(--color-text-subtle);
+    text-align: left;
   }
 
   /* LeetCode 空状态样式 */
