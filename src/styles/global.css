@@ -4,13 +4,17 @@
   --color-bg-elevated: #ffffff;
   --color-text: #2c2825;
   --color-text-muted: #5a5652;
-  --color-text-subtle: #8a8580;
+  --color-text-subtle: #6f6a65;
 
   /* Accent Colors - Warm palette */
   --color-primary: #b8704a;
   --color-primary-muted: #c98b6a;
   --color-accent-warm: #d4a574;
   --color-accent-cool: #7a9bb8;
+
+  /* Text-safe accents (>= 4.5:1 on --color-bg) */
+  --color-primary-ink: #9c5b38;
+  --color-accent-cool-ink: #4d708f;
 
   /* Legacy Support */
   --color-gray: #7a7672;
@@ -24,8 +28,10 @@
   --color-border-strong: rgba(44, 40, 37, 0.18);
 
   /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, 'SFMono-Regular', Menlo, Consolas,
+    'PingFang SC', 'Microsoft YaHei', monospace;
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -59,27 +65,10 @@
   --spotlight-border-color: rgba(184, 112, 74, 0.35);
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #1a1816;
-    --color-bg-elevated: #242220;
-    --color-text: #e7e5e2;
-    --color-text-muted: #a8a5a1;
-    --color-text-subtle: #7a7672;
+/* Dark Mode: 本站为浅色纸面风格，深色环境保持同一套纸面色，
+   避免画布底色（固定米白）与文字变量切换后出现浅底浅字。
+   如未来要做深色主题，需同时处理 Canvas 背景层与所有卡片底色。 */
 
-    --color-border: rgba(231, 229, 226, 0.10);
-    --color-border-strong: rgba(231, 229, 226, 0.18);
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
-    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
-
-    --spotlight-color: rgba(212, 165, 116, 0.06);
-    --spotlight-border-color: rgba(184, 112, 74, 0.2);
-  }
-}
 
 /* Reset */
 *, *::before, *::after {
@@ -314,8 +303,8 @@ a[data-cursor-hover]:hover {
   a,
   button,
   [data-cursor-hover] {
-    -webkit-tap-highlight-color: rgba(59, 130, 246, 0.15);
-    tap-highlight-color: rgba(59, 130, 246, 0.15);
+    -webkit-tap-highlight-color: rgba(184, 112, 74, 0.14);
+    tap-highlight-color: rgba(184, 112, 74, 0.14);
   }
 
   /* Restore default cursor */

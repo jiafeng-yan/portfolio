@@ -234,7 +234,7 @@ export function ProjectCard({ project }: Props) {
         .project-card__venue {
           font-size: 0.72rem;
           text-transform: uppercase;
-          color: var(--color-beige);
+          color: var(--color-primary-ink);
           font-family: var(--font-mono);
           font-weight: 500;
           letter-spacing: 0.05em;
@@ -243,8 +243,8 @@ export function ProjectCard({ project }: Props) {
         .project-card__status {
           font-size: 0.68rem;
           padding: 3px 10px;
-          background: rgba(122, 155, 184, 0.15);
-          color: var(--color-ink-blue);
+          background: rgba(122, 155, 184, 0.16);
+          color: var(--color-accent-cool-ink);
           border-radius: 999px;
           font-weight: 600;
         }
