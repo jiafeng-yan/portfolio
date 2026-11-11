@@ -2,11 +2,11 @@
 // src/components/Navigation.astro
 
 const sections = [
-  { id: 'profile', label: 'Profile' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'experience', label: 'Experience' },
-  { id: 'stats', label: 'Stats' }
+  { id: 'profile', label: '关于' },
+  { id: 'projects', label: '项目' },
+  { id: 'skills', label: '技能' },
+  { id: 'experience', label: '经历' },
+  { id: 'stats', label: '痕迹' }
 ];
 ---
 
@@ -59,10 +59,13 @@ const sections = [
     top: 0;
     left: 0;
     right: 0;
-    z-index: 100;
-    padding: var(--space-md) var(--space-lg);
-    background: rgba(250, 250, 250, 0.8);
-    backdrop-filter: blur(12px);
+    /* 高于右下角悬浮按钮，保证移动端全屏菜单打开时它们被盖住 */
+    z-index: 1000;
+    padding: var(--space-md) var(--page-gutter);
+    /* 不使用 backdrop-filter / 保持 transform: none：
+       两者都会让 .nav 成为固定定位子元素的包含块，
+       会把移动端的全屏菜单困在顶栏那一条里 */
+    background: rgba(248, 246, 243, 0.97);
     border-bottom: 1px solid var(--color-border);
     transform: translateY(-100%);
     opacity: 0;
@@ -72,7 +75,7 @@ const sections = [
   }
 
   .nav.is-visible {
-    transform: translateY(0);
+    transform: none;
     opacity: 1;
   }
 
@@ -111,22 +114,44 @@ const sections = [
   }
 
   .nav__link {
+    position: relative;
     display: inline-block;
     padding: var(--space-sm) var(--space-md);
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--color-text-muted);
     border-radius: var(--border-radius);
-    transition:
-      color var(--duration-fast),
-      background var(--duration-fast);
+    transition: color var(--duration-fast);
+  }
+
+  .nav__link::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 3px;
+    width: 0;
+    height: 1px;
+    background: var(--color-primary);
+    transform: translateX(-50%);
+    transition: width var(--duration-normal) var(--ease-out-expo);
   }
 
   .nav__link:hover,
-  .nav__link:focus-visible,
+  .nav__link:focus-visible {
+    color: var(--color-text);
+  }
+
+  .nav__link:hover::after,
+  .nav__link:focus-visible::after {
+    width: 10px;
+  }
+
   .nav__link.is-active {
     color: var(--color-text);
-    background: rgba(15, 23, 42, 0.05);
+  }
+
+  .nav__link.is-active::after {
+    width: 14px;
   }
 
   .nav__cta {
@@ -134,22 +159,25 @@ const sections = [
     align-items: center;
     gap: 6px;
     padding: var(--space-sm) var(--space-md);
+    font: inherit;
     font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--color-bg);
-    background: #07C160;
-    border: none;
+    font-weight: 500;
+    color: var(--color-text);
+    background: transparent;
+    border: 1px solid var(--color-border-strong);
     border-radius: var(--border-radius);
     cursor: pointer;
     transition:
-      transform var(--duration-fast),
-      box-shadow var(--duration-fast);
+      background var(--duration-fast),
+      border-color var(--duration-fast),
+      transform var(--duration-fast);
   }
 
   .nav__cta:hover,
   .nav__cta:focus-visible {
+    background: rgba(184, 112, 74, 0.08);
+    border-color: var(--color-primary);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(7, 193, 96, 0.3);
   }
 
   /* 微信弹窗样式 */
@@ -233,6 +261,23 @@ const sections = [
   @media (max-width: 768px) {
     .nav {
       padding: var(--space-sm) var(--space-md);
+    }
+
+    /* 移动端顺序：logo 靠左，微信与菜单按钮靠右 */
+    .nav__container {
+      gap: var(--space-sm);
+    }
+
+    .nav__logo {
+      margin-right: auto;
+    }
+
+    .nav__cta {
+      order: 2;
+    }
+
+    .nav__menu-toggle {
+      order: 3;
     }
 
     .nav__menu-toggle {

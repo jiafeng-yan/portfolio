@@ -111,6 +111,11 @@ section {
   /* Removed solid background to let orbs show through */
 }
 
+/* 固定导航高度补偿：锚点跳转后标题不被顶栏切掉 */
+[data-section] {
+  scroll-margin-top: 5.5rem;
+}
+
 /* Card and panel enhancements for better separation */
 .project-showcase__panel,
 .project-card,
