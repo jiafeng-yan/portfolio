@@ -11,7 +11,8 @@ on:
     - cron: '5 4 * * *'
 
 permissions:
-  contents: read
+  # 需要 write 才能把抓取到的数据提交回仓库
+  contents: write
   pages: write
   id-token: write
 
@@ -73,6 +74,25 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # 把抓取结果提交回仓库：
+      # 1) 让本地 / 下一次构建拿到同一份数据（否则仓库里永远是旧快照）
+      # 2) 每天有一次提交，避免仓库 60 天无活动导致定时任务被 GitHub 自动禁用
+      # GITHUB_TOKEN 触发的 push 不会再次触发 workflow，因此不会造成循环；
+      # 消息里再加 [skip ci] 是为了将来换成 PAT 时也不会重复部署。
+      - name: Commit scraped data
+        continue-on-error: true
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add src/data/leetcode.json src/data/github.json
+          if git diff --staged --quiet; then
+            echo "数据没有变化，跳过提交"
+          else
+            CURRENT_DATE=$(TZ='Asia/Shanghai' date '+%Y-%m-%d')
+            git commit -m "chore: update LeetCode and GitHub data - $CURRENT_DATE [skip ci]"
+            git push
+          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
