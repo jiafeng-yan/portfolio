@@ -1,39 +1,40 @@
 ---
 const profileRows = [
   {
-    label: 'Education',
+    label: '教育',
     title: '中央财经大学（211）· 信息学院',
-    detail: '计算机科学与技术本科生 · 已保研至本校',
-    meta: '2022.09 - 2026.07'
+    detail: '计算机科学与技术本科生 · 已保研至本院人工智能方向',
+    meta: '2022 — 2026'
   },
   {
-    label: 'Rank',
+    label: '排名',
     title: '加权排名 4 / 30 · 综测排名 3 / 30',
     detail: 'GPA 3.76 / 4.5',
-    meta: 'Top 13%'
+    meta: '前 13%'
   },
   {
-    label: 'Courses',
+    label: '课程',
     title: '408、编译原理、机器学习、人工智能、计算机视觉、自然语言处理、数据挖掘、信息检索',
     detail: '概率论与数理统计 99 · Python 98 · 高等数学 96 · C++ 95 · 离散数学 95',
-    meta: 'Core CS'
+    meta: '核心课'
   },
   {
-    label: 'Contact',
+    label: '联系',
     title: 'yan.jiafeng@email.cufe.edu.cn',
-    detail: 'GitHub: jiafeng-yan · Phone / WeChat: 139 3525 2657',
-    meta: 'Open to HR'
+    detail: 'GitHub：jiafeng-yan · 电话 / 微信：139 3525 2657',
+    meta: ''
   }
 ];
 ---
 
 <section class="profile" id="profile" data-section="profile" aria-labelledby="profile-title">
   <div class="profile__intro">
-    <span class="section-kicker">Profile</span>
-    <h2 id="profile-title">面向研究与工程落地的计算机视觉候选人</h2>
+    <span class="section-kicker">01 / 关于</span>
+    <h2 id="profile-title">还在学着，把问题拆小。</h2>
     <p>
-      我把研究问题拆成可验证的模型设计、数据构建和实验闭环；也能把检索、多模态与前后端系统做成可交互原型。
-      当前重点是计算机视觉、多模态学习与检索增强系统，并持续关注模型能力在真实任务中的泛化表现。
+      从大二开始做图像融合，最初的动机只是想知道——一张被雾毁掉的图，还能救回多少。
+      后来发现比模型更麻烦的是数据、评测，以及怎么把结论说清楚，所以现在更在意实验能不能被复现。
+      论文之外，我也写前端和后端，喜欢把模型接成真的能点开的东西。
     </p>
   </div>
 
@@ -68,10 +69,12 @@ const profileRows = [
   }
 
   .profile__intro h2 {
-    font-size: clamp(1.8rem, 4vw, 3rem);
-    line-height: 1.15;
+    font-size: clamp(1.7rem, 3.1vw, 2.4rem);
+    line-height: 1.4;
     margin: var(--space-sm) 0 var(--space-lg);
-    max-width: 9em;
+    max-width: 15em;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
   }
 
   .profile__intro p {
@@ -105,13 +108,13 @@ const profileRows = [
 
   .profile__row-label,
   .profile__row-meta {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--color-gray);
+    font-size: 0.76rem;
+    color: var(--color-text-subtle);
+    letter-spacing: 0.08em;
   }
 
   .profile__row-label {
-    text-transform: uppercase;
+    padding-top: 0.15rem;
   }
 
   .profile__row h3 {
