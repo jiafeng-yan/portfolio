@@ -351,7 +351,56 @@ function formatDate(date: Date): string {
         </div>
       </div>
 
-      <!-- ClustrMaps 访客地图已移除：第三方脚本经常加载失败，且对读者无信息价值 -->
+      <!-- ClustrMaps 访客地图 -->
+      <div class="stats-widget stats-widget--clustrmaps">
+        <div class="stats-widget__header">
+          <span class="stats-widget__icon clustrmaps-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+            </svg>
+          </span>
+          <h3 class="stats-widget__title">访客地图</h3>
+          <a
+            href="https://clustrmaps.com/site/1bzji"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="clustrmaps-link"
+            data-cursor-hover
+          >查看详情 ↗</a>
+        </div>
+        <div class="stats-widget__content stats-widget__content--clustrmaps">
+          <div class="clustrmaps-container" id="clustrmaps-container">
+            <p class="clustrmaps-fallback" data-clustrmaps-fallback>
+              地图加载中……若长时间空白，可点右上角「查看详情」
+            </p>
+            <!-- 保持原有同步嵌入方式：第三方脚本依赖在文档中的插入位置 -->
+            <script is:inline type="text/javascript" id="clustrmaps" src="//clustrmaps.com/map_v2.js?d=E_bP5hegmjAHoYl1b8nwWh0E3o6VQuu3n_b04jgxl3U&cl=ffffff&w=a"></script>
+            <script is:inline>
+              (function () {
+                var box = document.getElementById('clustrmaps-container');
+                if (!box) return;
+                var note = box.querySelector('[data-clustrmaps-fallback]');
+                if (!note) return;
+                var clear = function () {
+                  if (box.querySelector('img, iframe, canvas, #clustrmaps-widget-v2') && note.parentNode) {
+                    note.parentNode.removeChild(note);
+                    return true;
+                  }
+                  return false;
+                };
+                if (clear()) return;
+                var observer = new MutationObserver(function () {
+                  if (clear()) observer.disconnect();
+                });
+                observer.observe(box, { childList: true, subtree: true });
+                setTimeout(function () { observer.disconnect(); }, 15000);
+              })();
+            </script>
+          </div>
+          <p class="clustrmaps-note">按访问来源统计，数据由 ClustrMaps 提供</p>
+        </div>
+      </div>
     </div>
 
     <!-- 第二行：LeetCode 单独一排 -->
@@ -879,7 +928,7 @@ function formatDate(date: Date): string {
   }
 
   .stats-row--top {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .stats-row--bottom {
@@ -1696,11 +1745,30 @@ function formatDate(date: Date): string {
     opacity: 0.8;
   }
 
-  /* ClustrMaps 容器样式 */
+  /* ClustrMaps 访客地图 */
+  .clustrmaps-icon svg {
+    stroke: currentColor;
+  }
+
+  .clustrmaps-link {
+    margin-left: auto;
+    font-size: 0.72rem;
+    color: var(--color-text-subtle);
+    white-space: nowrap;
+    transition: color var(--duration-fast);
+  }
+
+  .clustrmaps-link:hover,
+  .clustrmaps-link:focus-visible {
+    color: var(--color-primary-ink);
+  }
+
   .stats-widget__content--clustrmaps {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: var(--space-sm);
     min-height: 200px;
   }
 
@@ -1709,9 +1777,9 @@ function formatDate(date: Date): string {
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 150px;
   }
 
-  /* ClustrMaps 地图样式调整 */
   .clustrmaps-container :global(#clustrmaps-widget-v2) {
     max-width: 100%;
     border-radius: 8px;
@@ -1720,6 +1788,27 @@ function formatDate(date: Date): string {
 
   .clustrmaps-container :global(.clustrmaps-map-container) {
     border-radius: 8px;
+  }
+
+  /* 脚本被拦截 / 网络失败时不至于留一块纯白 */
+  .clustrmaps-container :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  .clustrmaps-fallback {
+    font-size: 0.72rem;
+    line-height: 1.7;
+    color: var(--color-text-subtle);
+    text-align: center;
+    padding: 1.6rem 0.75rem;
+  }
+
+  .clustrmaps-note {
+    width: 100%;
+    font-size: 0.72rem;
+    color: var(--color-text-subtle);
   }
 
   /* 错误提示样式 */
@@ -1732,7 +1821,7 @@ function formatDate(date: Date): string {
 
   /* 响应式布局 */
   @media (max-width: 1024px) {
-    /* 平板及以下：三个板块竖向排列 */
+    /* 平板及以下：竖向排列 */
     .stats-row--top {
       grid-template-columns: 1fr;
     }
