@@ -38,24 +38,32 @@ const sweep = await page.evaluate(async (type) => {
       .map((y) => ({ label: y.textContent.trim(), x: Math.round(y.getBoundingClientRect().left), op: Number(getComputedStyle(y).opacity) }))
       .filter((y) => y.op === 1);
 
-    out.push({ s, dateAtLeft, labels: visibleYearLabels });
+    // 只取「贴在滚动区左缘」的那一个标签作为判定依据，
+    // 其余标签只是在轨道上就位，不代表当前可见区间
+    const pinned = visibleYearLabels
+      .filter((y) => Math.abs(y.x - Math.round(rect.left)) <= 4)
+      .map((y) => y.label.replace('年', ''));
+
+    out.push({ s, dateAtLeft, pinned });
   }
   scroller.scrollLeft = max;
   return out;
 }, 'github');
 
 let mismatches = 0;
+let checked = 0;
 for (const row of sweep) {
-  const dateYear = row.dateAtLeft ? row.dateAtLeft.slice(0, 4) : '?';
-  const labelYears = row.labels.map((l) => l.label.replace('年', ''));
-  const ok = labelYears.length === 0 || labelYears.some((y) => y === dateYear);
+  if (!row.dateAtLeft) continue; // 探针落在月组之间的空隙，跳过
+  checked++;
+  const dateYear = row.dateAtLeft.slice(0, 4);
+  const ok = row.pinned.length === 0 || row.pinned.some((y) => y === dateYear);
   if (!ok) mismatches++;
   if (!ok || row.s % 300 === 0) {
     console.log(
-      `scrollLeft=${row.s} leftDate=${row.dateAtLeft} labels=${row.labels.map((l) => `${l.label}@${l.x}`).join(',') || 'none'}${ok ? '' : '  <-- MISMATCH'}`
+      `scrollLeft=${row.s} leftDate=${row.dateAtLeft} pinned=${row.pinned.join(',') || 'none'}${ok ? '' : '  <-- MISMATCH'}`
     );
   }
 }
-console.log(`\n总采样 ${sweep.length}，错位 ${mismatches} 处`);
+console.log(`\n有效采样 ${checked}/${sweep.length}，错位 ${mismatches} 处`);
 
 await browser.close();
