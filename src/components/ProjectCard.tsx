@@ -186,7 +186,7 @@ export function ProjectCard({ project }: Props) {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="project-card__link"
+                  className={`project-card__link project-card__link--${link.type}`}
                   data-cursor-hover
                   data-magnetic
                 >
@@ -328,27 +328,70 @@ export function ProjectCard({ project }: Props) {
           gap: var(--space-sm);
         }
 
+        /* 论文与代码入口：用填充色把「可以点开的东西」和灰色技术标签区分开 */
         .project-card__link {
           display: inline-flex;
           align-items: center;
-          gap: var(--space-xs);
+          gap: 6px;
           padding: 6px 12px;
-          background: rgba(44, 40, 37, 0.05);
-          border-radius: 6px;
-          font-size: 0.75rem;
-          color: var(--color-text-muted);
-          font-weight: 500;
+          border: 1px solid transparent;
+          border-radius: 999px;
+          font-size: 0.78rem;
+          font-weight: 600;
+          letter-spacing: 0.01em;
+          color: #f8f6f3;
+          background: #5a5652;
           transition:
             background var(--duration-fast),
-            color var(--duration-fast),
-            transform var(--duration-fast);
+            border-color var(--duration-fast),
+            transform var(--duration-fast),
+            box-shadow var(--duration-fast);
+        }
+
+        .project-card__link svg {
+          opacity: 0.92;
+        }
+
+        .project-card__link--github {
+          background: #2c2825;
+        }
+
+        .project-card__link--arxiv {
+          background: var(--color-primary-ink);
+        }
+
+        .project-card__link--paper {
+          background: #7a7672;
+        }
+
+        .project-card__link--demo {
+          background: var(--color-accent-cool-ink);
         }
 
         .project-card__link:hover,
         .project-card__link:focus-visible {
-          background: var(--color-primary);
-          color: white;
           transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(44, 40, 37, 0.18);
+        }
+
+        .project-card__link--github:hover,
+        .project-card__link--github:focus-visible {
+          background: #171513;
+        }
+
+        .project-card__link--arxiv:hover,
+        .project-card__link--arxiv:focus-visible {
+          background: #8a4a29;
+        }
+
+        .project-card__link--paper:hover,
+        .project-card__link--paper:focus-visible {
+          background: #666059;
+        }
+
+        .project-card__link--demo:hover,
+        .project-card__link--demo:focus-visible {
+          background: #3f5f79;
         }
 
         @media (max-width: 640px) {
