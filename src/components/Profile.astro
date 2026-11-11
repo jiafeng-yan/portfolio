@@ -53,9 +53,9 @@ const profileRows = [
 
 <style>
   .profile {
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding: var(--space-2xl) var(--space-xl) var(--space-xl);
+    width: min(var(--max-width), 100% - 2 * var(--page-gutter));
+    margin-inline: auto;
+    padding-block: var(--space-2xl) var(--space-xl);
     display: grid;
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
     gap: var(--space-xl);
@@ -82,6 +82,7 @@ const profileRows = [
 
   .profile__rows {
     border-top: 1px solid rgba(0, 0, 0, 0.12);
+    margin-top: 0.45rem;
   }
 
   .profile__row {
@@ -128,7 +129,7 @@ const profileRows = [
   @media (max-width: 900px) {
     .profile {
       grid-template-columns: 1fr;
-      padding: var(--space-xl) var(--space-lg);
+      padding-block: clamp(2.5rem, 5vw, 6rem);
     }
 
     .profile__intro {
@@ -142,7 +143,7 @@ const profileRows = [
 
   @media (max-width: 640px) {
     .profile {
-      padding: var(--space-xl) var(--space-md);
+      padding-block: clamp(2.5rem, 5vw, 6rem);
     }
 
     .profile__row {

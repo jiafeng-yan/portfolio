@@ -50,7 +50,8 @@
   --duration-slow: 500ms;
 
   /* Layout */
-  --max-width: 1200px;
+  --max-width: 1280px;
+  --page-gutter: clamp(1.25rem, 5vw, 4rem);
   --border-radius: 8px;
   --border-radius-lg: 12px;
 
@@ -222,11 +223,18 @@ button:focus-visible,
   padding: 0 var(--space-lg);
 }
 
+/* 统一内容栏：所有区块左右边界落在同一条竖线上（与顶部导航对齐） */
+.shell {
+  width: min(var(--max-width), 100% - 2 * var(--page-gutter));
+  margin-inline: auto;
+}
+
 .section-kicker {
   display: inline-block;
-  color: var(--color-beige);
+  color: var(--color-primary-ink);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 

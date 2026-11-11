@@ -135,22 +135,26 @@ const experiences = [
 
 <style>
   .experience {
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding: var(--space-xl);
+    width: min(var(--max-width), 100% - 2 * var(--page-gutter));
+    margin-inline: auto;
+    padding-block: clamp(2.5rem, 5vw, 6rem);
   }
 
   .experience__header {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--space-xl);
-    align-items: end;
+    max-width: 48rem;
     margin-bottom: var(--space-xl);
   }
 
   .experience__header h2 {
-    font-size: clamp(1.8rem, 4vw, 3rem);
-    max-width: 10em;
+    font-size: clamp(1.75rem, 3.4vw, 2.6rem);
+    line-height: 1.3;
+    margin: var(--space-sm) 0 var(--space-md);
+  }
+
+  .experience__header p {
+    color: var(--color-text-muted);
+    line-height: 1.9;
+    max-width: 42rem;
   }
 
   .experience__content {
@@ -324,7 +328,7 @@ const experiences = [
 
   @media (max-width: 900px) {
     .experience {
-      padding: var(--space-xl) var(--space-lg);
+      padding-block: clamp(2.5rem, 5vw, 6rem);
     }
 
     .experience__header,
@@ -343,7 +347,7 @@ const experiences = [
 
   @media (max-width: 640px) {
     .experience {
-      padding: var(--space-xl) var(--space-md);
+      padding-block: clamp(2.5rem, 5vw, 6rem);
     }
 
     .recognition-list__group,

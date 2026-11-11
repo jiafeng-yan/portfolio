@@ -214,9 +214,9 @@ const projectGroups = [
 
 <style>
   .projects {
-    padding: var(--space-xl) var(--space-lg);
-    max-width: min(1580px, calc(100vw - 0.75rem));
-    margin: 0 auto;
+    width: min(var(--max-width), 100% - 2 * var(--page-gutter));
+    margin-inline: auto;
+    padding-block: clamp(2.5rem, 5vw, 6rem);
   }
 
   .projects__header {
@@ -225,7 +225,8 @@ const projectGroups = [
   }
 
   .projects__header h2 {
-    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-size: clamp(1.75rem, 3.4vw, 2.6rem);
+    line-height: 1.3;
     margin: var(--space-sm) 0 var(--space-md);
   }
 
@@ -235,18 +236,22 @@ const projectGroups = [
   }
 
   .footer {
-    padding: var(--space-xl);
-    text-align: center;
-    color: var(--color-text-muted);
-    font-size: 0.875rem;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    width: min(var(--max-width), 100% - 2 * var(--page-gutter));
+    margin-inline: auto;
     margin-top: var(--space-xl);
+    padding-block: var(--space-lg);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm) var(--space-lg);
+    color: var(--color-text-subtle);
+    font-size: 0.82rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
   }
 
   .footer__links {
-    margin-top: var(--space-sm);
     display: flex;
-    justify-content: center;
     align-items: center;
     flex-wrap: wrap;
     gap: var(--space-sm);
@@ -263,18 +268,18 @@ const projectGroups = [
 
   @media (max-width: 900px) {
     .projects {
-      padding: var(--space-xl) var(--space-lg);
+      padding-block: clamp(2.5rem, 5vw, 6rem);
     }
   }
 
   @media (max-width: 640px) {
     .projects {
-      padding: var(--space-xl) var(--space-md);
+      padding-block: clamp(2.5rem, 5vw, 6rem);
     }
 
     .footer {
-      padding: var(--space-lg) var(--space-md);
-      font-size: 0.78rem;
+      padding-block: var(--space-md);
+      font-size: 0.76rem;
     }
   }
 </style>
