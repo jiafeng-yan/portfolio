@@ -295,20 +295,37 @@ async function scrapeGitHubData() {
   } catch (error) {
     console.error('Error scraping GitHub data:', error);
 
-    // 保存 fallback 数据
-    const fallbackData = {
-      username: GITHUB_USERNAME,
-      userStats: null,
-      contributions: {},
-      totalContributions: 0,
-      yearlyStats: {},
-      activeDays: 0,
-      error: error.message,
-      scrapedAt: new Date().toISOString(),
-      tokenUsed: !!GITHUB_TOKEN
-    };
-
+    // 抓取失败时不要用空数据覆盖已有快照（否则线上贡献图会变空白），
+    // 保留上一次成功的数据，只记录错误与尝试时间
     const outputPath = path.join(__dirname, '../src/data/github.json');
+    let previous = null;
+    try {
+      if (fs.existsSync(outputPath)) {
+        previous = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
+      }
+    } catch (readError) {
+      console.error('读取旧数据失败:', readError.message);
+    }
+
+    const fallbackData = previous && previous.totalContributions > 0
+      ? {
+          ...previous,
+          error: error.message,
+          lastAttemptAt: new Date().toISOString(),
+          tokenUsed: !!GITHUB_TOKEN
+        }
+      : {
+          username: GITHUB_USERNAME,
+          userStats: null,
+          contributions: {},
+          totalContributions: 0,
+          yearlyStats: {},
+          activeDays: 0,
+          error: error.message,
+          scrapedAt: new Date().toISOString(),
+          tokenUsed: !!GITHUB_TOKEN
+        };
+
     const outputDir = path.dirname(outputPath);
 
     if (!fs.existsSync(outputDir)) {
@@ -316,7 +333,9 @@ async function scrapeGitHubData() {
     }
 
     fs.writeFileSync(outputPath, JSON.stringify(fallbackData, null, 2));
-    console.log('Fallback data saved');
+    console.log(previous && previous.totalContributions > 0
+      ? '抓取失败，已保留上一次成功的数据'
+      : 'Fallback data saved');
 
     return fallbackData;
   }

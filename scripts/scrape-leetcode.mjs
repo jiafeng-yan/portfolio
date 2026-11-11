@@ -324,36 +324,54 @@ async function scrapeLeetCodeData() {
   } catch (error) {
     console.error('Error scraping LeetCode data:', error);
 
-    const fallbackData = {
-      username: LEETCODE_USERNAME,
-      solvedCount: 0,
-      totalQuestions: 3500,
-      easySolved: 0,
-      easyTotal: 800,
-      mediumSolved: 0,
-      mediumTotal: 1800,
-      hardSolved: 0,
-      hardTotal: 900,
-      ranking: 0,
-      contributionPoints: 0,
-      totalActiveDays: 0,
-      recentYearActiveDays: 0,
-      currentStreak: 0,
-      maxStreak: 0,
-      submissionCalendar: {},
-      error: error.message,
-      scrapedAt: new Date().toISOString()
-    };
-
+    // 抓取失败时不要用 0 覆盖已有数据（否则线上会出现「0 已解决」），
+    // 保留上一次成功的快照，只记录错误与尝试时间
     const outputPath = path.join(__dirname, '../src/data/leetcode.json');
-    const outputDir = path.dirname(outputPath);
+    let previous = null;
+    try {
+      if (fs.existsSync(outputPath)) {
+        previous = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
+      }
+    } catch (readError) {
+      console.error('读取旧数据失败:', readError.message);
+    }
 
+    const fallbackData = previous && previous.solvedCount > 0
+      ? {
+          ...previous,
+          error: error.message,
+          lastAttemptAt: new Date().toISOString()
+        }
+      : {
+          username: LEETCODE_USERNAME,
+          solvedCount: 0,
+          totalQuestions: 3500,
+          easySolved: 0,
+          easyTotal: 800,
+          mediumSolved: 0,
+          mediumTotal: 1800,
+          hardSolved: 0,
+          hardTotal: 900,
+          ranking: 0,
+          contributionPoints: 0,
+          totalActiveDays: 0,
+          recentYearActiveDays: 0,
+          currentStreak: 0,
+          maxStreak: 0,
+          submissionCalendar: {},
+          error: error.message,
+          scrapedAt: new Date().toISOString()
+        };
+
+    const outputDir = path.dirname(outputPath);
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
     fs.writeFileSync(outputPath, JSON.stringify(fallbackData, null, 2));
-    console.log('Fallback data saved');
+    console.log(previous && previous.solvedCount > 0
+      ? '抓取失败，已保留上一次成功的数据'
+      : 'Fallback data saved');
 
     return fallbackData;
   } finally {
