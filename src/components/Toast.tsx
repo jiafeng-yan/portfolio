@@ -72,6 +72,7 @@ interface ToastMessage {
 
 let toastQueue: ToastMessage[] = [];
 let listeners: Array<(toasts: ToastMessage[]) => void> = [];
+const MAX_VISIBLE_TOASTS = 3;
 
 export function useToast() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -88,7 +89,8 @@ export function useToast() {
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     const id = Math.random().toString(36);
-    toastQueue = [...toastQueue, { id, message, type }];
+    const withoutDuplicate = toastQueue.filter(toast => toast.message !== message);
+    toastQueue = [...withoutDuplicate, { id, message, type }].slice(-MAX_VISIBLE_TOASTS);
     listeners.forEach(listener => listener(toastQueue));
   };
 

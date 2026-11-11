@@ -1,6 +1,6 @@
 .toast-container {
   position: fixed;
-  top: var(--space-lg);
+  top: calc(var(--space-lg) + 48px);
   right: var(--space-lg);
   z-index: 10000;
   display: flex;
@@ -25,7 +25,7 @@
   transition:
     opacity 0.3s var(--ease-out-expo),
     transform 0.3s var(--ease-out-expo);
-  pointer-events: auto;
+  pointer-events: none;
   max-width: 400px;
 }
 
