@@ -281,8 +281,100 @@
 
 ---
 
+## 第六轮：从「简历封面」改为「空间入口」（2026-11-11）✅ 已完成
+
+**方向调整**：主页不只是简历补充，也是一个独立空间。此前的巨型姓名与"求职标签"读起来过于自我，改为「空间入口」的叙事——场所先行，人物以署名出现。
+
+### P1. 首屏重构 ✅
+- 移除 160px 巨型姓名（原 `闫 / 家锋` 两行，负行距导致两字重叠 16px）、绿色 "Open to Opportunities" 胶囊、AAAI/GPA/CSP 数据条、四个实心按钮
+- 新结构：地点与年份 meta → 一句话主张「把看不清的地方，算清楚。」→ 两段自述 → 署名行（闫家锋 / Yan Jiafeng）→ 文字型联系方式 → 状态行（AAAI 2026 Poster · TIP 投稿中）
+- 右侧新增「空间索引」01—05，替代原空置的右侧区域，兼作导航；轨道雕塑右移半个身位，成为画外的一件远景
+- 底部加入坐标行（北京 · 39.96°N 116.36°E）与「继续」提示，收住画面
+- **文件**: `Hero.astro`, `ScrollAnimations.tsx`
+
+### P2. 标签与文案去自我化 ✅
+- 区块 kicker 统一为 `01 / 关于`、`02 / 项目`、`03 / 技能`、`04 / 经历`、`05 / 痕迹`，导航改为中文
+- 删除 "Open to HR"、"候选人" 等求职话术；「关于」标题改为「还在学着，把问题拆小。」
+- 项目卡片去掉与面板重复的类别标签（如面板「科研项目」里的「科研项目」），只保留状态徽章
+- **文件**: `Navigation.astro`, `Profile.astro`, `Skills.astro`, `Experience.astro`, `StatsWidgets.astro`, `index.astro`, `ProjectCard.tsx`
+
+### P3. 一致性与可读性修复 ✅
+- 深色模式：移除与固定米白画布冲突的 dark 变量，全站锁定浅色纸面（此前深色系统下浅底浅字，几乎不可读）
+- 锚点跳转：`[data-section] { scroll-margin-top: 5.5rem }`，标题不再被顶栏切掉
+- 对比度：新增 `--color-primary-ink #9c5b38`（4.9:1）与 `--color-accent-cool-ink #4d708f`（4.8:1），替换原 3.57:1 / 2.70:1 的强调色
+- 内容宽度统一为 `--max-width: 1280px`，五个区块左缘对齐成一条线；五个区块标题统一为「kicker + 标题 + 导语」左对齐
+- 删掉重复的 `PageTransition` 动画层（与 `ScrollAnimations` 同时给同一批 section 设 opacity:0，导致锚点直达/整页截图时内容空白）；section 入场改为 `onEnter` 触发，内容默认可见
+- **文件**: `global.css`, `Layout.astro`, `index.astro`, `ScrollAnimations.tsx`
+
+### P4. 细节收敛 ✅
+- 移除键盘快捷键入口与首访欢迎弹窗；交互音效默认关闭，按钮改为 40px 圆形图标
+- 技能标签去掉假按钮态（不再有 hover 抬起与手型光标）
+- 项目面板未激活态淡化从 0.58 提到 0.72，位移 8px→3px；删除重复的 01—05 标题清单
+- 获奖「证明」浮层改为向下展开并对齐右缘，不再压住右侧经历栏
+- 统计区：删除第三方访客地图（常加载失败）、LeetCode 图标改内联、日历改暖墨/冷墨灰阶、数字摘要去底色块
+- **文件**: `Skills.astro`, `ProjectShowcase.tsx`, `Experience.astro`, `StatsWidgets.astro`, `SoundToggle.*`, `sound.ts`, `KeyboardShortcuts.tsx`
+
+---
+
+## 第七轮：细节瑕疵修复（2026-11-11）✅ 已完成
+
+### D1. 首屏链接基线错位 ✅
+- **现象**: `GitHub / Email / 微信 / 电话` 里 Email 明显比其他几个高
+- **原因**: 混排了 `<a>` 与 `<button>`，按钮保留了浏览器默认字体与 `1px 6px` 内边距，且容器 `align-items: center`
+- **解决**: `.hero__link` 统一 `font: inherit`、清零默认 padding、`appearance: none`；容器改 `align-items: baseline`
+- **文件**: `Hero.astro`
+
+### D2. 状态行的小圆点 ✅
+- 去掉「最近 · …」前面的棕色圆点，改为纯文字行（该圆点无信息量且抢注意力）
+- **文件**: `Hero.astro`
+
+### D3. 中文落进等宽字体回退 ✅
+- **现象**: kicker、meta、状态行里的中文被渲染成宋体（`monospace` 回退），与正文无衬线不一致
+- **解决**: `--font-mono` 补上 `'PingFang SC', 'Microsoft YaHei'` 回退；`--font-sans` 同样显式补中文
+- **文件**: `global.css`
+
+### D4. 区块左缘不统一 ✅
+- **现象**: 导航 80 / 项目区 112 / 关于·技能·经历 144 / 痕迹区 38，四条不同的左缘
+- **解决**: 新增 `--page-gutter` 与统一写法 `width: min(var(--max-width), 100% - 2 * var(--page-gutter))`，五个区块与导航共用一条竖线；区块上下留白改为 `clamp(2.5rem, 5vw, 6rem)`
+- **文件**: `global.css`, `Profile/Skills/Experience/StatsWidgets.astro`, `index.astro`
+
+### D5. 移动端全屏菜单被顶栏困住 ✅
+- **现象**: 手机上点开菜单，链接挤在顶栏那一条里，露出页面内容
+- **原因**: `.nav` 的 `transform` 与 `backdrop-filter` 会让它成为固定定位子元素的包含块
+- **解决**: 去掉毛玻璃、`is-visible` 时用 `transform: none`、底色改 0.97 不透明；导航层级提到 1000 以盖住右下角悬浮按钮；移动端顺序改为 logo 左、微信与菜单按钮右
+- **文件**: `Navigation.astro`
+
+### D6. 其他细节 ✅
+- 首屏轨道雕塑移到右上角外侧，不再穿过索引文字
+- 索引第 02 项注解改为「研究在前，工程在后」（不再写死数量）
+- 导航当前项由灰底胶囊改为细下划线；微信按钮由品牌绿实心改为描边
+- 阅读进度条 3px 渐变+发光 → 2px 单色 60% 透明
+- 回到顶部按钮由 48px 黑色实心 → 40px 浅色描边，与音效按钮成对
+- 页脚由居中改为左版权 / 右链接，与首屏底栏呼应
+- 荣誉条目「证明」浮层改为向下展开并对齐右缘
+- LeetCode 难度进度条（原粉红/亮绿）改低饱和；进度条宽度限制在 32rem；更新时间行左对齐
+- **文件**: `Hero.astro`, `index.astro`, `Navigation.astro`, `BackToTop.css`, `ReadingProgress.css`, `StatsWidgets.astro`, `Experience.astro`
+
+---
+
+## 数据管道修复（2026-11-11）✅ 已完成
+
+- **问题**：仓库里的 `src/data/*.json` 停在 2026-09-13，本地看到的 LeetCode 2476 / GitHub 104 都是旧快照
+- **定位**：提交 `967e46f`（9/13）删掉了 workflow 里的「Commit scraped data」步骤，权限从 `contents: write` 降为 `read`。
+  抓取与构建仍在跑（线上站点数据是最新的：2026/11/11、2503 题），但结果不再提交回仓库
+- **附带风险**：GitHub 会在公开仓库连续 60 天无提交时自动停用定时任务；最后一次提交是 9/13，已接近阈值
+- **修复**：
+  - 恢复提交步骤并给回 `contents: write`，消息带 `[skip ci]`，`continue-on-error` 不影响部署
+  - 两个爬虫脚本在失败时保留上一次成功快照，不再用 0 覆盖（避免某天抓取失败导致线上显示「0 已解决」）
+  - 本地重抓 LeetCode，`scrapedAt` 更新为 2026-11-11
+  - README 更新自动化说明
+
+---
+
 ## 后续迭代方向
-- [ ] 深色模式支持
+- [ ] 深色模式可切换版本（需同时处理 Canvas 背景与卡片底色）
+- [ ] 项目面板取消固定高度与内部滚动（当前仍为 630px + 内滚，8 张卡只能看到一张半）
+- [ ] 自定义光标可关闭（当前 body `cursor: none`，可点性依赖自绘圆点）
 - [ ] 更多项目详情页
 - [ ] 博客/文章模块
 - [ ] 性能优化（图片懒加载等）

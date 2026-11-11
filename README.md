@@ -109,6 +109,9 @@ src/
 
 ### 技术实现
 
-- **爬虫脚本**：`scripts/scrape-leetcode.mjs` 使用 Puppeteer 爬取 LeetCode 数据
-- **自动化流程**：GitHub Actions 每日 UTC 0:00（北京时间 8:00）自动执行
-- **数据持久化**：爬取结果自动提交到仓库，触发站点重新构建
+- **爬虫脚本**：`scripts/scrape-leetcode.mjs` 使用 Puppeteer 爬取 LeetCode 数据，`scripts/scrape-github.mjs` 走 GitHub API
+- **自动化流程**：GitHub Actions 每日两次（北京时间 00:05 / 12:05）执行：抓取 → 构建 → 部署
+- **数据持久化**：抓取结果会提交回仓库（`chore: update ... [skip ci]`），因此本地 `npm run dev` 看到的也是最新快照；
+  提交同时让仓库保持活跃，避免 GitHub 因 60 天无提交而自动停用定时任务
+- **失败保护**：抓取失败时不会用 0 覆盖已有数据，而是保留上一次成功的快照并记录 `error`
+- **注意**：本地的 `src/data/*.json` 只是快照，`git pull` 后才会与线上同步；GitHub 贡献数需要 `GH_PAT`（含私有仓库），本地无 token 时不要直接跑 `scrape-github.mjs`
