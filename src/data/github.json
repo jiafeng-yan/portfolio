@@ -1,7 +1,7 @@
 {
   "username": "jiafeng-yan",
   "userStats": {
-    "publicRepos": 9,
+    "publicRepos": 10,
     "followers": 4,
     "following": 10,
     "createdAt": "2022-04-03T13:49:59Z",
@@ -201,9 +201,9 @@
     "1794182400": 4,
     "1794268800": 20,
     "1794355200": 42,
-    "1794441600": 10
+    "1794441600": 15
   },
-  "totalContributions": 1106,
+  "totalContributions": 1111,
   "yearlyStats": {
     "2022": {
       "total": 1,
@@ -222,20 +222,20 @@
       "weeks": 53
     },
     "2026": {
-      "total": 1040,
+      "total": 1045,
       "weeks": 53
     }
   },
   "activeDays": 192,
-  "scrapedAt": "2026-11-12T12:33:35.781Z",
-  "tokenUsed": true,
   "achievements": [
     {
       "slug": "pull-shark",
       "name": "Pull Shark",
+      "icon": "https://github.githubassets.com/assets/pull-shark-default-498c279a747d.png",
       "earnedAt": "2026-11-07",
-      "detail": "2 次 Pull Request 被合并",
-      "icon": "https://github.githubassets.com/assets/pull-shark-default-9418df00328f.png"
+      "detail": "2 次 Pull Request 被合并"
     }
-  ]
+  ],
+  "scrapedAt": "2026-11-12T13:25:11.583Z",
+  "tokenUsed": true
 }
