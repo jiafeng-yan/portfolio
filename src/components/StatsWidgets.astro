@@ -1,5 +1,5 @@
 ---
-// 统计组件集合：GitHub Calendar、LeetCode Card、ClustrMaps
+// 统计组件集合：GitHub Calendar、LeetCode Card、访客
 // GitHub 用户名: jiafeng-yan
 // LeetCode 中国站用户名: anagke-59
 
@@ -351,54 +351,107 @@ function formatDate(date: Date): string {
         </div>
       </div>
 
-      <!-- ClustrMaps 访客地图 -->
-      <div class="stats-widget stats-widget--clustrmaps">
+      <!-- 访客：不依赖第三方地图服务，用本地点阵地图 + 轻量计数 -->
+      <div class="stats-widget stats-widget--visitors">
         <div class="stats-widget__header">
-          <span class="stats-widget__icon clustrmaps-icon">
+          <span class="stats-widget__icon visitors-icon">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M3.6 9h16.8M3.6 15h16.8M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/>
             </svg>
           </span>
-          <h3 class="stats-widget__title">访客地图</h3>
-          <a
-            href="https://clustrmaps.com/site/1bzji"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="clustrmaps-link"
-            data-cursor-hover
-          >查看详情 ↗</a>
+          <h3 class="stats-widget__title">访客</h3>
         </div>
-        <div class="stats-widget__content stats-widget__content--clustrmaps">
-          <div class="clustrmaps-container" id="clustrmaps-container">
-            <p class="clustrmaps-fallback" data-clustrmaps-fallback>
-              地图加载中……若长时间空白，可点右上角「查看详情」
-            </p>
-            <!-- 保持原有同步嵌入方式：第三方脚本依赖在文档中的插入位置 -->
-            <script is:inline type="text/javascript" id="clustrmaps" src="//clustrmaps.com/map_v2.js?d=E_bP5hegmjAHoYl1b8nwWh0E3o6VQuu3n_b04jgxl3U&cl=ffffff&w=a"></script>
-            <script is:inline>
-              (function () {
-                var box = document.getElementById('clustrmaps-container');
-                if (!box) return;
-                var note = box.querySelector('[data-clustrmaps-fallback]');
-                if (!note) return;
-                var clear = function () {
-                  if (box.querySelector('img, iframe, canvas, #clustrmaps-widget-v2') && note.parentNode) {
-                    note.parentNode.removeChild(note);
-                    return true;
-                  }
-                  return false;
-                };
-                if (clear()) return;
-                var observer = new MutationObserver(function () {
-                  if (clear()) observer.disconnect();
-                });
-                observer.observe(box, { childList: true, subtree: true });
-                setTimeout(function () { observer.disconnect(); }, 15000);
-              })();
-            </script>
+        <div class="stats-widget__content stats-widget__content--visitors">
+          <div class="visitors__map" aria-hidden="true">
+            <img
+              src={`${import.meta.env.BASE_URL.replace(/\/?$/, '/')}previews/world-dots.png`}
+              alt=""
+              width="1190"
+              height="600"
+              loading="lazy"
+              decoding="async"
+            />
           </div>
-          <p class="clustrmaps-note">按访问来源统计，数据由 ClustrMaps 提供</p>
+
+          <p class="visitors__count">
+            <span class="visitors__count-label">第</span>
+            <strong class="visitors__count-value" data-visitor-count>—</strong>
+            <span class="visitors__count-label">次到访</span>
+          </p>
+          <p class="visitors__meta">
+            <span data-visitor-time>此刻</span>
+            <span class="visitors__meta-sep" aria-hidden="true">·</span>
+            <span data-visitor-zone>你的时区</span>
+          </p>
+          <p class="visitors__note">
+            地图只是纸上的纹理，不是定位；计数由一个公开的轻量计数器记录。本站不写入 Cookie，也不记录你看了哪些页面。
+          </p>
+
+          <script is:inline>
+            (function () {
+              var countEl = document.querySelector('[data-visitor-count]');
+              var timeEl = document.querySelector('[data-visitor-time]');
+              var zoneEl = document.querySelector('[data-visitor-zone]');
+              if (!countEl || !timeEl || !zoneEl) return;
+
+              var KEY = 'visitor-count';
+              var API = 'https://abacus.jasoncameron.dev';
+              var NS = 'yanjiafeng-portfolio';
+              var NAME = 'visits-2026-11';
+
+              function renderTime() {
+                var now = new Date();
+                timeEl.textContent =
+                  '你那边 ' +
+                  now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+                var zone = '';
+                try {
+                  zone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+                } catch (e) {}
+                zoneEl.textContent = zone ? zone.replace(/_/g, ' ') : '本地时间';
+              }
+              renderTime();
+              window.setInterval(renderTime, 30000);
+
+              function show(value) {
+                if (typeof value === 'number' && value > 0) {
+                  countEl.textContent = value.toLocaleString('zh-CN');
+                }
+              }
+
+              var cached = 0;
+              try {
+                cached = Number(window.sessionStorage.getItem(KEY)) || 0;
+              } catch (e) {}
+              if (cached) show(cached);
+
+              var url = API + (cached ? '/get/' : '/hit/') + NS + '/' + NAME;
+              var controller = new AbortController();
+              var timer = setTimeout(function () {
+                controller.abort();
+              }, 5000);
+
+              fetch(url, { signal: controller.signal, cache: 'no-store' })
+                .then(function (res) {
+                  return res.ok ? res.json() : null;
+                })
+                .then(function (data) {
+                  var value = data && Number(data.value);
+                  if (!value) return;
+                  show(value);
+                  try {
+                    window.sessionStorage.setItem(KEY, String(value));
+                  } catch (e) {}
+                })
+                .catch(function () {
+                  // 计数器不可用时保留「—」，不影响其余内容
+                })
+                .finally(function () {
+                  clearTimeout(timer);
+                });
+            })();
+          </script>
         </div>
       </div>
     </div>
@@ -1008,7 +1061,7 @@ function formatDate(date: Date): string {
     fill: currentColor;
   }
 
-  .clustrmaps-icon svg {
+  .visitors-icon svg {
     stroke: currentColor;
   }
 
@@ -1768,69 +1821,72 @@ function formatDate(date: Date): string {
     opacity: 0.8;
   }
 
-  /* ClustrMaps 访客地图 */
-  .clustrmaps-icon svg {
-    stroke: currentColor;
-  }
-
-  .clustrmaps-link {
-    margin-left: auto;
-    font-size: 0.72rem;
-    color: var(--color-text-subtle);
-    white-space: nowrap;
-    transition: color var(--duration-fast);
-  }
-
-  .clustrmaps-link:hover,
-  .clustrmaps-link:focus-visible {
-    color: var(--color-primary-ink);
-  }
-
-  .stats-widget__content--clustrmaps {
+  /* 访客：本地点阵地图 + 轻量计数 */
+  .stats-widget__content--visitors {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: var(--space-sm);
-    min-height: 200px;
+    gap: 0.3rem;
+    min-height: 0;
+    flex: 1;
   }
 
-  .clustrmaps-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 150px;
-  }
-
-  .clustrmaps-container :global(#clustrmaps-widget-v2) {
-    max-width: 100%;
-    border-radius: 8px;
+  .visitors__map {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 168px;
+    margin-bottom: var(--space-sm);
     overflow: hidden;
+    border-radius: var(--border-radius);
+    -webkit-mask-image: linear-gradient(to bottom, #000 72%, rgba(0, 0, 0, 0.18) 100%);
+    mask-image: linear-gradient(to bottom, #000 72%, rgba(0, 0, 0, 0.18) 100%);
   }
 
-  .clustrmaps-container :global(.clustrmaps-map-container) {
-    border-radius: 8px;
+  .visitors__map img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: 50% 45%;
+    opacity: 0.62;
   }
 
-  /* 脚本被拦截 / 网络失败时不至于留一块纯白 */
-  .clustrmaps-container :global(img) {
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
+  .visitors__count {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
   }
 
-  .clustrmaps-fallback {
+  .visitors__count-value {
+    font-size: clamp(1.7rem, 2.4vw, 2.1rem);
+    line-height: 1.05;
+    font-weight: 600;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  .visitors__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--color-text-subtle);
+  }
+
+  .visitors__meta-sep {
+    opacity: 0.6;
+  }
+
+  .visitors__note {
+    margin-top: 0.15rem;
+    max-width: 34em;
     font-size: 0.72rem;
     line-height: 1.7;
-    color: var(--color-text-subtle);
-    text-align: center;
-    padding: 1.6rem 0.75rem;
-  }
-
-  .clustrmaps-note {
-    width: 100%;
-    font-size: 0.72rem;
     color: var(--color-text-subtle);
   }
 
@@ -1859,11 +1915,6 @@ function formatDate(date: Date): string {
       height: auto;
     }
 
-    /* 确保 ClustrMaps 地图居中 */
-    .clustrmaps-container {
-      display: flex;
-      justify-content: center;
-    }
   }
 
   @media (max-width: 768px) {
