@@ -87,8 +87,9 @@
    - 竞赛获奖（带「证明」浮层，向下展开、右缘对齐）、学生工作与实习
 
 9. **StatsWidgets.astro** - 05 痕迹
-   - GitHub 贡献日历 + 访客地图（两栏）+ LeetCode 统计（整行）
+   - GitHub 贡献日历 + 访客（两栏）+ LeetCode 统计（整行）
    - 日历年份标签 `position: sticky`，滚轮横向滑动；数据来自 `src/data/*.json`
+   - 访客卡：本地点阵地图纹理 + Abacus 到访计数 + 访客本地时间，无第三方地图依赖
 
 10. **Navigation.astro** - 顶栏与移动端全屏菜单（中文标签、细下划线）
 
@@ -331,7 +332,7 @@
 - 技能标签去掉假按钮态（不再有 hover 抬起与手型光标）
 - 项目面板未激活态淡化从 0.58 提到 0.72，位移 8px→3px；删除重复的 01—05 标题清单
 - 获奖「证明」浮层改为向下展开并对齐右缘，不再压住右侧经历栏
-- 统计区：删除第三方访客地图（常加载失败，**第八轮已重新接入并加兜底**）、LeetCode 图标改内联、日历改暖墨/冷墨灰阶、数字摘要去底色块
+- 统计区：删除第三方访客地图（常加载失败，**第八轮重新接入、第十轮已换成自包含访客卡**）、LeetCode 图标改内联、日历改暖墨/冷墨灰阶、数字摘要去底色块
 - **文件**: `Skills.astro`, `ProjectShowcase.tsx`, `Experience.astro`, `StatsWidgets.astro`, `SoundToggle.*`, `sound.ts`, `KeyboardShortcuts.tsx`
 
 ---
@@ -393,7 +394,7 @@
 
 ## 第八轮：访客地图回归与入口强化（2026-11-11）✅ 已完成
 
-### V1. 恢复访客地图 ✅
+### V1. 恢复访客地图 ✅（第十轮已替换）
 - 统计区顶部恢复「GitHub + 访客地图」两栏（此前因第三方脚本常加载失败被整块删除）
 - 保留原有同步嵌入方式（`map_v2.js` 依赖脚本在文档中的插入位置，改异步反而可能失效）
 - 卡片右上角新增「查看详情 ↗」指向 ClustrMaps 站点页
@@ -427,6 +428,37 @@
 
 ---
 
+## 第十轮：访客模块替换与性能治理（2026-11-12）✅ 已完成
+
+### X1. 访客卡片改自包含方案 ✅
+- **背景**：ClustrMaps 自 2026 年起整体不可达、RevolverMaps 已关停；同步脚本还会阻塞解析 30 秒以上
+- **改法**：本地点阵世界地图（`public/previews/world-dots.png`，27KB，`dotted-map` 离线生成）+ Abacus 计数 + 浏览器本地时间
+- 地图明确标注「只是纸上的纹理，不是定位」，不伪造地理数据
+- 计数按会话只记一次，失败显示「—」；不写 Cookie、不记录路径
+- 四行内容统一左对齐，修掉旧卡片「占位文案居中、脚注左对齐」的不一致
+- **文件**: `StatsWidgets.astro`, `public/previews/world-dots.png`
+
+### X2. 性能治理 ✅
+- **移除 54 个 `backdrop-filter`**：动态 Canvas 背景上每帧重新模糊，是主要掉帧来源；改为半透明白底 + 边框
+- **Canvas 降本**：5 个光斑预渲染为 256px 贴图，30fps，DPR 上限 2 → 1.25；底色改 CSS 渐变，删掉每帧两次全屏填充与全屏噪点
+- **首屏动画按需**：`IntersectionObserver` 离开视口后暂停三个轨道环与核心脉冲；陀螺仪循环收敛后不再写样式
+- **字体自托管**：Inter / JetBrains Mono 放 `public/fonts/`，移除 Google Fonts 的渲染阻塞请求（国内也不可达）
+- **图片**：6 张证书 2.3MB → 454KB WebP 并懒加载；微信二维码 236KB → 44KB；原图移至 `assets/` 不再部署
+- **阅读进度**：由 React state 改为 rAF 内直接写 transform，滚动时不再触发组件重渲染
+- **实测**：首屏 DCL 30s+ → 0.34s；首屏传输 2.5MB → 183KB；统计区样式重算 413 → 29 次/2.5s；滚动 111 → 125–164fps（4x CPU、DPR 2）
+- **文件**: `global.css`, `FluidBackground.tsx`, `Hero.astro`, `ReadingProgress.tsx`, `Layout.astro`, `Experience.astro`, `Navigation.astro`
+
+### X3. 日历滚轮到头不再穿透 ✅
+- 指针在日历上时始终接管滚轮，到头后停在原地；移出日历才恢复页面滚动
+- 容器加 `overscroll-behavior-x: contain`，触控板也不会把残余滚动传给页面
+- **文件**: `StatsWidgets.astro`
+
+### X4. 细节 ✅
+- 项目卡去掉重复的「个人项目 + 已开源」双徽章
+- 视觉回归脚本改用系统 Chrome / Edge（`scripts/browser.mjs`），不再依赖 Puppeteer 缓存
+
+---
+
 ## 已决策不实施
 
 | 项 | 决定 | 原因 |
@@ -438,6 +470,7 @@
 | 3D Hero / 粒子增强 | 不做 | 与克制的研究型视觉冲突，且增加首屏负担 |
 | 动态 OG 图 | 暂不做 | 单页收益有限，等有稳定主视觉再做 |
 | 项目截图主视觉 | 不做 | 低质量截图会干扰阅读，保留文字 + 链接 |
+| 第三方访客地图 | 暂不接入 | ClustrMaps / RevolverMaps 已停；MapMyVisitors 需在对方站点生成 widget，当前自包含方案更稳也更快 |
 
 ## 后续迭代方向
 - [ ] 深色模式（需同时改 Canvas 背景、卡片底色与阴影，成本高，非必需）

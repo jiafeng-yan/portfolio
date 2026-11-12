@@ -2,7 +2,7 @@
 
 本文件只记录**还没做的事**和**已经决定不做的事**。已落地的实现说明见 [`../README.md`](../README.md)，设计取舍见 [`../PREFERENCE.md`](../PREFERENCE.md)。
 
-最后同步：2026-11-11（对应提交 `56a90e8` 之后）
+最后同步：2026-11-12
 
 ---
 
@@ -17,10 +17,12 @@
 | 获奖证明预览 | 悬停或聚焦条目展开证书，向下对齐右缘 | 身份证号等敏感字段已遮挡 |
 | SEO | canonical、Open Graph、Schema.org Person、sitemap、robots.txt | `@astrojs/sitemap` 生成 |
 | 可访问性 | skip link、ARIA、`:focus-visible`、`prefers-reduced-motion` | 关键文字对比度已全部 ≥4.5:1 |
-| 性能 | React 岛屿按需 hydration、字体 preconnect、GSAP 按需 | 无 CSS 框架、无 WebGL |
+| 性能 | 岛屿按需 hydration、字体自托管、无毛玻璃、Canvas 30fps 贴图 | 首屏 2.5MB → 183KB，DCL 约 0.34s；可用 `perf-probe.mjs` 复测 |
 | 数据管道 | 每日两次抓取 → 构建 → 部署 → 回写仓库 | 失败保留上一次快照，不再用 0 覆盖 |
 | 日历移动端对齐 | 年份标签 `position: sticky` | 不再用 JS 追踪 `scrollLeft` |
-| 日历滚轮横滑 | 指针在日历上时纵向滚轮转横向 | 到两端交还页面 |
+| 日历滚轮横滑 | 指针在日历上时纵向滚轮转横向 | 到两端停在原地，不穿透到页面 |
+| 访客卡片 | 本地点阵地图 + Abacus 计数 + 本地时间 | 不依赖第三方地图，失败显示「—」 |
+| 图片优化 | 证书 WebP（2.3MB → 454KB）并懒加载，原图移至 assets/ | 微信二维码 236KB → 44KB |
 | arXiv / GitHub 入口 | 按类型彩色填充 | 与灰色技术标签区分 |
 
 > 历史误标说明：早期清单里的「深色模式支持」现已**有意移除**（见决策表）；「键盘快捷键」的组件没有挂载，实际不可用。
@@ -46,7 +48,6 @@
 
 ### P1 · 影响可信度或维护成本
 
-- [ ] **证书图片压缩**：`public/previews/awards/*.jpg` 共 6 张、约 2.1MB（单张最大 482KB），实际只在 320px 浮层里显示。转 WebP / 限制长边到 1200px，可降到 300KB 以内
 - [ ] **清理未挂载组件**：`KeyboardShortcuts.*`、`PageTransition.tsx`、`ProjectCategory.tsx`、`ErrorBoundary.tsx` 目前零引用。要么接入（ErrorBoundary 包住 React 岛屿），要么删除，避免文档与代码再次漂移
 - [ ] **`public/_headers` 实际无效**：该文件只被 Netlify / Cloudflare Pages 读取，GitHub Pages 会忽略。安全响应头需要 CDN 或自建反代才能生效，当前不承诺
 
@@ -69,7 +70,7 @@
 
 ## 四、实施约定
 
-1. 一次只做一件事，改完跑 `npm run build` + `scripts/review-shots.mjs` 目视回归
+1. 一次只做一件事，改完跑 `npm run build` + `scripts/review-shots.mjs` 目视回归；性能改动再跑 `scripts/perf-probe.mjs` 对比
 2. 动到布局或日历，再跑 `scripts/debug-calendar-sweep.mjs` 确认年份与日期仍对应
 3. 新增颜色必须过 4.5:1；装饰色不得用于正文
 4. 新增区块要同步 `Navigation.astro` 的 `sections` 与 `Hero.astro` 的索引
