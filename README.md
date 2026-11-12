@@ -51,7 +51,7 @@ npm run preview   # 预览构建结果
 │   │   ├── ProjectCard.tsx        # 项目卡（含 arXiv / GitHub 入口）
 │   │   ├── Skills.astro           # 03 技能
 │   │   ├── Experience.astro       # 04 经历 + 获奖「证明」浮层
-│   │   ├── StatsWidgets.astro     # 05 痕迹：GitHub / 访客 / LeetCode
+│   │   ├── StatsWidgets.astro     # 05 痕迹：GitHub / LeetCode
 │   │   ├── FluidBackground.tsx    # Canvas 流体背景
 │   │   ├── CustomCursor.tsx       # 自绘光标（系统光标隐藏）
 │   │   ├── ScrollAnimations.tsx   # GSAP 入场与视差
@@ -80,7 +80,7 @@ npm run preview   # 预览构建结果
 | 02 项目 | `#projects` | 科研（5）与工程（3）双面板，卡片可点开论文 / 仓库 |
 | 03 技能 | `#skills` | 四类工具与研究方向 |
 | 04 经历 | `#experience` | 竞赛荣誉（带证书浮层）与学生工作 / 实习 |
-| 05 痕迹 | `#stats` | GitHub 贡献、访客、LeetCode 统计 |
+| 05 痕迹 | `#stats` | GitHub 贡献、LeetCode 统计 |
 
 区块标题统一为「编号 + 中文 kicker、一句标题、一句导语」左对齐；新增区块需要同时更新 `Navigation.astro` 的 `sections` 与 `Hero.astro` 的索引。
 
@@ -126,7 +126,7 @@ npm run preview   # 预览构建结果
 首屏不再有任何第三方阻塞请求。2026-11 的优化与基线：
 
 - **移除阻塞脚本**：ClustrMaps 不可达时，同步 `<script>` 会把 DOMContentLoaded 卡住 30 秒以上；现已移除。首屏 DCL 约 0.34s、FCP 约 0.5s
-- **首屏传输 2.5MB → 约 183KB**：6 张证书图转 WebP（2.3MB → 454KB）并懒加载，字体自托管（140KB），原图移出 public
+- **首屏传输 2.5MB → 约 183KB，无任何外部请求**：6 张证书图转 WebP（2.3MB → 454KB）并懒加载，字体自托管（140KB），原图移出 public
 - **删除 54 个 `backdrop-filter`**：背景 Canvas 在动，每个毛玻璃元素每帧都要重新模糊；改为半透明白底 + 边框
 - **Canvas 降本**：光斑预渲染为贴图、30fps、DPR 上限 1.25，底色改 CSS 渐变，不再每帧两次全屏填充 + 全屏噪点
 - **动画按需**：首屏离开视口后轨道动画暂停，滚到统计区时样式重算从约 413 次/2.5s 降到约 29 次/2.5s
@@ -150,15 +150,6 @@ GitHub Actions（每日 00:05 / 12:05 北京时间，以及 push）
 - **失败保护**：抓取失败时**保留上一次成功快照**，只追加 `error` 与 `lastAttemptAt`，`scrapedAt` 不动，页面上的「数据更新于」不会说谎
 - **回写仓库**：`contents: write` + `Commit scraped data` 步骤。抓取结果会进仓库，因此本地 `npm run dev` 看到的是同一份快照；每天一次提交同时避免公开仓库 60 天无活动被 GitHub 停用定时任务
 - **本地数据**：`src/data/*.json` 只是快照，`git pull` 后才与线上同步
-
-### 访客
-
-统计区不再依赖第三方地图服务（ClustrMaps 自 2026 年起已下线，RevolverMaps 更早已关停）：
-
-- 地图是本地生成的 27KB 点阵 PNG（`public/previews/world-dots.png`），只作纹理，不代表真实位置
-- 到访数来自 Abacus 的公开计数器（`abacus.jasoncameron.dev`），按会话只计一次；请求失败时显示「—」，不影响卡片其余内容
-- 显示访客本地时间与时区（浏览器 `Intl`），不查询 IP
-- 不写 Cookie、不记录浏览路径；如果以后要真实地理分布，可换 MapMyVisitors，但需要在对方站点生成 widget 代码
 
 ## 本地校验脚本
 
