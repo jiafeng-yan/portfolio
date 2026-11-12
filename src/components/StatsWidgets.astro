@@ -712,7 +712,9 @@ function formatDate(date: Date): string {
 
     window.addEventListener('resize', updateMonthLayout, { signal });
 
-    // 鼠标滚轮横向滑动（与项目面板的内嵌滚动同一套逻辑）
+    // 鼠标滚轮横向滑动
+    // 指针在日历上时始终接管滚轮：到头后停在原地，不再把滚动交还给页面。
+    // 否则连续滑动时会突然变成上下滚页，手感像是「滑飞了」。
     const handleWheel = (event: WheelEvent) => {
       const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
       if (maxScroll <= 1) return;
@@ -727,10 +729,6 @@ function formatDate(date: Date): string {
       const raw = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
       const delta = raw * unit;
       if (!delta) return;
-
-      const atStart = scrollContainer.scrollLeft <= 0;
-      const atEnd = scrollContainer.scrollLeft >= maxScroll - 1;
-      if ((delta < 0 && atStart) || (delta > 0 && atEnd)) return; // 到头了，交给页面滚动
 
       event.preventDefault();
       // 阻止冒泡到 Lenis，否则页面会跟着一起滚
@@ -1132,6 +1130,7 @@ function formatDate(date: Date): string {
   .github-calendar__scroll-container {
     overflow-x: auto;
     overflow-y: hidden;
+    overscroll-behavior-x: contain;
     cursor: grab !important;
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
@@ -1447,6 +1446,7 @@ function formatDate(date: Date): string {
   .leetcode-calendar__scroll-container {
     overflow-x: auto;
     overflow-y: hidden;
+    overscroll-behavior-x: contain;
     cursor: grab !important;
     scrollbar-width: thin;
     scrollbar-color: rgba(184, 112, 74, 0.3) rgba(0, 0, 0, 0.05);
