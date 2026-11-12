@@ -4,10 +4,10 @@
  * 支持获取多年历史数据
  */
 
-import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { launchBrowser } from './browser.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,17 +19,12 @@ async function scrapeLeetCodeData() {
   console.log('Starting LeetCode data scraping...');
   console.log(`Target URL: ${LEETCODE_URL}`);
 
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--disable-gpu',
-      '--window-size=1920,1080'
-    ]
-  });
+  const browser = await launchBrowser([
+    '--disable-dev-shm-usage',
+    '--disable-accelerated-2d-canvas',
+    '--disable-gpu',
+    '--window-size=1920,1080'
+  ]);
 
   try {
     const page = await browser.newPage();
@@ -295,6 +290,69 @@ async function scrapeLeetCodeData() {
     // 计算总数
     userData.solvedCount = userData.easySolved + userData.mediumSolved + userData.hardSolved;
 
+    // 勋章：公开 GraphQL 查询，无需登录；失败时保留上一次快照
+    let medals = [];
+    try {
+      medals = await page.evaluate(async (userSlug) => {
+        const query = `
+          query userBadges($userSlug: String!, $limit: Int, $skip: Int) {
+            userProfileUserMedals(userSlug: $userSlug, limit: $limit, skip: $skip) {
+              slug
+              name
+              obtainDate
+              category
+              config { icon }
+              progress
+              id
+              year
+              month
+            }
+          }
+        `;
+        const response = await fetch('https://leetcode.cn/graphql/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query,
+            variables: { userSlug, limit: 50, skip: 0 },
+            operationName: 'userBadges'
+          })
+        });
+        if (!response.ok) return [];
+        const json = await response.json();
+        return (json.data?.userProfileUserMedals || []).map((medal) => ({
+          slug: medal.slug,
+          name: medal.name,
+          category: medal.category,
+          year: medal.year,
+          obtainedAt: medal.obtainDate,
+          icon: medal.config?.icon || ''
+        }));
+      }, LEETCODE_USERNAME);
+      console.log(`Medals: ${medals.length}`);
+    } catch (error) {
+      console.warn('Failed to fetch medals:', error.message);
+    }
+
+    if (medals.length > 0) {
+      userData.medals = medals;
+      userData.medalCount = medals.length;
+    } else {
+      const previousPath = path.join(__dirname, '../src/data/leetcode.json');
+      try {
+        if (fs.existsSync(previousPath)) {
+          const previous = JSON.parse(fs.readFileSync(previousPath, 'utf8'));
+          if (previous.medals?.length) {
+            userData.medals = previous.medals;
+            userData.medalCount = previous.medalCount ?? previous.medals.length;
+            console.log('Keeping previous medals snapshot');
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to read previous medals:', error.message);
+      }
+    }
+
     console.log('Final user data:', {
       username: userData.username,
       solvedCount: userData.solvedCount,
@@ -305,6 +363,7 @@ async function scrapeLeetCodeData() {
       totalActiveDays: userData.totalActiveDays,
       currentStreak: userData.currentStreak,
       maxStreak: userData.maxStreak,
+      medals: userData.medalCount || 0,
       calendarEntries: Object.keys(userData.submissionCalendar).length
     });
 

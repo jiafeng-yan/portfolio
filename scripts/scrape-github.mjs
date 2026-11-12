@@ -241,6 +241,68 @@ async function getUserStats(username) {
   }
 }
 
+async function getAchievements(username) {
+  // GitHub 成就没有公开 API，只能解析公开的成就页。
+  // 解析失败时返回空数组，调用方会保留上一次成功的快照。
+  const url = `https://github.com/${username}?tab=achievements`;
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; PersonaHomepage-Bot/1.0)',
+      'Accept': 'text/html'
+    }
+  });
+  if (!response.ok) throw new Error(`GitHub achievements error: ${response.status}`);
+
+  const html = await response.text();
+  const cards = [];
+  const cardPattern = /<details[^>]*data-achievement-slug="([^"]+)"[\s\S]*?<img src="([^"]+)"[\s\S]*?<h3[^>]*>([\s\S]*?)<\/h3>/g;
+  let match;
+
+  while ((match = cardPattern.exec(html))) {
+    const slug = match[1];
+    const icon = match[2];
+    const name = match[3].replace(/<[^>]+>/g, '').trim();
+    if (!slug || !name) continue;
+
+    let earnedAt;
+    let detail;
+    try {
+      const detailResponse = await fetch(`https://github.com/users/${username}/achievements/${slug}/detail`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; PersonaHomepage-Bot/1.0)',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      if (detailResponse.ok) {
+        const detailHtml = await detailResponse.text();
+        const detailText = detailHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+        const dateMatch = detailText.match(/History Unlocked\s+([0-9]{4}-[0-9]{2}-[0-9]{2})/);
+        if (dateMatch) earnedAt = dateMatch[1];
+
+        if (slug === 'pull-shark') {
+          const merged = detailText.match(/([0-9]+)(?:st|nd|rd|th)\s+pull request merged/i);
+          if (merged) detail = `${merged[1]} 次 Pull Request 被合并`;
+        }
+      }
+    } catch (error) {
+      console.warn(`Achievement detail failed for ${slug}: ${error.message}`);
+    }
+
+    cards.push({ slug, name, icon, ...(earnedAt ? { earnedAt } : {}), ...(detail ? { detail } : {}) });
+  }
+
+  return cards;
+}
+
+function readPreviousData() {
+  const outputPath = path.join(__dirname, '../src/data/github.json');
+  try {
+    return JSON.parse(fs.readFileSync(outputPath, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
 async function scrapeGitHubData() {
   console.log('Starting GitHub data scraping...');
   console.log(`Target user: ${GITHUB_USERNAME}`);
@@ -267,6 +329,22 @@ async function scrapeGitHubData() {
     console.log(`Active days: ${Object.keys(contributionData.contributions).length}`);
     console.log('Yearly stats:', contributionData.yearlyStats);
 
+    // 成就徽章：解析失败时保留上一次快照
+    let achievements = [];
+    try {
+      achievements = await getAchievements(GITHUB_USERNAME);
+      console.log(`Achievements: ${achievements.map((item) => item.name).join(', ') || 'none'}`);
+    } catch (error) {
+      console.warn('Failed to fetch achievements:', error.message);
+    }
+    if (achievements.length === 0) {
+      const previous = readPreviousData();
+      if (previous?.achievements?.length) {
+        achievements = previous.achievements;
+        console.log('Keeping previous achievements snapshot');
+      }
+    }
+
     // 构建最终数据
     const data = {
       username: GITHUB_USERNAME,
@@ -275,6 +353,7 @@ async function scrapeGitHubData() {
       totalContributions: contributionData.total,
       yearlyStats: contributionData.yearlyStats,
       activeDays: Object.keys(contributionData.contributions).length,
+      achievements,
       scrapedAt: new Date().toISOString(),
       tokenUsed: !!GITHUB_TOKEN
     };
