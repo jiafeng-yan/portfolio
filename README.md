@@ -33,11 +33,11 @@ npm run preview   # 预览构建结果
 ```
 .
 ├── .github/workflows/deploy.yml   # 抓取 → 构建 → 部署 → 回写数据
-├── public/                        # favicon、robots.txt、自托管字体、WebP 证书与二维码
+├── public/                        # favicon、robots.txt、自托管字体、徽章图标、WebP 证书与二维码
 ├── assets/                        # 未部署的原图（证书 JPG、二维码 PNG）
 ├── scripts/
-│   ├── scrape-github.mjs          # GitHub GraphQL → src/data/github.json
-│   ├── scrape-leetcode.mjs        # Puppeteer + LeetCode GraphQL → src/data/leetcode.json
+│   ├── scrape-github.mjs          # GitHub GraphQL + 成就页 → src/data/github.json
+│   ├── scrape-leetcode.mjs        # Puppeteer + LeetCode GraphQL（含勋章）→ src/data/leetcode.json
 │   ├── browser.mjs                # 统一启动本机 Chrome / Edge（CI 回退到 Puppeteer 自带）
 │   ├── review-shots.mjs           # 桌面 / 移动 / 深色环境三套截图（深色用于确认仍为浅色纸面）
 │   ├── debug-calendar-sweep.mjs   # 扫描日历各滚动位置，校验年份与日期对应
@@ -80,7 +80,7 @@ npm run preview   # 预览构建结果
 | 02 项目 | `#projects` | 科研（5）与工程（3）双面板，卡片可点开论文 / 仓库 |
 | 03 技能 | `#skills` | 四类工具与研究方向 |
 | 04 经历 | `#experience` | 竞赛荣誉（带证书浮层）与学生工作 / 实习 |
-| 05 痕迹 | `#stats` | GitHub 贡献、LeetCode 统计 |
+| 05 痕迹 | `#stats` | GitHub 贡献、LeetCode 统计、徽章 |
 
 区块标题统一为「编号 + 中文 kicker、一句标题、一句导语」左对齐；新增区块需要同时更新 `Navigation.astro` 的 `sections` 与 `Hero.astro` 的索引。
 
@@ -151,6 +151,13 @@ GitHub Actions（每日 00:05 / 12:05 北京时间，以及 push）
 - **回写仓库**：`contents: write` + `Commit scraped data` 步骤。抓取结果会进仓库，因此本地 `npm run dev` 看到的是同一份快照；每天一次提交同时避免公开仓库 60 天无活动被 GitHub 停用定时任务
 - **本地数据**：`src/data/*.json` 只是快照，`git pull` 后才与线上同步
 
+### 徽章与成就
+
+- **GitHub**：成就没有公开 API，抓取公开成就页与详情页，当前为 1 枚 Pull Shark（2 次 PR 被合并）
+- **LeetCode**：调用公开 GraphQL `userBadges`，当前 17 枚；按「获得年份」分组展示，而不是勋章设计年份
+- 图标压缩为 128px WebP 自托管在 `public/badges/`，17 枚共约 70KB，全部懒加载；新勋章缺少本地图标时回退到官方 CDN
+- 抓取失败时保留上一次成功快照，不会把已有徽章清空
+
 ## 本地校验脚本
 
 脚本默认访问 `http://127.0.0.1:4322/portfolio/`，先启动预览：
@@ -189,5 +196,6 @@ npx puppeteer browsers install chrome
 - **不要给卡片加 `backdrop-filter`**：背景 Canvas 在动，几十个元素逐帧重新模糊会直接掉帧；用半透明白底 + 边框分层
 - 背景 Canvas 只画会动的光斑（贴图 + 30fps + DPR 上限 1.25），底色交给 CSS 渐变；首屏离开视口后轨道动画暂停
 - 图片优先 WebP 并加 `loading="lazy"`；证书图在 `public/previews/awards/`，原图放 `assets/`，不要放回 public
+- 新勋章图标按 slug 命名：`public/badges/leetcode/<slug>.webp`，抓取数据里保留官方 `icon` 作为兜底
 
 更细的设计取舍与历史决策见 [`PREFERENCE.md`](./PREFERENCE.md)，待办清单见 [`docs/OPTIMIZATION_SUGGESTIONS.md`](./docs/OPTIMIZATION_SUGGESTIONS.md)。

@@ -87,7 +87,7 @@
    - 竞赛获奖（带「证明」浮层，向下展开、右缘对齐）、学生工作与实习
 
 9. **StatsWidgets.astro** - 05 痕迹
-   - GitHub 贡献日历（整行）+ LeetCode 统计（整行）
+   - GitHub 贡献日历（整行，头部含 Pull Shark 成就）+ LeetCode 统计（整行，摘要下含 17 枚勋章）
    - 日历年份标签 `position: sticky`，滚轮横向滑动；数据来自 `src/data/*.json`
 
 10. **Navigation.astro** - 顶栏与移动端全屏菜单（中文标签、细下划线）
@@ -454,6 +454,24 @@
 ### X4. 细节 ✅
 - 项目卡去掉重复的「个人项目 + 已开源」双徽章
 - 视觉回归脚本改用系统 Chrome / Edge（`scripts/browser.mjs`），不再依赖 Puppeteer 缓存
+
+---
+
+## 第十一轮：徽章展示与滚动条评估（2026-11-12）✅ 已完成
+
+### Y1. GitHub / LeetCode 徽章 ✅
+- GitHub 成就没有公开 API，抓取公开成就页与详情页；当前 1 枚 Pull Shark（2 次 PR 被合并，2026-11-07）
+- LeetCode 用公开 GraphQL `userBadges` 取到 17 枚勋章；按「获得年份」分组，避免把 1000 天勋章归到设计年份
+- 图标统一压成 128px WebP，自托管 `public/badges/`（17 枚约 70KB），懒加载；缺本地图标时回退官方 CDN
+- 展示位置：GitHub 卡头部一枚 chip；LeetCode 摘要下方一条横向勋章架，移动端可横滑
+- 抓取失败保留上一次快照，不清空已有徽章
+- **文件**: `StatsWidgets.astro`, `scrape-github.mjs`, `scrape-leetcode.mjs`, `src/data/*.json`, `public/badges/`
+
+### Y2. 滚动条标准化：不做 ✅
+- 指南扫描发现全局只有 `::-webkit-scrollbar`，建议补 `scrollbar-color` / `scrollbar-width`
+- 标准化不改变滚动功能，但 Chrome / Safari 会改用浏览器原生 thin 条：失去 8px 宽、4px 圆角、透明轨道和 hover 变深
+- **决定**：保留当前样式；Firefox 显示系统默认滚动条，差异可接受
+- 如果以后只想照顾 Firefox，可用 `@supports not selector(::-webkit-scrollbar)` 单独补标准属性，Chrome / Safari 不受影响
 
 ---
 
