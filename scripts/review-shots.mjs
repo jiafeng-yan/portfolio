@@ -1,11 +1,11 @@
-import puppeteer from 'puppeteer';
 import fs from 'node:fs';
+import { launchBrowser } from './browser.mjs';
 
-const URL = 'http://localhost:4322/portfolio/';
+const URL = 'http://127.0.0.1:4322/portfolio/';
 const OUT = 'output/review';
 fs.mkdirSync(OUT, { recursive: true });
 
-const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+const browser = await launchBrowser();
 
 async function shot(name, { width, height, dark = false, full = false, scrollTo = null, hover = null, mobile = false }) {
   const page = await browser.newPage();

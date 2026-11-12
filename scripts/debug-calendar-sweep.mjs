@@ -1,7 +1,7 @@
-import puppeteer from 'puppeteer';
+import { launchBrowser } from './browser.mjs';
 
-const URL = 'http://localhost:4322/portfolio/';
-const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+const URL = 'http://127.0.0.1:4322/portfolio/';
+const browser = await launchBrowser();
 const page = await browser.newPage();
 await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 await page.setRequestInterception(true);
