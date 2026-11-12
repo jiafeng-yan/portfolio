@@ -5,7 +5,7 @@ const recognitions = [
     items: [
       {
         text: '大学生数学竞赛 · 国家级三等奖',
-        proof: '/portfolio/previews/awards/math-national-third.jpg',
+        proof: '/portfolio/previews/awards/math-national-third.webp',
         proofAlt: '全国大学生数学竞赛国家级三等奖证明'
       }
     ]
@@ -15,12 +15,12 @@ const recognitions = [
     items: [
       {
         text: 'CSP 认证 · 前 5.83%',
-        proof: '/portfolio/previews/awards/ccf-csp-top-6.jpg',
+        proof: '/portfolio/previews/awards/ccf-csp-top-6.webp',
         proofAlt: '第 38 次 CCF CSP 认证成绩证明'
       },
       {
         text: '蓝桥杯大赛算法竞赛 · 省部级二等奖',
-        proof: '/portfolio/previews/awards/lanqiao-beijing-second.jpg',
+        proof: '/portfolio/previews/awards/lanqiao-beijing-second.webp',
         proofAlt: '蓝桥杯北京赛区二等奖证明'
       }
     ]
@@ -30,12 +30,12 @@ const recognitions = [
     items: [
       {
         text: '全国大学生能源经济学术创意大赛 · 省部级二等奖',
-        proof: '/portfolio/previews/awards/energy-economics-second.jpg',
+        proof: '/portfolio/previews/awards/energy-economics-second.webp',
         proofAlt: '全国大学生能源经济学术创意大赛北京赛区二等奖证明'
       },
       {
         text: '中国国际大学生创新大赛 · 省部级三等奖',
-        proof: '/portfolio/previews/awards/innovation-beijing-third.jpg',
+        proof: '/portfolio/previews/awards/innovation-beijing-third.webp',
         proofAlt: '中国国际大学生创新大赛北京赛区三等奖证明'
       }
     ]
@@ -48,7 +48,7 @@ const recognitions = [
       { text: '智育奖学金' },
       {
         text: '学术科研奖学金',
-        proof: '/portfolio/previews/awards/academic-scholarship.jpg',
+        proof: '/portfolio/previews/awards/academic-scholarship.webp',
         proofAlt: '学术科研奖学金证明'
       },
       { text: '求实奖励基金 · 院级 3%' }
@@ -111,7 +111,7 @@ const experiences = [
                       aria-label={`查看原图：${item.proofAlt}`}
                       data-cursor-hover
                     >
-                      <img src={item.proof} alt="" decoding="async" />
+                      <img src={item.proof} alt="" loading="lazy" decoding="async" />
                       <span>{item.proofAlt} · 点击查看原图</span>
                     </a>
                   </span>
@@ -188,7 +188,7 @@ const experiences = [
   }
 
   .recognition-list__group:hover {
-    background: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.72);
     transform: translateX(4px);
     z-index: 10;
   }
@@ -318,7 +318,7 @@ const experiences = [
   }
 
   .experience__item:hover {
-    background: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.72);
     transform: translateX(4px);
   }
 

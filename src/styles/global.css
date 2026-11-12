@@ -1,3 +1,47 @@
+/* Self-hosted fonts: no render-blocking third-party CSS, works without Google Fonts */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/portfolio/fonts/inter-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/portfolio/fonts/inter-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/portfolio/fonts/inter-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/portfolio/fonts/inter-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/portfolio/fonts/jetbrains-mono-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/portfolio/fonts/jetbrains-mono-latin-500-normal.woff2') format('woff2');
+}
+
 :root {
   /* Color Palette - Warm & Humanistic */
   --color-bg: #f8f6f3;
@@ -89,7 +133,12 @@ body {
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.6;
-  background: var(--color-bg);
+  /* 底色交给 CSS：Canvas 只负责会动的光斑，不再每帧重绘整屏 */
+  background:
+    radial-gradient(58% 48% at 16% 14%, rgba(212, 165, 116, 0.2) 0%, rgba(212, 165, 116, 0) 62%),
+    radial-gradient(52% 46% at 84% 18%, rgba(122, 155, 184, 0.16) 0%, rgba(122, 155, 184, 0) 64%),
+    radial-gradient(48% 44% at 66% 82%, rgba(201, 139, 122, 0.12) 0%, rgba(201, 139, 122, 0) 66%),
+    linear-gradient(160deg, #f8f6f3 0%, #fbf9f6 42%, #f4f1ec 100%) fixed;
   color: var(--color-text);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -97,7 +146,7 @@ body {
   text-rendering: optimizeLegibility;
   font-feature-settings: "kern" 1, "liga" 1;
   -webkit-font-feature-settings: "kern", "liga";
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: color 0.3s ease;
 }
 
 main {
@@ -116,18 +165,9 @@ section {
   scroll-margin-top: 5.5rem;
 }
 
-/* Card and panel enhancements for better separation */
-.project-showcase__panel,
-.project-card,
-.hero__stats,
-.hero__link,
-.skills__item,
-.profile__row,
-.recognition-list__group,
-.experience__item {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
+/* Card separation comes from translucent fills + borders.
+   backdrop-filter 已移除：它会让每个卡片在动态背景上逐帧重新模糊，
+   54 个元素叠加时是主要掉帧来源。 */
 
 /* Spotlight Card System (GPU accelerated dynamic radial glow) */
 .spotlight-card,

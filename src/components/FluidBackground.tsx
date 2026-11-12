@@ -39,7 +39,9 @@ export function FluidBackground() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d', { alpha: false });
+    // 透明画布：底色交给 CSS 渐变，Canvas 只画会动的光斑，
+    // 避免每帧重绘整屏背景（此前每帧两次全屏 fillRect + 一次全屏噪点）。
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     let animationId: number;
@@ -52,25 +54,8 @@ export function FluidBackground() {
     const isMobile = window.innerWidth < 768 || window.matchMedia('(hover: none)').matches;
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Pre-generate noise texture (offscreen 256x256 tile)
-    const noiseSize = 256;
-    const noiseCanvas = document.createElement('canvas');
-    noiseCanvas.width = noiseSize;
-    noiseCanvas.height = noiseSize;
-    const noiseCtx = noiseCanvas.getContext('2d');
-    if (noiseCtx) {
-      const noiseData = noiseCtx.createImageData(noiseSize, noiseSize);
-      const data = noiseData.data;
-      for (let i = 0; i < noiseSize * noiseSize; i++) {
-        const val = (Math.random() * 255) | 0;
-        const idx = i * 4;
-        data[idx] = val;
-        data[idx + 1] = val;
-        data[idx + 2] = val;
-        data[idx + 3] = 10; // Extremely subtle fine film grain
-      }
-      noiseCtx.putImageData(noiseData, 0, 0);
-    }
+    // Pre-render noise removed: the grain was almost invisible but cost a
+    // full-screen texture blit every frame. Paper texture now comes from CSS.
 
     // 5 warm humanistic fluid orbs with individual breathing harmonics
     const orbs: Orb[] = [
@@ -156,8 +141,33 @@ export function FluidBackground() {
       }
     ];
 
+    // 每个光斑预渲染成一张小贴图：运行时只做 drawImage，
+    // 不再每帧创建 5 个径向渐变并填充大圆。
+    const SPRITE_SIZE = 256;
+    const orbSprites = orbs.map((orb) => {
+      const sprite = document.createElement('canvas');
+      sprite.width = SPRITE_SIZE;
+      sprite.height = SPRITE_SIZE;
+      const sctx = sprite.getContext('2d');
+      if (!sctx) return sprite;
+
+      const r = parseInt(orb.color.slice(1, 3), 16);
+      const g = parseInt(orb.color.slice(3, 5), 16);
+      const b = parseInt(orb.color.slice(5, 7), 16);
+      const half = SPRITE_SIZE / 2;
+      const gradient = sctx.createRadialGradient(half, half, 0, half, half, half);
+      gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${orb.alpha})`);
+      gradient.addColorStop(0.35, `rgba(${r}, ${g}, ${b}, ${orb.alpha * 0.65})`);
+      gradient.addColorStop(0.7, `rgba(${r}, ${g}, ${b}, ${orb.alpha * 0.25})`);
+      gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+      sctx.fillStyle = gradient;
+      sctx.fillRect(0, 0, SPRITE_SIZE, SPRITE_SIZE);
+      return sprite;
+    });
+
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // 背景是柔和渐变，1.25x 已足够清晰；2x 会让填充面积翻四倍
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
       width = window.innerWidth;
       height = window.innerHeight;
       canvas.width = Math.floor(width * dpr);
@@ -214,6 +224,7 @@ export function FluidBackground() {
       } else {
         if (!isRunning) {
           isRunning = true;
+          lastFrame = 0;
           animationId = requestAnimationFrame(animate);
         }
       }
@@ -224,7 +235,7 @@ export function FluidBackground() {
       const mouse = mouseRef.current;
       const scrollDrift = scrollOffset * 0.04;
 
-      orbs.forEach((orb) => {
+      orbs.forEach((orb, index) => {
         // Multi-frequency harmonic motion
         const t = time;
         const dx = Math.sin(t * orb.freqX + orb.phaseX) * 0.9 + Math.sin(t * orb.freqX * 0.4 + orb.phaseX * 1.5) * 0.45;
@@ -269,26 +280,25 @@ export function FluidBackground() {
         const drawY = (orb.y + scrollDrift) % (height + orb.radius * 2) - orb.radius;
         const actualY = drawY < -orb.radius ? drawY + height + orb.radius * 2 : drawY;
 
-        const gradient = ctx.createRadialGradient(orb.x, actualY, 0, orb.x, actualY, orb.radius);
-        const r = parseInt(orb.color.slice(1, 3), 16);
-        const g = parseInt(orb.color.slice(3, 5), 16);
-        const b = parseInt(orb.color.slice(5, 7), 16);
-
-        gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${orb.alpha})`);
-        gradient.addColorStop(0.35, `rgba(${r}, ${g}, ${b}, ${orb.alpha * 0.65})`);
-        gradient.addColorStop(0.7, `rgba(${r}, ${g}, ${b}, ${orb.alpha * 0.25})`);
-        gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(orb.x, actualY, orb.radius, 0, Math.PI * 2);
-        ctx.fill();
+        // 直接用预渲染贴图，半径变化只影响缩放
+        const sprite = orbSprites[index];
+        if (sprite) {
+          ctx.drawImage(sprite, orb.x - orb.radius, actualY - orb.radius, orb.radius * 2, orb.radius * 2);
+        }
       });
     };
 
     // Main animation render loop
-    const animate = () => {
+    // 光斑运动很慢，30fps 与 60fps 肉眼无差，但 GPU / CPU 占用减半。
+    const FRAME_INTERVAL = 1000 / 30;
+    let lastFrame = 0;
+
+    const animate = (now = 0) => {
       if (!isRunning) return;
+
+      animationId = requestAnimationFrame(animate);
+      if (now - lastFrame < FRAME_INTERVAL) return;
+      lastFrame = now;
       time++;
 
       const motionScale = prefersReducedMotion ? 0.15 : 1.0;
@@ -297,31 +307,21 @@ export function FluidBackground() {
       scrollRef.current.current += (scrollRef.current.target - scrollRef.current.current) * 0.08;
       const scrollOffset = scrollRef.current.current;
 
-      // Base canvas background fill
-      ctx.fillStyle = '#f8f6f3';
-      ctx.fillRect(0, 0, width, height);
-
-      // Subtle base gradient
-      const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-      bgGrad.addColorStop(0, '#f8f6f3');
-      bgGrad.addColorStop(0.5, '#fbf9f6');
-      bgGrad.addColorStop(1, '#f4f1ec');
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, width, height);
+      ctx.clearRect(0, 0, width, height);
 
       // 1. Organic Fluid Orbs
       updateAndDrawOrbs(motionScale, scrollOffset);
-
-      // 2. Filmic Grain Noise
-      ctx.globalAlpha = 0.28;
-      ctx.drawImage(noiseCanvas, 0, 0, width, height);
-      ctx.globalAlpha = 1;
-
-      animationId = requestAnimationFrame(animate);
     };
 
     resize();
-    animate();
+
+    if (prefersReducedMotion) {
+      // 只画一帧静态背景，不启动循环
+      ctx.clearRect(0, 0, width, height);
+      updateAndDrawOrbs(0, 0);
+    } else {
+      animate();
+    }
 
     window.addEventListener('resize', resize, { passive: true });
     window.addEventListener('mousemove', handleMouseMove, { passive: true });

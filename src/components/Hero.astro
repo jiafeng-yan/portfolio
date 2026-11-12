@@ -558,11 +558,33 @@
       animation: none;
     }
   }
+
+  /* 离开视口后暂停轨道动画，滚到下方阅读时不再持续重算样式 */
+  .hero.is-offscreen .hero__signal-track,
+  .hero.is-offscreen .hero__signal-core-glow {
+    animation-play-state: paused;
+  }
 </style>
 
 <script>
   // 天体雕塑的轻微陀螺仪倾斜（仅桌面）
   const signal = document.getElementById('heroSignal');
+  const hero = document.querySelector<HTMLElement>('.hero');
+
+  // 首屏离开视口后暂停轨道动画与倾斜循环：
+  // 三个环 + 核心脉冲是纯 CSS 动画，滚到下面阅读时没必要继续跑。
+  let heroVisible = true;
+  if (hero && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        heroVisible = entry.isIntersecting;
+        hero.classList.toggle('is-offscreen', !entry.isIntersecting);
+      },
+      { rootMargin: '120px' }
+    );
+    observer.observe(hero);
+  }
+
   if (signal && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
     let targetTiltX = 0;
     let targetTiltY = 0;
@@ -578,10 +600,17 @@
     };
 
     const updateTilt = () => {
-      currentTiltX += (targetTiltX - currentTiltX) * 0.05;
-      currentTiltY += (targetTiltY - currentTiltY) * 0.05;
-      signal.style.transform = `translateY(-50%) rotateX(${currentTiltX}deg) rotateY(${currentTiltY}deg)`;
       rafId = requestAnimationFrame(updateTilt);
+      if (!heroVisible) return;
+
+      const nextX = currentTiltX + (targetTiltX - currentTiltX) * 0.05;
+      const nextY = currentTiltY + (targetTiltY - currentTiltY) * 0.05;
+      // 收敛后不再写样式，避免每帧产生一次无意义的样式失效
+      if (Math.abs(nextX - currentTiltX) < 0.01 && Math.abs(nextY - currentTiltY) < 0.01) return;
+
+      currentTiltX = nextX;
+      currentTiltY = nextY;
+      signal.style.transform = `translateY(-50%) rotateX(${currentTiltX}deg) rotateY(${currentTiltY}deg)`;
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });

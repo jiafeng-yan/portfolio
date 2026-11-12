@@ -208,9 +208,7 @@ export function ProjectCard({ project }: Props) {
           transition:
             background var(--duration-normal) var(--ease-out-expo),
             border-color var(--duration-normal) var(--ease-out-expo);
-          will-change: transform;
           outline: none;
-          backdrop-filter: blur(8px);
         }
 
         .project-card:hover,

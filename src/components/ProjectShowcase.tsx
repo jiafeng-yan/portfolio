@@ -199,7 +199,7 @@ export function ProjectShowcase({ groups }: Props) {
           padding: var(--space-lg);
           border: 1px solid rgba(0, 0, 0, 0.12);
           border-radius: var(--border-radius);
-          background: rgba(255, 255, 255, 0.58);
+          background: rgba(255, 255, 255, 0.74);
           display: flex;
           flex-direction: column;
           transition:

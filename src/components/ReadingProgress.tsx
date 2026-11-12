@@ -1,34 +1,50 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import './ReadingProgress.css';
 
 export function ReadingProgress() {
-  const [progress, setProgress] = useState(0);
+  const barRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const updateProgress = () => {
-      const scrolled = window.scrollY;
+    let rafId = 0;
+
+    const update = () => {
+      rafId = 0;
+      const bar = barRef.current;
+      if (!bar) return;
       const total = document.documentElement.scrollHeight - window.innerHeight;
-      const percentage = (scrolled / total) * 100;
-      setProgress(Math.min(100, Math.max(0, percentage)));
+      const progress = total > 0 ? Math.min(1, Math.max(0, window.scrollY / total)) : 0;
+      // 直接写 transform，不经过 React state：
+      // 每个 scroll 事件都 setState 会触发整棵组件树重渲染与样式重算
+      bar.style.transform = `scaleX(${progress})`;
+      bar.setAttribute('aria-valuenow', String(Math.round(progress * 100)));
     };
 
-    updateProgress();
-    window.addEventListener('scroll', updateProgress, { passive: true });
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(update);
+    };
 
-    return () => window.removeEventListener('scroll', updateProgress);
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   return (
     <div
+      ref={barRef}
       className="reading-progress"
-      style={{
-        transform: `scaleX(${progress / 100})`
-      }}
-      aria-label={`页面阅读进度 ${Math.round(progress)}%`}
+      style={{ transform: 'scaleX(0)' }}
+      aria-label="页面阅读进度 0%"
       role="progressbar"
-      aria-valuenow={Math.round(progress)}
+      aria-valuenow={0}
       aria-valuemin={0}
       aria-valuemax={100}
     />
