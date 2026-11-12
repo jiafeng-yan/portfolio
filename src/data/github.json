@@ -228,5 +228,14 @@
   },
   "activeDays": 192,
   "scrapedAt": "2026-11-12T12:33:35.781Z",
-  "tokenUsed": true
+  "tokenUsed": true,
+  "achievements": [
+    {
+      "slug": "pull-shark",
+      "name": "Pull Shark",
+      "earnedAt": "2026-11-07",
+      "detail": "2 次 Pull Request 被合并",
+      "icon": "https://github.githubassets.com/assets/pull-shark-default-9418df00328f.png"
+    }
+  ]
 }
