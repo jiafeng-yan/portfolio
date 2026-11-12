@@ -1,5 +1,5 @@
 ---
-// 统计组件集合：GitHub Calendar、LeetCode Card、访客
+// 统计组件集合：GitHub Calendar、LeetCode Card
 // GitHub 用户名: jiafeng-yan
 // LeetCode 中国站用户名: anagke-59
 
@@ -213,11 +213,11 @@ function formatDate(date: Date): string {
   <div class="stats-widgets__header">
     <span class="section-kicker">05 / 痕迹</span>
     <h2 id="stats-title">时间留下的一点痕迹</h2>
-    <p>提交、刷题，还有谁在这里停留过。它们不代表能力，只代表我确实在这里待了很久。</p>
+    <p>提交、刷题，一路留下的记录。它们不代表能力，只代表我确实在这里待了很久。</p>
   </div>
 
   <div class="stats-widgets__grid">
-    <!-- 第一行：GitHub + 访客地图 -->
+    <!-- 第一行：GitHub 贡献（整行） -->
     <div class="stats-row stats-row--top">
       <!-- GitHub Contribution Chart -->
       <div class="stats-widget stats-widget--github">
@@ -351,109 +351,6 @@ function formatDate(date: Date): string {
         </div>
       </div>
 
-      <!-- 访客：不依赖第三方地图服务，用本地点阵地图 + 轻量计数 -->
-      <div class="stats-widget stats-widget--visitors">
-        <div class="stats-widget__header">
-          <span class="stats-widget__icon visitors-icon">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="12" cy="12" r="9"/>
-              <path d="M3.6 9h16.8M3.6 15h16.8M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/>
-            </svg>
-          </span>
-          <h3 class="stats-widget__title">访客</h3>
-        </div>
-        <div class="stats-widget__content stats-widget__content--visitors">
-          <div class="visitors__map" aria-hidden="true">
-            <img
-              src={`${import.meta.env.BASE_URL.replace(/\/?$/, '/')}previews/world-dots.png`}
-              alt=""
-              width="1190"
-              height="600"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-
-          <p class="visitors__count">
-            <span class="visitors__count-label">第</span>
-            <strong class="visitors__count-value" data-visitor-count>—</strong>
-            <span class="visitors__count-label">次到访</span>
-          </p>
-          <p class="visitors__meta">
-            <span data-visitor-time>此刻</span>
-            <span class="visitors__meta-sep" aria-hidden="true">·</span>
-            <span data-visitor-zone>你的时区</span>
-          </p>
-          <p class="visitors__note">
-            地图只是纸上的纹理，不是定位；计数由一个公开的轻量计数器记录。本站不写入 Cookie，也不记录你看了哪些页面。
-          </p>
-
-          <script is:inline>
-            (function () {
-              var countEl = document.querySelector('[data-visitor-count]');
-              var timeEl = document.querySelector('[data-visitor-time]');
-              var zoneEl = document.querySelector('[data-visitor-zone]');
-              if (!countEl || !timeEl || !zoneEl) return;
-
-              var KEY = 'visitor-count';
-              var API = 'https://abacus.jasoncameron.dev';
-              var NS = 'yanjiafeng-portfolio';
-              var NAME = 'visits-2026-11b';
-
-              function renderTime() {
-                var now = new Date();
-                timeEl.textContent =
-                  '你那边 ' +
-                  now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
-                var zone = '';
-                try {
-                  zone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-                } catch (e) {}
-                zoneEl.textContent = zone ? zone.replace(/_/g, ' ') : '本地时间';
-              }
-              renderTime();
-              window.setInterval(renderTime, 30000);
-
-              function show(value) {
-                if (typeof value === 'number' && value > 0) {
-                  countEl.textContent = value.toLocaleString('zh-CN');
-                }
-              }
-
-              var cached = 0;
-              try {
-                cached = Number(window.sessionStorage.getItem(KEY)) || 0;
-              } catch (e) {}
-              if (cached) show(cached);
-
-              var url = API + (cached ? '/get/' : '/hit/') + NS + '/' + NAME;
-              var controller = new AbortController();
-              var timer = setTimeout(function () {
-                controller.abort();
-              }, 5000);
-
-              fetch(url, { signal: controller.signal, cache: 'no-store' })
-                .then(function (res) {
-                  return res.ok ? res.json() : null;
-                })
-                .then(function (data) {
-                  var value = data && Number(data.value);
-                  if (!value) return;
-                  show(value);
-                  try {
-                    window.sessionStorage.setItem(KEY, String(value));
-                  } catch (e) {}
-                })
-                .catch(function () {
-                  // 计数器不可用时保留「—」，不影响其余内容
-                })
-                .finally(function () {
-                  clearTimeout(timer);
-                });
-            })();
-          </script>
-        </div>
-      </div>
     </div>
 
     <!-- 第二行：LeetCode 单独一排 -->
@@ -1006,7 +903,7 @@ function formatDate(date: Date): string {
   }
 
   .stats-row--top {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .stats-row--bottom {
@@ -1061,9 +958,6 @@ function formatDate(date: Date): string {
     fill: currentColor;
   }
 
-  .visitors-icon svg {
-    stroke: currentColor;
-  }
 
   .leetcode-icon {
     background: transparent;
@@ -1821,75 +1715,6 @@ function formatDate(date: Date): string {
     opacity: 0.8;
   }
 
-  /* 访客：本地点阵地图 + 轻量计数 */
-  .stats-widget__content--visitors {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    min-height: 0;
-    flex: 1;
-  }
-
-  .visitors__map {
-    position: relative;
-    flex: 1 1 auto;
-    min-height: 168px;
-    margin-bottom: var(--space-sm);
-    overflow: hidden;
-    border-radius: var(--border-radius);
-    -webkit-mask-image: linear-gradient(to bottom, #000 72%, rgba(0, 0, 0, 0.18) 100%);
-    mask-image: linear-gradient(to bottom, #000 72%, rgba(0, 0, 0, 0.18) 100%);
-  }
-
-  .visitors__map img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: 50% 45%;
-    opacity: 0.62;
-  }
-
-  .visitors__count {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    color: var(--color-text-muted);
-  }
-
-  .visitors__count-value {
-    font-size: clamp(1.7rem, 2.4vw, 2.1rem);
-    line-height: 1.05;
-    font-weight: 600;
-    color: var(--color-text);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
-  }
-
-  .visitors__meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    color: var(--color-text-subtle);
-  }
-
-  .visitors__meta-sep {
-    opacity: 0.6;
-  }
-
-  .visitors__note {
-    margin-top: 0.15rem;
-    max-width: 34em;
-    font-size: 0.72rem;
-    line-height: 1.7;
-    color: var(--color-text-subtle);
-  }
-
   /* 错误提示样式 */
   .stats-widget__error {
     color: var(--color-text-muted);
@@ -1901,10 +1726,6 @@ function formatDate(date: Date): string {
   /* 响应式布局 */
   @media (max-width: 1024px) {
     /* 平板及以下：竖向排列 */
-    .stats-row--top {
-      grid-template-columns: 1fr;
-    }
-
     .stats-widget {
       padding: var(--space-lg);
     }
