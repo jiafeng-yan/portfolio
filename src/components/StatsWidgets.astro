@@ -232,15 +232,19 @@ const githubAchievements = (github.achievements ?? []).slice(0, 1);
 const leetcodeMedals = leetcode.medals ?? [];
 const medalEarnedYear = (medal: Medal) => Number(medal.obtainedAt.slice(0, 4));
 const leetcodeMedalYears = [...new Set(leetcodeMedals.map(medalEarnedYear))].sort((a, b) => b - a);
-const latestMedal = leetcodeMedals[0];
-const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
+const leetcodeMedalSpan = leetcodeMedalYears.length > 1
+  ? `${leetcodeMedalYears[leetcodeMedalYears.length - 1]} — ${leetcodeMedalYears[0]}`
+  : (leetcodeMedalYears[0] ? String(leetcodeMedalYears[0]) : '');
+const assetBase = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+const badgeBase = `${assetBase}badges`;
+const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
 ---
 
 <section class="stats-widgets" id="stats" data-section="stats" aria-labelledby="stats-title">
   <div class="stats-widgets__header">
-    <span class="section-kicker">05 / 痕迹</span>
-    <h2 id="stats-title">时间留下的一点痕迹</h2>
-    <p>提交、刷题，一路留下的记录。它们不代表能力，只代表我确实在这里待了很久。</p>
+    <span class="section-kicker">05 / 记录</span>
+    <h2 id="stats-title">代码与刷题记录</h2>
+    <p>自动同步 GitHub 提交与 LeetCode 刷题数据。</p>
   </div>
 
   <div class="stats-widgets__grid">
@@ -255,28 +259,6 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
             </svg>
           </span>
           <h3 class="stats-widget__title">GitHub 贡献</h3>
-          {githubAchievements.map((achievement) => (
-            <a
-              class="github-achievement"
-              href="https://github.com/jiafeng-yan?tab=achievements"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`GitHub 成就：${achievement.name}`}
-              title={`${achievement.name}${achievement.earnedAt ? ` · ${achievement.earnedAt}` : ''}${achievement.detail ? ` · ${achievement.detail}` : ''}`}
-            >
-              <img
-                src={`${badgeBase}/github/${achievement.slug}.webp`}
-                data-fallback={achievement.icon}
-                onerror="this.onerror=null;this.src=this.dataset.fallback"
-                alt=""
-                width="24"
-                height="24"
-                loading="lazy"
-                decoding="async"
-              />
-              <span>{achievement.name}</span>
-            </a>
-          ))}
           <a href="https://github.com/jiafeng-yan" target="_blank" rel="noopener noreferrer" class="github-link-badge">
             @jiafeng-yan →
           </a>
@@ -382,10 +364,44 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
                 </div>
               </div>
 
-              <!-- 私有仓库提示 -->
-              <!-- {github.tokenUsed && (
-                <p class="github-calendar__note">包含私有仓库贡献</p>
-              )} -->
+              <div class="github-bottom">
+                {githubAchievements.length > 0 && (
+                  <div class="github-achievements" aria-label="GitHub 成就徽章">
+                    <span class="github-achievements__label">成就 <strong>{githubAchievements.length}</strong></span>
+                    <div class="github-achievements__list">
+                      {githubAchievements.map((achievement) => (
+                        <a
+                          class="github-achievement"
+                          href="https://github.com/jiafeng-yan?tab=achievements"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`GitHub 成就：${achievement.name}`}
+                          data-badge-tooltip
+                          data-badge-title={achievement.name}
+                          data-badge-meta={`${achievement.earnedAt ?? ''}${achievement.earnedAt && achievement.detail ? ' · ' : ''}${achievement.detail ?? ''}`}
+                        >
+                          <span class="github-achievement__icon" aria-hidden="true">
+                            <img
+                              src={`${badgeBase}/github/${achievement.slug}.webp`}
+                              data-fallback={achievement.icon}
+                              onerror="this.onerror=null;this.src=this.dataset.fallback"
+                              alt=""
+                              width="24"
+                              height="24"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          </span>
+                          <span>{achievement.name}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div class="github-stats__updated">
+                  数据更新于 {new Date(github.scrapedAt).toLocaleDateString('zh-CN')}
+                </div>
+              </div>
             </div>
           ) : (
             <div class="github-stats github-stats--fallback">
@@ -406,6 +422,9 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
     <div class="stats-row stats-row--bottom">
       <div class="stats-widget stats-widget--leetcode">
         <div class="stats-widget__header">
+          <span class="stats-widget__icon leetcode-icon" aria-hidden="true">
+            <img src={leetcodeLogoSrc} alt="" width="20" height="20" decoding="async" />
+          </span>
           <h3 class="stats-widget__title">LeetCode 刷题</h3>
           <a href="https://leetcode.cn/u/anagke-59/" target="_blank" rel="noopener noreferrer" class="leetcode-link-badge">
             @ΑΝΑΓΚΗ →
@@ -433,46 +452,6 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
                   <span class="leetcode-stats__summary-label">最长连续</span>
                 </div>
               </div>
-
-              {leetcodeMedals.length > 0 && (
-                <div class="leetcode-medals" aria-label={`LeetCode 勋章，共 ${leetcode.medalCount ?? leetcodeMedals.length} 枚`}>
-                  <div class="leetcode-medals__head">
-                    <span class="leetcode-medals__title">
-                      勋章 <strong>{leetcode.medalCount ?? leetcodeMedals.length}</strong>
-                    </span>
-                    {latestMedal && (
-                      <span class="leetcode-medals__latest">最近 · {latestMedal.name}</span>
-                    )}
-                  </div>
-                  <div class="leetcode-medals__track">
-                    {leetcodeMedalYears.map((year) => (
-                      <div class="leetcode-medals__group" key={year}>
-                        <span class="leetcode-medals__year">{year}</span>
-                        {leetcodeMedals.filter((medal) => medalEarnedYear(medal) === year).map((medal) => (
-                          <span
-                            class="leetcode-medal"
-                            role="img"
-                            aria-label={`${medal.name}，${medal.obtainedAt.slice(0, 10)} 获得`}
-                            title={`${medal.name} · ${medal.obtainedAt.slice(0, 10)}`}
-                            key={medal.slug}
-                          >
-                            <img
-                              src={`${badgeBase}/leetcode/${medal.slug}.webp`}
-                              data-fallback={medal.icon}
-                              onerror="this.onerror=null;this.src=this.dataset.fallback"
-                              alt=""
-                              width="34"
-                              height="34"
-                              loading="lazy"
-                              decoding="async"
-                            />
-                          </span>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               <!-- LeetCode 贡献图（瓷砖墙）- 可滑动 -->
               <div class="leetcode-calendar" id="leetcode-calendar">
@@ -554,49 +533,97 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
                 </div>
               </div>
 
-              <!-- 难度分布 -->
-              <div class="leetcode-stats__progress">
-                <div class="leetcode-progress-item leetcode-progress-item--easy">
-                  <div class="leetcode-progress-item__header">
-                    <span class="leetcode-progress-item__label">简单</span>
-                    <span class="leetcode-progress-item__count">{leetcode.easySolved}/{leetcode.easyTotal}</span>
-                  </div>
-                  <div class="leetcode-progress-item__bar">
-                    <div
-                      class="leetcode-progress-item__fill"
-                      style={`width: ${leetcode.easyTotal > 0 ? (leetcode.easySolved / leetcode.easyTotal * 100) : 0}%`}
-                    ></div>
+              <!-- 底部双栏：左难度分布，右勋章架 -->
+              <div class="leetcode-bottom">
+                <div class="leetcode-bottom__left">
+                  <!-- 难度分布 -->
+                  <div class="leetcode-stats__progress">
+                    <div class="leetcode-progress-item leetcode-progress-item--easy">
+                      <div class="leetcode-progress-item__header">
+                        <span class="leetcode-progress-item__label">简单</span>
+                        <span class="leetcode-progress-item__count">{leetcode.easySolved}/{leetcode.easyTotal}</span>
+                      </div>
+                      <div class="leetcode-progress-item__bar">
+                        <div
+                          class="leetcode-progress-item__fill"
+                          style={`width: ${leetcode.easyTotal > 0 ? (leetcode.easySolved / leetcode.easyTotal * 100) : 0}%`}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div class="leetcode-progress-item leetcode-progress-item--medium">
+                      <div class="leetcode-progress-item__header">
+                        <span class="leetcode-progress-item__label">中等</span>
+                        <span class="leetcode-progress-item__count">{leetcode.mediumSolved}/{leetcode.mediumTotal}</span>
+                      </div>
+                      <div class="leetcode-progress-item__bar">
+                        <div
+                          class="leetcode-progress-item__fill"
+                          style={`width: ${leetcode.mediumTotal > 0 ? (leetcode.mediumSolved / leetcode.mediumTotal * 100) : 0}%`}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div class="leetcode-progress-item leetcode-progress-item--hard">
+                      <div class="leetcode-progress-item__header">
+                        <span class="leetcode-progress-item__label">困难</span>
+                        <span class="leetcode-progress-item__count">{leetcode.hardSolved}/{leetcode.hardTotal}</span>
+                      </div>
+                      <div class="leetcode-progress-item__bar">
+                        <div
+                          class="leetcode-progress-item__fill"
+                          style={`width: ${leetcode.hardTotal > 0 ? (leetcode.hardSolved / leetcode.hardTotal * 100) : 0}%`}
+                        ></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div class="leetcode-progress-item leetcode-progress-item--medium">
-                  <div class="leetcode-progress-item__header">
-                    <span class="leetcode-progress-item__label">中等</span>
-                    <span class="leetcode-progress-item__count">{leetcode.mediumSolved}/{leetcode.mediumTotal}</span>
+                {leetcodeMedals.length > 0 && (
+                  <div class="leetcode-medals" aria-label={`LeetCode 勋章，共 ${leetcode.medalCount ?? leetcodeMedals.length} 枚`}>
+                    <div class="leetcode-medals__head">
+                      <span class="leetcode-medals__title">
+                        勋章 <strong>{leetcode.medalCount ?? leetcodeMedals.length}</strong>
+                      </span>
+                      {leetcodeMedalSpan && (
+                        <span class="leetcode-medals__span">{leetcodeMedalSpan}</span>
+                      )}
+                    </div>
+                    <div class="leetcode-medals__track">
+                      {leetcodeMedalYears.map((year) => (
+                        <div class="leetcode-medals__group" key={year}>
+                          <span class="leetcode-medals__year">{year}</span>
+                          {leetcodeMedals.filter((medal) => medalEarnedYear(medal) === year).map((medal) => (
+                            <span
+                              class="leetcode-medal"
+                              role="img"
+                              tabindex="0"
+                              aria-label={`${medal.name}，${medal.obtainedAt.slice(0, 10)} 获得`}
+                              data-badge-tooltip
+                              data-badge-title={medal.name}
+                              data-badge-meta={`${medal.obtainedAt.slice(0, 10)} 获得`}
+                              key={medal.slug}
+                            >
+                              <img
+                                src={`${badgeBase}/leetcode/${medal.slug}.webp`}
+                                data-fallback={medal.icon}
+                                onerror="this.onerror=null;this.src=this.dataset.fallback"
+                                alt=""
+                                width="34"
+                                height="34"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            </span>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div class="leetcode-progress-item__bar">
-                    <div
-                      class="leetcode-progress-item__fill"
-                      style={`width: ${leetcode.mediumTotal > 0 ? (leetcode.mediumSolved / leetcode.mediumTotal * 100) : 0}%`}
-                    ></div>
-                  </div>
-                </div>
-
-                <div class="leetcode-progress-item leetcode-progress-item--hard">
-                  <div class="leetcode-progress-item__header">
-                    <span class="leetcode-progress-item__label">困难</span>
-                    <span class="leetcode-progress-item__count">{leetcode.hardSolved}/{leetcode.hardTotal}</span>
-                  </div>
-                  <div class="leetcode-progress-item__bar">
-                    <div
-                      class="leetcode-progress-item__fill"
-                      style={`width: ${leetcode.hardTotal > 0 ? (leetcode.hardSolved / leetcode.hardTotal * 100) : 0}%`}
-                    ></div>
-                  </div>
-                </div>
+                )}
               </div>
 
-              <!-- 更新时间 -->
+              <!-- 更新时间：与 GitHub 卡片底部右侧位置保持一致 -->
               <div class="leetcode-stats__updated">
                 数据更新于 {new Date(leetcode.scrapedAt).toLocaleDateString('zh-CN')}
               </div>
@@ -604,9 +631,7 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
           ) : (
             <div class="leetcode-stats leetcode-stats--empty">
               <div class="leetcode-stats__empty-icon">
-                <svg viewBox="0 0 24 24" width="48" height="48" fill="#ffa116">
-                  <path d="M13.483 0a1.374 1.374 0 00-1.373 1.374v8.162a1.374 1.374 0 001.373 1.373h8.162a1.374 1.374 0 001.374-1.373V1.374A1.374 1.374 0 0021.645 0zM5.355 12.091a1.374 1.374 0 00-1.374 1.374v8.162a1.374 1.374 0 001.374 1.373h8.162a1.374 1.374 0 001.373-1.373v-8.162a1.374 1.374 0 00-1.373-1.374z"/>
-                </svg>
+                <img src={leetcodeLogoSrc} alt="" width="40" height="40" decoding="async" />
               </div>
               <p class="leetcode-stats__empty-text">数据加载中...</p>
               <a href="https://leetcode.cn/u/anagke-59/" target="_blank" rel="noopener noreferrer" class="leetcode-stats__empty-link">
@@ -617,6 +642,12 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- 徽章悬浮注释浮层 -->
+  <div class="badge-popover" id="badge-popover" role="tooltip" aria-hidden="true">
+    <span class="badge-popover__title"></span>
+    <span class="badge-popover__meta"></span>
   </div>
 </section>
 
@@ -639,7 +670,123 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
     // 设置移动端 tooltip
     setupMobileTooltip('github', signal);
     setupMobileTooltip('leetcode', signal);
+    // 初始化徽章悬浮注释浮层
+    setupBadgeTooltips(signal);
   });
+
+  function setupBadgeTooltips(signal: AbortSignal) {
+    const root = document.getElementById('stats');
+    const popover = document.getElementById('badge-popover');
+    if (!root || !popover) return;
+
+    const titleEl = popover.querySelector('.badge-popover__title') as HTMLElement | null;
+    const metaEl = popover.querySelector('.badge-popover__meta') as HTMLElement | null;
+    if (!titleEl || !metaEl) return;
+
+    let activeBadge: HTMLElement | null = null;
+    let lastTouchTime = 0;
+
+    const positionPopover = (target: HTMLElement) => {
+      const title = target.dataset.badgeTitle || '';
+      const meta = target.dataset.badgeMeta || '';
+      if (!title) return;
+
+      titleEl.textContent = title;
+      metaEl.textContent = meta;
+      metaEl.style.display = meta ? 'block' : 'none';
+
+      popover.classList.add('is-visible');
+      popover.setAttribute('aria-hidden', 'false');
+
+      const rootRect = root.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const popWidth = popover.offsetWidth;
+      const popHeight = popover.offsetHeight;
+
+      const centerX = targetRect.left - rootRect.left + targetRect.width / 2;
+      const minLeft = 8;
+      const maxLeft = Math.max(minLeft, root.clientWidth - popWidth - 8);
+      const left = Math.min(maxLeft, Math.max(minLeft, centerX - popWidth / 2));
+
+      let top = targetRect.top - rootRect.top - popHeight - 10;
+      let placeBottom = false;
+      if (top < 8) {
+        top = targetRect.bottom - rootRect.top + 10;
+        placeBottom = true;
+      }
+
+      const arrowX = Math.min(popWidth - 12, Math.max(12, centerX - left));
+      popover.style.left = `${left}px`;
+      popover.style.top = `${top}px`;
+      popover.style.setProperty('--arrow-x', `${arrowX}px`);
+      popover.classList.toggle('badge-popover--bottom', placeBottom);
+      activeBadge = target;
+    };
+
+    const hidePopover = () => {
+      if (!activeBadge) return;
+      popover.classList.remove('is-visible', 'badge-popover--bottom');
+      popover.setAttribute('aria-hidden', 'true');
+      activeBadge = null;
+    };
+
+    const markTouch = () => {
+      lastTouchTime = Date.now();
+    };
+
+    root.addEventListener('touchstart', markTouch, { passive: true, signal });
+    root.addEventListener('touchend', markTouch, { passive: true, signal });
+
+    root.addEventListener('mouseover', (e) => {
+      if (Date.now() - lastTouchTime < 700) return;
+      const target = (e.target as Element | null)?.closest<HTMLElement>('[data-badge-tooltip]');
+      if (target) positionPopover(target);
+    }, { signal });
+
+    root.addEventListener('mouseout', (e) => {
+      const target = (e.target as Element | null)?.closest<HTMLElement>('[data-badge-tooltip]');
+      if (!target) return;
+      const related = e.relatedTarget as Node | null;
+      if (related && target.contains(related)) return;
+      hidePopover();
+    }, { signal });
+
+    root.addEventListener('focusin', (e) => {
+      if (Date.now() - lastTouchTime < 700) return;
+      const target = (e.target as Element | null)?.closest<HTMLElement>('[data-badge-tooltip]');
+      if (target) positionPopover(target);
+    }, { signal });
+
+    root.addEventListener('focusout', (e) => {
+      const target = (e.target as Element | null)?.closest<HTMLElement>('[data-badge-tooltip]');
+      if (!target) return;
+      const related = e.relatedTarget as Node | null;
+      if (related && target.contains(related)) return;
+      hidePopover();
+    }, { signal });
+
+    root.addEventListener('click', (e) => {
+      const target = (e.target as Element | null)?.closest<HTMLElement>('[data-badge-tooltip]');
+      if (!target || target.tagName === 'A') return;
+      const isTouchClick = Date.now() - lastTouchTime < 700;
+      if (activeBadge === target && popover.classList.contains('is-visible')) {
+        if (isTouchClick || !target.matches(':hover')) {
+          hidePopover();
+        }
+      } else {
+        positionPopover(target);
+      }
+    }, { signal });
+
+    document.addEventListener('click', (e) => {
+      const target = e.target as Element | null;
+      if (!target?.closest('[data-badge-tooltip]')) {
+        hidePopover();
+      }
+    }, { signal });
+
+    window.addEventListener('resize', hidePopover, { signal });
+  }
 
   // 通用的日历滑动初始化函数
   function initCalendarScroll(type: string, signal: AbortSignal) {
@@ -956,6 +1103,7 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
 
 <style>
   .stats-widgets {
+    position: relative;
     width: min(var(--max-width), 100% - 2 * var(--page-gutter));
     margin-inline: auto;
     padding-block: clamp(2.5rem, 5vw, 6rem);
@@ -1047,16 +1195,11 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
     fill: currentColor;
   }
 
-
-  .leetcode-icon {
-    background: transparent;
-    padding: 6px;
-  }
-
   .leetcode-icon img {
     width: 20px;
     height: 20px;
     object-fit: contain;
+    display: block;
   }
 
   .stats-widget__title {
@@ -1101,33 +1244,92 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
     transform: translateY(-1px);
   }
 
-  /* GitHub 成就徽章 */
+  /* GitHub 底部：成就徽章与更新时间 */
+  .github-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-sm) var(--space-lg);
+    padding-top: var(--space-sm);
+    border-top: 1px dashed rgba(0, 0, 0, 0.08);
+  }
+
+  .github-achievements {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .github-achievements__label {
+    font-size: 0.72rem;
+    color: var(--color-text-subtle);
+  }
+
+  .github-achievements__label strong {
+    margin-left: 0.15rem;
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+
+  .github-achievements__list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
   .github-achievement {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.35rem;
     flex: none;
-    padding: 2px 9px 2px 3px;
-    border: 1px solid rgba(184, 112, 74, 0.18);
+    padding: 3px 10px 3px 4px;
+    border: 1px solid rgba(184, 112, 74, 0.22);
     border-radius: 999px;
     background: rgba(184, 112, 74, 0.08);
     color: var(--color-text);
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     line-height: 1.2;
     text-decoration: none;
-    transition: background var(--duration-fast), transform var(--duration-fast);
+    transition:
+      background var(--duration-fast),
+      border-color var(--duration-fast),
+      transform var(--duration-fast) var(--ease-out-expo);
   }
 
-  .github-achievement img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
+  .github-achievement__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    overflow: hidden;
     flex: none;
   }
 
-  .github-achievement:hover {
+  .github-achievement__icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.32);
+    display: block;
+  }
+
+  .github-achievement:hover,
+  .github-achievement:focus-visible {
     background: rgba(184, 112, 74, 0.15);
-    transform: translateY(-1px);
+    border-color: rgba(184, 112, 74, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .github-stats__updated {
+    font-size: 0.72rem;
+    color: var(--color-text-subtle);
+    margin-left: auto;
   }
 
   /* GitHub Stats 样式 */
@@ -1492,11 +1694,28 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
     margin-top: 4px;
   }
 
-  /* LeetCode 勋章 */
-  .leetcode-medals {
-    margin: 0 0 var(--space-sm);
+  /* LeetCode 底部双栏：左难度分布，右勋章架 */
+  .leetcode-bottom {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.35fr);
+    gap: var(--space-lg) var(--space-xl);
+    align-items: start;
     padding-top: var(--space-sm);
     border-top: 1px dashed rgba(0, 0, 0, 0.08);
+  }
+
+  .leetcode-bottom__left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    min-width: 0;
+  }
+
+  /* LeetCode 勋章 */
+  .leetcode-medals {
+    min-width: 0;
+    padding: 0;
+    margin: 0;
   }
 
   .leetcode-medals__head {
@@ -1504,7 +1723,7 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
     align-items: baseline;
     justify-content: space-between;
     gap: var(--space-sm);
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.5rem;
     font-size: 0.72rem;
     color: var(--color-text-subtle);
   }
@@ -1516,28 +1735,27 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
     font-weight: 600;
   }
 
-  .leetcode-medals__latest {
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .leetcode-medals__span {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: var(--color-text-subtle);
     white-space: nowrap;
   }
 
   .leetcode-medals__track {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 1rem;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    padding: 1px 0 4px;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+    gap: 0.55rem 1.05rem;
+    padding: 2px 0;
   }
 
   .leetcode-medals__group {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    flex: none;
+    flex-wrap: wrap;
+    gap: 0.32rem;
   }
 
   .leetcode-medals__year {
@@ -1545,6 +1763,7 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
     font-size: 0.65rem;
     letter-spacing: 0.04em;
     color: var(--color-text-subtle);
+    margin-right: 0.1rem;
   }
 
   .leetcode-medal {
@@ -1554,19 +1773,93 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
     flex: none;
     width: 34px;
     height: 34px;
-    border-radius: 7px;
-    transition: transform var(--duration-fast) var(--ease-out-expo);
+    padding: 2px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition:
+      transform var(--duration-fast) var(--ease-out-expo),
+      background var(--duration-fast),
+      border-color var(--duration-fast);
   }
 
-  .leetcode-medal:hover {
+  .leetcode-medal:hover,
+  .leetcode-medal:focus-visible {
     transform: translateY(-2px);
+    background: rgba(184, 112, 74, 0.08);
+    border-color: rgba(184, 112, 74, 0.25);
+    outline: none;
   }
 
   .leetcode-medal img {
     display: block;
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     object-fit: contain;
+  }
+
+  /* 徽章悬浮注释浮层 */
+  .badge-popover {
+    position: absolute;
+    z-index: 40;
+    left: 0;
+    top: 0;
+    max-width: min(260px, calc(100% - 16px));
+    padding: 0.45rem 0.7rem;
+    border-radius: 8px;
+    background: rgba(44, 40, 37, 0.96);
+    color: #f8f6f3;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 26px rgba(44, 40, 37, 0.22);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px) scale(0.97);
+    transition:
+      opacity 0.16s ease,
+      transform 0.2s var(--ease-out-expo);
+  }
+
+  .badge-popover.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .badge-popover::after {
+    content: '';
+    position: absolute;
+    left: var(--arrow-x, 50%);
+    bottom: -5px;
+    width: 9px;
+    height: 9px;
+    background: rgba(44, 40, 37, 0.96);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .badge-popover.badge-popover--bottom::after {
+    bottom: auto;
+    top: -5px;
+    border-right: none;
+    border-bottom: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .badge-popover__title {
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #f8f6f3;
+  }
+
+  .badge-popover__meta {
+    display: block;
+    margin-top: 2px;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    line-height: 1.35;
+    color: rgba(248, 246, 243, 0.74);
   }
 
   /* LeetCode 贡献图（瓷砖墙）- 可滑动 */
@@ -1877,7 +2170,8 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
   .leetcode-stats__updated {
     font-size: 0.72rem;
     color: var(--color-text-subtle);
-    text-align: left;
+    text-align: right;
+    align-self: flex-end;
   }
 
   /* LeetCode 空状态样式 */
@@ -1933,15 +2227,33 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
 
   }
 
-  @media (max-width: 768px) {
-    /* 移动端：保持完整数据，可滑动查看 */
-    .github-achievement {
-      padding: 2px;
-      gap: 0;
+  @media (max-width: 900px) {
+    .leetcode-bottom {
+      grid-template-columns: 1fr;
+      gap: var(--space-md);
     }
 
-    .github-achievement span {
-      display: none;
+    .leetcode-medals {
+      padding-top: var(--space-sm);
+      border-top: 1px dashed rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  @media (max-width: 768px) {
+    /* 移动端：保持完整数据，可滑动查看 */
+    .github-bottom {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-xs);
+    }
+
+    .github-stats__updated {
+      margin-left: 0;
+    }
+
+    .leetcode-stats__updated {
+      align-self: flex-start;
+      text-align: left;
     }
 
     .stats-widgets {
@@ -1979,21 +2291,26 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
       line-height: 8px;
     }
 
-    .leetcode-calendar__stats__summary {
-      padding: var(--space-sm);
+    /* 移动端统计摘要比例统一 */
+    .github-stats__summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-sm);
+      max-width: none;
     }
 
-    /* 移动端统计摘要改为 2x2 布局 */
     .leetcode-stats__summary {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: var(--space-sm);
     }
 
+    .github-stats__summary-value,
     .leetcode-stats__summary-value {
-      font-size: 1.5rem;
+      font-size: 1.35rem;
     }
 
+    .github-stats__summary-label,
     .leetcode-stats__summary-label {
       font-size: 0.7rem;
     }
@@ -2065,9 +2382,9 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
   }
 
   @media (max-width: 480px) {
-    /* 超小屏幕：使用更紧凑的布局，保持完整数据可滑动 */
+    /* 超小屏幕：保留适度内边距，保持完整数据可滑动 */
     .stats-widget {
-      padding: var(--space-xs);
+      padding: 0.85rem;
     }
 
     .stats-widget__icon {
@@ -2075,6 +2392,7 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
       height: 28px;
     }
 
+    .github-icon svg,
     .leetcode-icon img {
       width: 18px;
       height: 18px;
@@ -2105,8 +2423,13 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
       gap: 1px;
     }
 
+    .github-stats__summary {
+      gap: var(--space-xs);
+    }
+
+    .github-stats__summary-value,
     .leetcode-stats__summary-value {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
     }
 
     .leetcode-progress-item__label,
