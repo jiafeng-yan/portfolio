@@ -380,11 +380,12 @@ const experiences = [
     }
 
     .recognition-list__proof-popover {
-      left: 0;
+      left: auto;
+      right: 0;
       top: calc(100% + var(--space-sm));
-      width: min(320px, calc(100vw - 2rem));
+      width: min(320px, calc(100vw - 2 * var(--page-gutter)));
       transform: translateY(-8px) scale(0.96);
-      transform-origin: left top;
+      transform-origin: right top;
     }
 
     .recognition-list__item:hover .recognition-list__proof-popover,
