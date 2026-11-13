@@ -2,7 +2,7 @@
 
 本文件只记录**还没做的事**和**已经决定不做的事**。已落地的实现说明见 [`../README.md`](../README.md)，设计取舍见 [`../PREFERENCE.md`](../PREFERENCE.md)。
 
-最后同步：2026-11-12
+最后同步：2026-11-13
 
 ---
 
@@ -24,6 +24,7 @@
 | 图片优化 | 证书 WebP（2.3MB → 454KB）并懒加载，原图移至 assets/ | 微信二维码 236KB → 44KB |
 | arXiv / GitHub 入口 | 按类型彩色填充 | 与灰色技术标签区分 |
 | 徽章展示 | GitHub Pull Shark + LeetCode 17 枚勋章，按获得年份分组 | 图标 128px WebP 自托管（约 70KB）、懒加载；抓取失败保留快照 |
+| 未挂载组件 | 删除 `KeyboardShortcuts`、`PageTransition`、`ProjectCategory` | `ErrorBoundary` 保留备用，计划包在 `ProjectShowcase` 内部 |
 
 > 历史误标说明：早期清单里的「深色模式支持」现已**有意移除**（见决策表）；「键盘快捷键」的组件没有挂载，实际不可用。
 
@@ -50,7 +51,6 @@
 
 ### P1 · 影响可信度或维护成本
 
-- [ ] **清理未挂载组件**：`KeyboardShortcuts.*`、`PageTransition.tsx`、`ProjectCategory.tsx`、`ErrorBoundary.tsx` 目前零引用。要么接入（ErrorBoundary 包住 React 岛屿），要么删除，避免文档与代码再次漂移
 - [ ] **`public/_headers` 实际无效**：该文件只被 Netlify / Cloudflare Pages 读取，GitHub Pages 会忽略。安全响应头需要 CDN 或自建反代才能生效，当前不承诺
 
 ### P2 · 可选增强

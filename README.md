@@ -69,7 +69,7 @@ npm run preview   # 预览构建结果
 └── astro.config.mjs
 ```
 
-`KeyboardShortcuts.*`、`PageTransition.tsx`、`ProjectCategory.tsx`、`ErrorBoundary.tsx` 仍在仓库里，但**当前没有挂载**，属于保留备用，不要把它们当作现有能力描述。
+`ErrorBoundary.tsx` 仍在仓库里但未挂载，属于保留备用；`KeyboardShortcuts`、`PageTransition`、`ProjectCategory` 已确认无入口/被替代并删除。不要把 `ErrorBoundary` 当作现有能力描述。
 
 ## 页面结构
 
@@ -119,7 +119,7 @@ npm run preview   # 预览构建结果
 - **日历**：GitHub / LeetCode 两张日历横向滚动，年份标签用 `position: sticky` 固定在左缘；鼠标悬停时纵向滚轮转为横向滚动，**到两端后停在原地**，不会突然变成上下滚页
 - **自定义光标**：`body { cursor: none }`，可交互元素由自绘圆点变形提示。这是刻意保留的设计
 - **音效**：默认关闭，开关在右下角，音量已压低
-- **无键盘快捷键面板**：`KeyboardShortcuts` 组件未挂载
+- **无键盘快捷键面板**：相关组件已移除
 
 ## 性能
 

@@ -99,11 +99,9 @@
 - 8 个项目（5 科研/科研竞赛 + 3 开发/课程项目），数据写在 `src/pages/index.astro`
 - 真实简历内容（闫家锋，中央财经大学）
 
-### 未挂载（保留备用）
-- `KeyboardShortcuts.tsx` / `.css`：快捷键逻辑还在，但入口与组件均已从页面移除
-- `PageTransition.tsx`：与 ScrollAnimations 重复，已停用
-- `ProjectCategory.tsx`：早期分类面板方案，被 ProjectShowcase 取代
-- `ErrorBoundary.tsx`：未被任何岛屿包裹
+### 备用组件
+- `ErrorBoundary.tsx`：保留备用，计划包在 `ProjectShowcase` 内部（React 岛屿内才能捕获渲染错误）
+- `KeyboardShortcuts`、`PageTransition`、`ProjectCategory`：已确认无入口/被替代，文件已删除
 
 ---
 
@@ -475,6 +473,35 @@
 
 ---
 
+## 第十二轮：审计修正（2026-11-13）✅ 已完成
+
+### Z1. 明确不修改的 7 项
+- **自定义光标**：保留 `mix-blend-mode: difference`。偏青来自 hover 时边框改 `primary`，不是混合模式本身；要收敛颜色，保留 difference、hover 不染 primary 即可
+- **MutationObserver**：单页只挂载一次，remove/add 与 disconnect 已有，不改事件委托
+- **音效开关**：保留 40px 圆钮 + aria-label/title/toast，不加 hover 浮出胶囊
+- **YJF / JF**：favicon 与导航 wordmark 是不同尺度的品牌标记，不统一
+- **日历组件化**：`initCalendarScroll(type)` 已参数化，抽象收益小于回归风险，只清理重复 CSS
+- **电话**：属于联系策略/隐私决策，不在视觉修复里顺手删；三处（Hero / 页脚 / JSON-LD）保持一致
+- **未挂载组件**：不按清单直接清空。决策为删除 `KeyboardShortcuts`、`PageTransition`、`ProjectCategory`，`ErrorBoundary` 保留备用
+
+### Z2. 已修
+- **移动端证明浮层**：恢复 `right: 0; left: auto`，宽度 `min(320px, calc(100vw - 2 * var(--page-gutter)))`，`transform-origin: right top`，保持右缘对齐
+- **页脚遮挡**：`BackToTop` 用 IntersectionObserver 监听 `.footer`，页脚进入视口后收起，不再压住页脚链接；`SoundToggle` 不参与
+- **对比度**：`.leetcode-link-badge` / `.leetcode-stats__empty-link` → `primary-ink`；`.experience__item-meta` → `text-subtle`；全局 `:focus-visible` → `primary-ink`
+- **Toast**：统一深墨底 + 暖米字，成功/错误/信息仅用左侧细条与图标语义色区分，不再用高饱和整块底色
+- **ProjectCard 死状态**：删除 `isExpanded`、`aria-expanded`、`data-expanded` 与 hover 时的无效 setState
+- **Stats ≤640**：只保留 `padding-block`，恢复与 `.shell` 同一条左缘
+- **重复 CSS**：删除重复的 `.github-achievement` 移动端规则
+
+### Z3. 判断修正
+- 页脚遮挡主要来自 `BackToTop`，`SoundToggle` 在它上方约 56–58px，通常不重叠
+- 连续天数 `1.8rem/700` 属于大号文本，3.6:1 满足 WCAG 3:1；改用 `primary-ink` 是 token 一致性，不是对比度不达标
+- 摘要 `align-items: center` 是 column flex 的横向居中，不是行对齐错误；不改
+- `#fff` 日历格是低优先级；不单独改
+- `difference` 在暖棕上结果偏暗，偏青来自 hover 的 primary 边框；问题成立但归因修正
+
+---
+
 ## 已决策不实施
 
 | 项 | 决定 | 原因 |
@@ -493,5 +520,5 @@
 - [ ] 静态 OG 分享图（1200×630）
 - [ ] 自定义 404 页面
 - [ ] 项目详情页 / 博客模块（先有内容再做）
-- [ ] `KeyboardShortcuts` / `PageTransition` / `ProjectCategory` / `ErrorBoundary` 的去留（目前保留未挂载）
+- [ ] `ErrorBoundary` 接入 `ProjectShowcase` 内部
 - [ ] 性能：bundle 体积检查、图片懒加载走查
