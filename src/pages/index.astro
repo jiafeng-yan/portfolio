@@ -26,10 +26,10 @@ const projects = [
     description: '针对红外与可见光图像在雾霾等复杂环境下的融合难题，提出基于特征解耦的协同学习框架，同时执行去雾和融合任务，并通过协同机制让两个任务相互促进。',
     highlights: [
       '主导文献调研、核心算法设计、合成数据集构建与实验方案制定',
-      '独立撰写论文初稿，模型在合成数据与真实场景中均表现出优秀效果'
+      '独立撰写论文初稿，完成合成与真实雾霾场景下的定量对比及消融实验'
     ],
     technologies: ['PyTorch', 'Image Fusion', 'Dehazing', 'Synergistic Learning'],
-    status: 'TIP 投稿中'
+    status: 'TIP 在投'
   },
   {
     id: 'mdaif',
@@ -80,7 +80,7 @@ const projects = [
     links: [
       { type: 'arxiv', url: 'https://arxiv.org/abs/2508.17102' }
     ],
-    status: 'TGRS 投稿中'
+    status: 'TGRS 在投'
   },
   {
     id: 'hydrogen-economy',
@@ -146,19 +146,29 @@ const projects = [
   }
 ];
 
+const acceptedPapers = [
+  {
+    venue: 'AAAI 2026 · Poster',
+    role: '学生二作',
+    title: 'MdaIF: Robust One-Stop Multi-Degradation Image Fusion with Language-Driven Semantics',
+    url: 'https://arxiv.org/abs/2511.12525',
+    linkLabel: 'arXiv'
+  }
+];
+
 const projectGroups = [
   {
     id: 'research',
     eyebrow: 'A · 研究',
     title: '科研项目',
-    summary: '围绕红外-可见光融合、多退化恢复、扩散桥、遥感推理分割和低碳转型展开。多数从一篇没读懂的论文开始，最后变成一次投稿。',
+    summary: '主要涵盖红外-可见光融合、多退化恢复、扩散桥与遥感推理分割，另有一项能源经济竞赛课题。',
     projects: projects.filter((project) => project.category === 'research')
   },
   {
     id: 'build',
     eyebrow: 'B · 工程',
     title: '开发与课程项目',
-    summary: '把检索、多模态解析、文献搜索和图神经网络落成能跑的系统或完整课设。做的时候更在意它能不能被别人顺利打开。',
+    summary: '包括多模态 RAG 问答原型、本地文献检索系统以及图神经网络课程设计。',
     projects: projects.filter((project) => project.category === 'build')
   }
 ];
@@ -184,9 +194,38 @@ const projectGroups = [
         <span class="section-kicker">02 / 项目</span>
         <h2 id="projects-title">研究与工程</h2>
         <p>
-          研究在前，工程在后。每个项目都试着留下可以验证的结果——一篇论文、一个仓库，或一组说得清的数字。
+          左侧为论文与科研课题，右侧为独立或带队完成的工程与课程项目。
         </p>
       </div>
+
+      {acceptedPapers.length > 0 && (
+        <div class="accepted-papers" aria-label="已录用论文">
+          <div class="accepted-papers__head">
+            <span class="accepted-papers__label">已录用论文</span>
+            <span class="accepted-papers__count">{acceptedPapers.length}</span>
+          </div>
+          <ul class="accepted-papers__list">
+            {acceptedPapers.map((paper) => (
+              <li class="accepted-papers__item spotlight-card" data-spotlight>
+                <div class="accepted-papers__meta">
+                  <span class="accepted-papers__venue">{paper.venue}</span>
+                  <span class="accepted-papers__role">{paper.role}</span>
+                </div>
+                <p class="accepted-papers__title">{paper.title}</p>
+                <a
+                  href={paper.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="accepted-papers__link"
+                  data-cursor-hover
+                >
+                  {paper.linkLabel} →
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <ProjectShowcase client:visible groups={projectGroups} />
     </section>
@@ -231,6 +270,104 @@ const projectGroups = [
     line-height: 1.85;
   }
 
+  .accepted-papers {
+    margin-bottom: var(--space-lg);
+    padding: 0.9rem 1.1rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius);
+    background: rgba(255, 255, 255, 0.62);
+  }
+
+  .accepted-papers__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .accepted-papers__label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--color-primary-ink);
+  }
+
+  .accepted-papers__count {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--color-text-subtle);
+  }
+
+  .accepted-papers__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .accepted-papers__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.65rem 1rem;
+    padding: 0.55rem 0.7rem;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.78);
+  }
+
+  .accepted-papers__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex: none;
+  }
+
+  .accepted-papers__venue {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(156, 91, 56, 0.11);
+    color: var(--color-primary-ink);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .accepted-papers__role {
+    font-size: 0.78rem;
+    color: var(--color-text-subtle);
+    white-space: nowrap;
+  }
+
+  .accepted-papers__title {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--color-text);
+    line-height: 1.5;
+  }
+
+  .accepted-papers__link {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--color-bg);
+    background: var(--color-primary-ink);
+    padding: 4px 10px;
+    border-radius: 999px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: transform var(--duration-fast), opacity var(--duration-fast);
+  }
+
+  .accepted-papers__link:hover {
+    transform: translateY(-1px);
+    opacity: 0.92;
+  }
+
   .footer {
     width: min(var(--max-width), 100% - 2 * var(--page-gutter));
     margin-inline: auto;
@@ -266,9 +403,30 @@ const projectGroups = [
     .projects {
       padding-block: clamp(2.5rem, 5vw, 6rem);
     }
+
+    .accepted-papers__item {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.45rem 0.75rem;
+    }
+
+    .accepted-papers__meta {
+      grid-column: 1 / -1;
+    }
   }
 
   @media (max-width: 640px) {
+    .accepted-papers {
+      padding: 0.8rem 0.9rem;
+    }
+
+    .accepted-papers__item {
+      grid-template-columns: 1fr;
+    }
+
+    .accepted-papers__link {
+      justify-self: start;
+    }
+
     .projects {
       padding-block: clamp(2.5rem, 5vw, 6rem);
     }
