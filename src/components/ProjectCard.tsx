@@ -58,7 +58,7 @@ export function ProjectCard({ project }: Props) {
 
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
     const card = cardRef.current;
-    if (!card || window.matchMedia('(hover: none)').matches) return;
+    if (!card || window.matchMedia('(hover: none), (max-width: 900px)').matches) return;
 
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -101,7 +101,7 @@ export function ProjectCard({ project }: Props) {
 
   const handleMouseEnter = () => {
     const card = cardRef.current;
-    if (!card) return;
+    if (!card || window.matchMedia('(hover: none), (max-width: 900px)').matches) return;
 
     gsap.to(card, {
       y: -6,
