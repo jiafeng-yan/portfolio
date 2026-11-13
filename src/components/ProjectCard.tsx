@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import gsap from 'gsap';
 
 interface ProjectLink {
@@ -53,7 +53,6 @@ const LinkLabels = {
 };
 
 export function ProjectCard({ project }: Props) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
   const tiltTarget = useRef({ x: 0, y: 0 });
 
@@ -85,7 +84,6 @@ export function ProjectCard({ project }: Props) {
   };
 
   const handleMouseLeave = () => {
-    setIsExpanded(false);
     const card = cardRef.current;
     if (!card) return;
 
@@ -102,7 +100,6 @@ export function ProjectCard({ project }: Props) {
   };
 
   const handleMouseEnter = () => {
-    setIsExpanded(true);
     const card = cardRef.current;
     if (!card) return;
 
@@ -133,7 +130,6 @@ export function ProjectCard({ project }: Props) {
       data-cursor-hover
       data-spotlight
       tabIndex={0}
-      aria-expanded={isExpanded}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -157,10 +153,7 @@ export function ProjectCard({ project }: Props) {
         <p className="project-card__subtitle">{project.subtitle}</p>
       </div>
 
-      <div
-        className="project-card__content"
-        data-expanded={isExpanded}
-      >
+      <div className="project-card__content">
         <p className="project-card__description">{project.description}</p>
 
         {project.highlights && project.highlights.length > 0 && (
