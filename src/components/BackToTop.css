@@ -28,6 +28,14 @@
   transform: translateY(0);
 }
 
+/* 页脚进入视口后收起，避免压住页脚链接 */
+.back-to-top--at-footer {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  pointer-events: none;
+}
+
 .back-to-top:hover,
 .back-to-top:focus-visible {
   transform: translateY(-2px);

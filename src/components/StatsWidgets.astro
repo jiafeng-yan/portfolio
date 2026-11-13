@@ -1068,7 +1068,7 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
 
   .leetcode-link-badge {
     font-size: 0.85rem;
-    color: var(--color-primary);
+    color: var(--color-primary-ink);
     text-decoration: none;
     padding: 4px 10px;
     background: rgba(184, 112, 74, 0.1);
@@ -1900,7 +1900,7 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
   }
 
   .leetcode-stats__empty-link {
-    color: var(--color-primary);
+    color: var(--color-primary-ink);
     text-decoration: none;
     font-weight: 500;
     transition: opacity var(--duration-fast);
@@ -1935,15 +1935,6 @@ const badgeBase = `${import.meta.env.BASE_URL.replace(/\/?$/, '/')}badges`;
 
   @media (max-width: 768px) {
     /* 移动端：保持完整数据，可滑动查看 */
-    .github-achievement {
-      padding: 2px;
-      gap: 0;
-    }
-
-    .github-achievement span {
-      display: none;
-    }
-
     .github-achievement {
       padding: 2px;
       gap: 0;

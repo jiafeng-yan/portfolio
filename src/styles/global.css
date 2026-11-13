@@ -246,7 +246,7 @@ a {
 a:focus-visible,
 button:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid rgba(176, 196, 222, 0.85);
+  outline: 2px solid var(--color-primary-ink);
   outline-offset: 3px;
 }
 

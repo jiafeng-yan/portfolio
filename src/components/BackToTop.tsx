@@ -3,6 +3,7 @@ import './BackToTop.css';
 
 export function BackToTop() {
   const [isVisible, setIsVisible] = useState(false);
+  const [isFooterVisible, setIsFooterVisible] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -12,7 +13,22 @@ export function BackToTop() {
     };
 
     window.addEventListener('scroll', toggleVisibility, { passive: true });
-    return () => window.removeEventListener('scroll', toggleVisibility);
+
+    const footer = document.querySelector('.footer');
+    if (!footer || !('IntersectionObserver' in window)) {
+      return () => window.removeEventListener('scroll', toggleVisibility);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsFooterVisible(entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(footer);
+
+    return () => {
+      window.removeEventListener('scroll', toggleVisibility);
+      observer.disconnect();
+    };
   }, []);
 
   const scrollToTop = () => {
@@ -22,7 +38,7 @@ export function BackToTop() {
 
   return (
     <button
-      className={`back-to-top ${isVisible ? 'back-to-top--visible' : ''}`}
+      className={`back-to-top ${isVisible ? 'back-to-top--visible' : ''} ${isFooterVisible ? 'back-to-top--at-footer' : ''}`}
       onClick={scrollToTop}
       aria-label="返回顶部"
       data-cursor-hover
