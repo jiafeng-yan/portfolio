@@ -202,7 +202,6 @@ function ProjectDeckPanel({
       setDragX(0);
       setIsDragging(false);
       setDrawerOpen(false);
-      soundManager.playCardFlip(direction);
 
       if (isWrap) {
         clearNoticeTimer();
@@ -529,7 +528,6 @@ function ProjectDeckPanel({
             type="button"
             className="project-deck__nav"
             aria-label={`上一个${group.title}`}
-            data-sound-flip
             onClick={() => stepDeck('prev')}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -582,7 +580,6 @@ function ProjectDeckPanel({
             type="button"
             className="project-deck__nav"
             aria-label={`下一个${group.title}`}
-            data-sound-flip
             onClick={() => stepDeck('next')}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -601,10 +598,61 @@ function ProjectDeckPanel({
   );
 }
 
+const GUTTER_ARROW_INDICES = [0, 1, 2, 3, 4, 5];
+const GUTTER_HINT_DURATION_MS = 1400;
+
+interface GutterHintState {
+  visible: boolean;
+  direction: 'down' | 'up';
+}
+
 export function ProjectShowcase({ groups }: Props) {
   const showcaseRef = useRef<HTMLDivElement>(null);
   const panelsRef = useRef<HTMLDivElement[]>([]);
+  const hintTimerRef = useRef<number | null>(null);
+  const lastHintScrollYRef = useRef(0);
   const isMobileDeck = useIsMobileDeck();
+  const [gutterHint, setGutterHint] = useState<GutterHintState>({
+    visible: false,
+    direction: 'down'
+  });
+
+  const clearGutterTimer = useCallback(() => {
+    if (hintTimerRef.current !== null) {
+      window.clearTimeout(hintTimerRef.current);
+      hintTimerRef.current = null;
+    }
+  }, []);
+
+  const hideGutterHint = useCallback(() => {
+    clearGutterTimer();
+    setGutterHint((prev) => (prev.visible ? { ...prev, visible: false } : prev));
+  }, [clearGutterTimer]);
+
+  const showGutterHint = useCallback(
+    (direction: 'down' | 'up') => {
+      clearGutterTimer();
+      lastHintScrollYRef.current = window.scrollY;
+      setGutterHint({ visible: true, direction });
+      hintTimerRef.current = window.setTimeout(() => {
+        setGutterHint((prev) => (prev.visible ? { ...prev, visible: false } : prev));
+        hintTimerRef.current = null;
+      }, GUTTER_HINT_DURATION_MS);
+    },
+    [clearGutterTimer]
+  );
+
+  useEffect(() => {
+    return () => {
+      clearGutterTimer();
+    };
+  }, [clearGutterTimer]);
+
+  useEffect(() => {
+    if (isMobileDeck) {
+      hideGutterHint();
+    }
+  }, [isMobileDeck, hideGutterHint]);
 
   useEffect(() => {
     const showcase = showcaseRef.current;
@@ -700,15 +748,55 @@ export function ProjectShowcase({ groups }: Props) {
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
-      cards.scrollTop = Math.min(maxScroll, Math.max(0, cards.scrollTop + deltaY));
+
+      const prevTop = cards.scrollTop;
+      const wasAtTop = prevTop <= 1;
+      const wasAtBottom = prevTop >= maxScroll - 1;
+
+      const nextTop = Math.min(maxScroll, Math.max(0, prevTop + deltaY));
+      cards.scrollTop = nextTop;
+
+      const nowAtTop = nextTop <= 1;
+      const nowAtBottom = nextTop >= maxScroll - 1;
+
+      if (deltaY > 0) {
+        if (wasAtBottom) {
+          soundManager.playScrollBoundary('bottom');
+          showGutterHint('down');
+        } else if (nowAtBottom) {
+          soundManager.playScrollBoundary('bottom');
+        } else {
+          hideGutterHint();
+        }
+      } else if (deltaY < 0) {
+        if (wasAtTop) {
+          soundManager.playScrollBoundary('top');
+          showGutterHint('up');
+        } else if (nowAtTop) {
+          soundManager.playScrollBoundary('top');
+        } else {
+          hideGutterHint();
+        }
+      }
+    };
+
+    const handleWindowScroll = () => {
+      // 忽略 Lenis 惯性收尾时的微小像素偏移，主页面真正滚动后再收起引导
+      if (Math.abs(window.scrollY - lastHintScrollYRef.current) > 4) {
+        hideGutterHint();
+      }
     };
 
     showcase.addEventListener('wheel', handlePanelWheel, { passive: false, capture: true });
+    window.addEventListener('scroll', handleWindowScroll, { passive: true });
 
     return () => {
       showcase.removeEventListener('wheel', handlePanelWheel, { capture: true });
+      window.removeEventListener('scroll', handleWindowScroll);
     };
-  }, []);
+  }, [hideGutterHint, showGutterHint]);
+
+  const gutterStateClass = `is-${gutterHint.direction}${gutterHint.visible ? ' is-visible' : ''}`;
 
   return (
     <div ref={showcaseRef} className="project-showcase">
@@ -716,10 +804,43 @@ export function ProjectShowcase({ groups }: Props) {
         <ProjectDeckPanel key={group.id} group={group} isMobileDeck={isMobileDeck} />
       ))}
 
+      {(['left', 'right'] as const).map((side) => (
+        <div
+          key={side}
+          className={`project-showcase__gutter project-showcase__gutter--${side} ${gutterStateClass}`}
+          aria-hidden="true"
+        >
+          <span className="project-showcase__gutter-label">移至外侧滚动</span>
+          <div className="project-showcase__gutter-arrows">
+            {GUTTER_ARROW_INDICES.map((index) => (
+              <svg
+                key={index}
+                width="18"
+                height="10"
+                viewBox="0 0 18 10"
+                fill="none"
+                className="project-showcase__gutter-arrow"
+                style={{ '--arrow-idx': index } as React.CSSProperties}
+              >
+                <path
+                  d="M2.5 2L9 8L15.5 2"
+                  stroke="currentColor"
+                  strokeWidth="1.9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            ))}
+          </div>
+        </div>
+      ))}
+
       <style>{`
         .project-showcase {
+          position: relative;
           display: flex;
           --showcase-gap: clamp(1.25rem, 2vw, var(--space-lg));
+          --gutter-space: max(var(--page-gutter), calc((100vw - var(--max-width)) / 2));
           gap: var(--showcase-gap);
           align-items: stretch;
           min-width: 0;
@@ -872,10 +993,126 @@ export function ProjectShowcase({ groups }: Props) {
           }
         }
 
+        .project-showcase__gutter {
+          position: absolute;
+          top: 50%;
+          width: 32px;
+          padding: 0.65rem 0.35rem;
+          border-radius: 999px;
+          border: 1px solid rgba(156, 91, 56, 0.22);
+          background: rgba(248, 246, 243, 0.9);
+          backdrop-filter: blur(6px);
+          box-shadow: 0 10px 26px rgba(44, 40, 37, 0.08);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.5rem;
+          color: var(--color-primary-ink);
+          pointer-events: none;
+          user-select: none;
+          z-index: 40;
+          opacity: 0;
+          visibility: hidden;
+          transition:
+            opacity 240ms ease,
+            visibility 240ms ease,
+            transform 320ms var(--ease-out-expo);
+        }
+
+        .project-showcase__gutter--left {
+          left: calc(-0.5 * var(--gutter-space));
+          transform: translate(-50%, -46%) scale(0.96);
+        }
+
+        .project-showcase__gutter--right {
+          right: calc(-0.5 * var(--gutter-space));
+          transform: translate(50%, -46%) scale(0.96);
+        }
+
+        .project-showcase__gutter.is-up {
+          flex-direction: column-reverse;
+        }
+
+        .project-showcase__gutter.is-visible {
+          opacity: 1;
+          visibility: visible;
+        }
+
+        .project-showcase__gutter--left.is-visible {
+          transform: translate(-50%, -50%) scale(1);
+        }
+
+        .project-showcase__gutter--right.is-visible {
+          transform: translate(50%, -50%) scale(1);
+        }
+
+        .project-showcase__gutter-label {
+          writing-mode: vertical-rl;
+          font-family: var(--font-mono);
+          font-size: 0.66rem;
+          font-weight: 500;
+          letter-spacing: 0.14em;
+          line-height: 1;
+          color: var(--color-primary-ink);
+          white-space: nowrap;
+        }
+
+        .project-showcase__gutter-arrows {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .project-showcase__gutter-arrow {
+          display: block;
+          opacity: 0.22;
+        }
+
+        .project-showcase__gutter.is-visible.is-down .project-showcase__gutter-arrow {
+          animation: gutterArrowDown 920ms ease-in-out infinite;
+          animation-delay: calc(var(--arrow-idx, 0) * 95ms);
+        }
+
+        .project-showcase__gutter.is-up .project-showcase__gutter-arrow {
+          transform: rotate(180deg);
+        }
+
+        .project-showcase__gutter.is-visible.is-up .project-showcase__gutter-arrow {
+          animation: gutterArrowUp 920ms ease-in-out infinite;
+          animation-delay: calc((5 - var(--arrow-idx, 0)) * 95ms);
+        }
+
+        @keyframes gutterArrowDown {
+          0%, 100% {
+            opacity: 0.18;
+            transform: translateY(-3px);
+          }
+          45% {
+            opacity: 1;
+            transform: translateY(3px);
+          }
+        }
+
+        @keyframes gutterArrowUp {
+          0%, 100% {
+            opacity: 0.18;
+            transform: translateY(3px) rotate(180deg);
+          }
+          45% {
+            opacity: 1;
+            transform: translateY(-3px) rotate(180deg);
+          }
+        }
+
         @media (max-width: 900px) {
           .project-showcase {
             display: grid;
             grid-template-columns: 1fr;
+          }
+
+          .project-showcase__gutter {
+            display: none;
           }
 
           .project-showcase__panel,
@@ -1327,8 +1564,17 @@ export function ProjectShowcase({ groups }: Props) {
           .project-deck__slot--leave-prev,
           .project-deck__slot--wrap-next,
           .project-deck__slot--wrap-prev,
-          .project-deck__boundary.is-wrap {
+          .project-deck__boundary.is-wrap,
+          .project-showcase__gutter-arrow {
             animation: none;
+          }
+
+          .project-showcase__gutter {
+            transition: none;
+          }
+
+          .project-showcase__gutter.is-visible .project-showcase__gutter-arrow {
+            opacity: 0.85;
           }
         }
       `}</style>

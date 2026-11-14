@@ -46,10 +46,12 @@ class SoundManager {
   private static readonly VOLUME_SCALE = 1.45;
   private static readonly ATTACK_SEC = 0.006;
   private static readonly TILE_COOLDOWN_MS = 45;
+  private static readonly BOUNDARY_COOLDOWN_MS = 220;
 
   private enabled = false;
   private audioContext: AudioContext | null = null;
   private lastTileSoundTime = 0;
+  private lastBoundarySoundTime = 0;
 
   constructor() {
     if (typeof window === 'undefined') return;
@@ -166,16 +168,25 @@ class SoundManager {
     this.playTone(659, 0.13, 0.035, 0.07, 'sine');
   }
 
-  playCardFlip(direction: 'next' | 'prev' = 'next') {
-    if (direction === 'next') {
-      this.playGlide(420, 540, 0.075, 0.028, 'triangle');
+  playScrollBoundary(edge: 'top' | 'bottom') {
+    if (!this.enabled) return;
+
+    const now = performance.now();
+    if (now - this.lastBoundarySoundTime < SoundManager.BOUNDARY_COOLDOWN_MS) return;
+    this.lastBoundarySoundTime = now;
+
+    if (edge === 'bottom') {
+      this.playTone(420, 0.065, 0.028, 0, 'sine');
+      this.playTone(330, 0.095, 0.022, 0.045, 'triangle');
     } else {
-      this.playGlide(520, 400, 0.075, 0.028, 'triangle');
+      this.playTone(350, 0.065, 0.028, 0, 'sine');
+      this.playTone(440, 0.095, 0.022, 0.045, 'triangle');
     }
   }
 
   handleHover(target: HTMLElement) {
     if (!this.enabled) return;
+    if (target.closest('#projects')) return;
 
     if (target.matches('.github-calendar__cell[data-date], .leetcode-calendar__cell[data-date]')) {
       const now = performance.now();
@@ -227,18 +238,8 @@ class SoundManager {
       return;
     }
 
-    if (
-      target.matches(
-        '.project-card__link, .accepted-papers__link, .github-link-badge, .leetcode-link-badge, .hero__link[href]'
-      )
-    ) {
+    if (target.matches('.github-link-badge, .leetcode-link-badge, .hero__link[href]')) {
       this.playTone(560, 0.065, 0.018, 0, 'sine');
-      return;
-    }
-
-    if (target.matches('.project-card')) {
-      this.playTone(360, 0.085, 0.011, 0, 'triangle');
-      this.playTone(540, 0.085, 0.008, 0.012, 'sine');
       return;
     }
 
@@ -247,10 +248,7 @@ class SoundManager {
 
   handleClick(target: HTMLElement) {
     if (!this.enabled) return;
-
-    if (target.matches('[data-sound-flip]')) {
-      return;
-    }
+    if (target.closest('#projects')) return;
 
     if (target.matches('.back-to-top')) {
       this.playGlide(380, 640, 0.11, 0.032, 'sine');
@@ -286,28 +284,9 @@ class SoundManager {
       return;
     }
 
-    if (
-      target.matches(
-        '.project-card__link, .accepted-papers__link, .github-link-badge, .leetcode-link-badge, .hero__link[href]'
-      )
-    ) {
+    if (target.matches('.github-link-badge, .leetcode-link-badge, .hero__link[href]')) {
       this.playTone(520, 0.06, 0.03, 0, 'sine');
       this.playTone(693, 0.095, 0.028, 0.05, 'sine');
-      return;
-    }
-
-    if (target.matches('.project-showcase__index-toggle')) {
-      const expanded = target.getAttribute('aria-expanded') === 'true';
-      if (expanded) {
-        this.playGlide(520, 410, 0.075, 0.026, 'triangle');
-      } else {
-        this.playGlide(410, 520, 0.075, 0.026, 'triangle');
-      }
-      return;
-    }
-
-    if (target.matches('.project-deck__segment, .project-deck__drawer-item')) {
-      this.playGlide(460, 580, 0.065, 0.026, 'triangle');
       return;
     }
 
@@ -323,7 +302,7 @@ class SoundManager {
       return;
     }
 
-    if (target.matches('.project-card, .profile__row, .recognition-list__group, .experience__item')) {
+    if (target.matches('.profile__row, .recognition-list__group, .experience__item')) {
       return;
     }
 
