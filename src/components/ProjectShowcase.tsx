@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ProjectCard } from './ProjectCard';
+import { soundManager } from '../utils/sound';
 
 interface ProjectLink {
   type: 'github' | 'arxiv' | 'paper' | 'demo';
@@ -201,6 +202,7 @@ function ProjectDeckPanel({
       setDragX(0);
       setIsDragging(false);
       setDrawerOpen(false);
+      soundManager.playCardFlip(direction);
 
       if (isWrap) {
         clearNoticeTimer();
@@ -527,6 +529,7 @@ function ProjectDeckPanel({
             type="button"
             className="project-deck__nav"
             aria-label={`上一个${group.title}`}
+            data-sound-flip
             onClick={() => stepDeck('prev')}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -579,6 +582,7 @@ function ProjectDeckPanel({
             type="button"
             className="project-deck__nav"
             aria-label={`下一个${group.title}`}
+            data-sound-flip
             onClick={() => stepDeck('next')}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">

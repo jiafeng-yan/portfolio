@@ -333,9 +333,9 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
                               class={`github-calendar__cell github-calendar__cell--level-${cell.level}`}
                               key={formatDate(cell.date)}
                               style={`grid-column: ${cell.column}; grid-row: ${cell.row};`}
-                              title={`${formatDate(cell.date)}: ${cell.count} 次贡献`}
                               data-count={cell.count}
                               data-date={formatDate(cell.date)}
+                              data-cell-unit="次贡献"
                             ></div>
                           ))}
                         </div>
@@ -356,6 +356,9 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
                           class={`github-calendar__cell github-calendar__cell--level-${level}`} 
                           key={level}
                           data-threshold={thresholds[level]}
+                          data-badge-tooltip
+                          data-badge-title={level === 0 ? '0 次贡献' : `${thresholds[level]}+ 次贡献`}
+                          data-badge-meta="图例等级"
                         ></div>
                       );
                     })}
@@ -502,9 +505,9 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
                               class={`leetcode-calendar__cell leetcode-calendar__cell--level-${cell.level}`}
                               key={formatDate(cell.date)}
                               style={`grid-column: ${cell.column}; grid-row: ${cell.row};`}
-                              title={`${formatDate(cell.date)}: ${cell.count} 题`}
                               data-count={cell.count}
                               data-date={formatDate(cell.date)}
+                              data-cell-unit="题"
                             ></div>
                           ))}
                         </div>
@@ -525,6 +528,9 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
                           class={`leetcode-calendar__cell leetcode-calendar__cell--level-${level}`} 
                           key={level}
                           data-threshold={thresholds[level]}
+                          data-badge-tooltip
+                          data-badge-title={level === 0 ? '0 题' : `${thresholds[level]}+ 题`}
+                          data-badge-meta="图例等级"
                         ></div>
                       );
                     })}
@@ -667,10 +673,7 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
     initCalendarScroll('github', signal);
     // 初始化 LeetCode 贡献图滑动功能
     initCalendarScroll('leetcode', signal);
-    // 设置移动端 tooltip
-    setupMobileTooltip('github', signal);
-    setupMobileTooltip('leetcode', signal);
-    // 初始化徽章悬浮注释浮层
+    // 初始化徽章与日历瓷砖统一悬浮/点击注释浮层
     setupBadgeTooltips(signal);
   });
 
@@ -683,12 +686,32 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
     const metaEl = popover.querySelector('.badge-popover__meta') as HTMLElement | null;
     if (!titleEl || !metaEl) return;
 
+    const TOOLTIP_SELECTOR =
+      '[data-badge-tooltip], .github-calendar__cell[data-date], .leetcode-calendar__cell[data-date]';
+
     let activeBadge: HTMLElement | null = null;
     let lastTouchTime = 0;
 
+    const getTooltipContent = (target: HTMLElement) => {
+      if (target.dataset.date) {
+        const count = Number(target.dataset.count || '0');
+        const unit = target.dataset.cellUnit || '次贡献';
+        const title =
+          count > 0 ? `${count} ${unit}` : unit === '题' ? '当日未刷题' : '当日无贡献';
+        return {
+          title,
+          meta: target.dataset.date
+        };
+      }
+
+      return {
+        title: target.dataset.badgeTitle || '',
+        meta: target.dataset.badgeMeta || ''
+      };
+    };
+
     const positionPopover = (target: HTMLElement) => {
-      const title = target.dataset.badgeTitle || '';
-      const meta = target.dataset.badgeMeta || '';
+      const { title, meta } = getTooltipContent(target);
       if (!title) return;
 
       titleEl.textContent = title;
@@ -739,12 +762,12 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
 
     root.addEventListener('mouseover', (e) => {
       if (Date.now() - lastTouchTime < 700) return;
-      const target = (e.target as Element | null)?.closest<HTMLElement>('[data-badge-tooltip]');
+      const target = (e.target as Element | null)?.closest<HTMLElement>(TOOLTIP_SELECTOR);
       if (target) positionPopover(target);
     }, { signal });
 
     root.addEventListener('mouseout', (e) => {
-      const target = (e.target as Element | null)?.closest<HTMLElement>('[data-badge-tooltip]');
+      const target = (e.target as Element | null)?.closest<HTMLElement>(TOOLTIP_SELECTOR);
       if (!target) return;
       const related = e.relatedTarget as Node | null;
       if (related && target.contains(related)) return;
@@ -753,12 +776,12 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
 
     root.addEventListener('focusin', (e) => {
       if (Date.now() - lastTouchTime < 700) return;
-      const target = (e.target as Element | null)?.closest<HTMLElement>('[data-badge-tooltip]');
+      const target = (e.target as Element | null)?.closest<HTMLElement>(TOOLTIP_SELECTOR);
       if (target) positionPopover(target);
     }, { signal });
 
     root.addEventListener('focusout', (e) => {
-      const target = (e.target as Element | null)?.closest<HTMLElement>('[data-badge-tooltip]');
+      const target = (e.target as Element | null)?.closest<HTMLElement>(TOOLTIP_SELECTOR);
       if (!target) return;
       const related = e.relatedTarget as Node | null;
       if (related && target.contains(related)) return;
@@ -766,7 +789,7 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
     }, { signal });
 
     root.addEventListener('click', (e) => {
-      const target = (e.target as Element | null)?.closest<HTMLElement>('[data-badge-tooltip]');
+      const target = (e.target as Element | null)?.closest<HTMLElement>(TOOLTIP_SELECTOR);
       if (!target || target.tagName === 'A') return;
       const isTouchClick = Date.now() - lastTouchTime < 700;
       if (activeBadge === target && popover.classList.contains('is-visible')) {
@@ -780,10 +803,17 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
 
     document.addEventListener('click', (e) => {
       const target = e.target as Element | null;
-      if (!target?.closest('[data-badge-tooltip]')) {
+      if (!target?.closest(TOOLTIP_SELECTOR)) {
         hidePopover();
       }
     }, { signal });
+
+    document
+      .getElementById('github-scroll-container')
+      ?.addEventListener('scroll', hidePopover, { passive: true, signal });
+    document
+      .getElementById('leetcode-scroll-container')
+      ?.addEventListener('scroll', hidePopover, { passive: true, signal });
 
     window.addEventListener('resize', hidePopover, { signal });
   }
@@ -998,107 +1028,7 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
     }, { signal });
   }
 
-  // 移动端点击弹出 tooltip
-  function setupMobileTooltip(calendarType: 'github' | 'leetcode', signal: AbortSignal) {
-    const calendar = document.getElementById(`${calendarType}-calendar`);
-    const grid = document.getElementById(`${calendarType}-calendar-grid`);
-    if (!grid || !calendar) return;
-
-    // 创建 tooltip 元素
-    const tooltip = document.createElement('div');
-    tooltip.className = `${calendarType}-calendar__tooltip`;
-    // 直接设置样式，因为动态创建的元素无法应用 Astro scoped CSS
-    tooltip.style.cssText = `
-      position: absolute;
-      display: none;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      white-space: nowrap;
-      z-index: 100;
-      pointer-events: none;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    `;
-    // 统一使用黑底白字样式
-    tooltip.style.background = 'rgba(0, 0, 0, 0.9)';
-    tooltip.style.color = 'white';
-    calendar.appendChild(tooltip);
-
-    let activeCell: HTMLElement | null = null;
-
-    // 点击格子显示 tooltip
-    grid.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      if (!target.classList.contains(`${calendarType}-calendar__cell`)) return;
-
-      const date = target.dataset.date;
-      const count = target.dataset.count;
-
-      if (!date || !count) return;
-
-      // 如果点击的是同一个格子，隐藏 tooltip
-      if (activeCell === target && tooltip.style.display !== 'none') {
-        tooltip.style.display = 'none';
-        activeCell = null;
-        return;
-      }
-
-      // 更新 tooltip 内容
-      const unit = calendarType === 'github' ? '次贡献' : '题';
-      tooltip.textContent = `${date}: ${count} ${unit}`;
-
-      // 计算 tooltip 位置
-      const cellRect = target.getBoundingClientRect();
-      const calendarRect = calendar.getBoundingClientRect();
-
-      // 显示 tooltip
-      tooltip.style.display = 'block';
-      activeCell = target;
-
-      // 使用 CSS 定位，让 tooltip 在格子上方居中
-      const cellLeft = cellRect.left - calendarRect.left;
-      const cellTop = cellRect.top - calendarRect.top;
-      const cellWidth = cellRect.width;
-      const cellHeight = cellRect.height;
-      const tooltipWidth = tooltip.offsetWidth;
-      const tooltipHeight = tooltip.offsetHeight;
-
-      // 计算 tooltip 的水平位置，确保不超出容器边界
-      let tooltipLeft = cellLeft + cellWidth / 2 - tooltipWidth / 2;
-      const minLeft = 4;
-      const maxLeft = calendarRect.width - tooltipWidth - 4;
-      tooltipLeft = Math.max(minLeft, Math.min(tooltipLeft, maxLeft));
-
-      // 计算 tooltip 的垂直位置，确保在格子上方
-      let tooltipTop = cellTop - tooltipHeight - 10;
-      // 如果上方空间不足，显示在格子下方
-      if (tooltipTop < 4) {
-        tooltipTop = cellTop + cellHeight + 10;
-      }
-
-      tooltip.style.left = `${tooltipLeft}px`;
-      tooltip.style.top = `${tooltipTop}px`;
-    }, { signal });
-
-    // 点击其他区域隐藏 tooltip
-    document.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      if (!target.classList.contains(`${calendarType}-calendar__cell`) && tooltip.style.display !== 'none') {
-        tooltip.style.display = 'none';
-        activeCell = null;
-      }
-    }, { signal });
-
-    // 滚动时隐藏 tooltip
-    const scrollContainer = grid.closest(`.${calendarType}-calendar__scroll-container`);
-    scrollContainer?.addEventListener('scroll', () => {
-      if (tooltip.style.display !== 'none') {
-        tooltip.style.display = 'none';
-        activeCell = null;
-      }
-    }, { signal });
-  }
-
+  // 移动端与桌面端瓷砖提示已统一交由 setupBadgeTooltips 管理
 </script>
 
 <style>
@@ -1345,7 +1275,7 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
     justify-content: flex-start;
     max-width: 34rem;
     gap: 3.5rem;
-    padding: 0 0 var(--space-sm);
+    padding: 0.1rem 0.25rem var(--space-sm);
   }
 
   .github-stats__summary-item {
@@ -1384,7 +1314,7 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
     --github-gap: 2px;
     background: rgba(255, 255, 255, 0.5);
     border-radius: var(--border-radius);
-    padding: var(--space-sm);
+    padding: 0.75rem 0.9rem;
     border: 1px solid rgba(0, 0, 0, 0.06);
     width: 100%;
     max-width: 100%;
@@ -1667,7 +1597,7 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
     justify-content: flex-start;
     max-width: 44rem;
     gap: 3.5rem;
-    padding: 0 0 var(--space-sm);
+    padding: 0.1rem 0.25rem var(--space-sm);
   }
 
   .leetcode-stats__summary-item {
@@ -1868,7 +1798,7 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
     --leetcode-gap: 2px;
     background: rgba(255, 255, 255, 0.5);
     border-radius: var(--border-radius);
-    padding: var(--space-sm);
+    padding: 0.75rem 0.9rem;
     border: 1px solid rgba(0, 0, 0, 0.06);
     width: 100%;
     max-width: 100%;

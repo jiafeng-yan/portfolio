@@ -198,7 +198,7 @@ export function ProjectCard({ project }: Props) {
           background: rgba(255, 255, 255, 0.85);
           border: 1px solid var(--color-border);
           border-radius: var(--border-radius-lg);
-          padding: var(--space-md);
+          padding: 1.2rem 1.3rem;
           transition:
             background var(--duration-normal) var(--ease-out-expo),
             border-color var(--duration-normal) var(--ease-out-expo);
@@ -274,7 +274,7 @@ export function ProjectCard({ project }: Props) {
           display: grid;
           gap: var(--space-xs);
           margin: 0 0 var(--space-md);
-          padding-left: 1rem;
+          padding-left: 1.15rem;
           color: var(--color-text-muted);
           font-size: 0.86rem;
           line-height: 1.6;
@@ -388,7 +388,7 @@ export function ProjectCard({ project }: Props) {
 
         @media (max-width: 640px) {
           .project-card {
-            padding: var(--space-md);
+            padding: 1.05rem 1.1rem;
           }
 
           .project-card__title {
