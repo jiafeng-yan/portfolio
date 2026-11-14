@@ -18,12 +18,29 @@ import StatsWidgets from '../components/StatsWidgets.astro';
 
 const projects = [
   {
-    id: 'dehazing-fusion',
-    title: 'Dehazing in Fusion: Joint Dehazing-Fusion of Inf-Vis Images via Synergistic Learning',
-    subtitle: '学生一作 · 特征解耦与协同学习网络',
+    id: 'two-in-one',
+    title: 'Two in One: Robust Fusion of Infrared and Visible Images in Rainy Condition',
+    subtitle: '学生一作 · 门控特征分配与对比引导去雨融合',
     venue: '',
     category: 'research',
-    description: '针对红外与可见光图像在雾霾等复杂环境下的融合难题，提出基于特征解耦的协同学习框架，同时执行去雾和融合任务，并通过协同机制让两个任务相互促进。',
+    description: '利用红外热辐射不受雨纹干扰的特性引导可见光去雨，将去雨与多模态融合耦合进同一网络。设计门控特征分配与对比引导机制（GFA-CGM），在深层特征空间分离模态共有特征、模态独有特征与雨纹分量。',
+    highlights: [
+      '主导 RFIV 网络与 GFA-CGM 机制设计，完成论文撰写、对比与消融实验及代码开源',
+      '构建并开源真实雨天红外-可见光配准基准 RainIVB（120 对）与合成数据集 FMB-Rainy（1,500 对）'
+    ],
+    technologies: ['PyTorch', 'Image Fusion', 'Deraining', 'Contrastive Learning'],
+    links: [
+      { type: 'github', url: 'https://github.com/jiafeng-yan/TwoInOne-JAS' }
+    ],
+    status: 'IEEE/CAA JAS 录用'
+  },
+  {
+    id: 'dehazing-fusion',
+    title: 'Dehazing in Fusion: Joint Dehazing-Fusion of Inf-Vis Images via Synergistic Learning',
+    subtitle: '学生一作 · 特征解耦与去雾融合协同网络',
+    venue: '',
+    category: 'research',
+    description: '将可见光去雾与红外-可见光融合纳入统一框架，通过特征解耦拆分退化分量与跨模态有效信息，避免级联方案中去雾伪影在融合阶段继续放大。',
     highlights: [
       '主导文献调研、核心算法设计、合成数据集构建与实验方案制定',
       '独立撰写论文初稿，完成合成与真实雾霾场景下的定量对比及消融实验'
@@ -34,36 +51,37 @@ const projects = [
   {
     id: 'mdaif',
     title: 'MdaIF: Robust One-Stop Multi-Degradation Image Fusion with Language-Driven Semantics',
-    subtitle: '学生二作 · VLM 驱动的多退化感知融合',
+    subtitle: '学生二作 · VLM 语义驱动的多退化融合',
     venue: '',
     category: 'research',
-    description: '面向雾、雨、雪等恶劣天气下纹理丢失与固定网络泛化弱的问题，提出基于 VLM 的“一站式”多退化感知图像融合框架，端到端联合优化恢复与融合。',
+    description: '引入视觉语言模型提取退化先验与场景语义，在单一模型内联合处理雾、雨、雪等复合退化下的图像恢复与多模态融合，减轻固定网络对单一退化类型的过拟合。',
     highlights: [
       '参与核心算法设计与代码实现，负责多退化融合数据集构建',
-      '复现去雾、去雨相关论文方法，完成定量和定性对比实验分析'
+      '复现去雾、去雨基线方法，完成多场景定量与定性对比实验'
     ],
     technologies: ['VLM', 'Image Fusion', 'LoRA', 'PyTorch', 'Dataset Pipeline'],
     links: [
       { type: 'arxiv', url: 'https://arxiv.org/abs/2511.12525' }
     ],
-    status: 'AAAI 2026 Poster'
+    status: 'AAAI 2026 录用'
   },
   {
-    id: 'dcdb',
-    title: 'DCDB: Dynamic Conditional Dual Diffusion Bridge',
-    subtitle: '第二作者 · 动态条件双扩散桥',
+    id: 'rs-opsd',
+    title: 'RS-OPSD: Reliable Privileged On-Policy-Self-Distillation for Ultra-High-Resolution Remote Sensing VQA',
+    subtitle: '第三作者 · 超高分辨率遥感视觉问答自蒸馏',
     venue: '',
+    period: '2026.07 — 2026.10',
     category: 'research',
-    description: '针对扩散模型处理去雾与融合等病态多任务时依赖 GT 且采用静态引导的问题，设计双扩散桥架构，将主任务与条件生成解耦，并用随时间步演变的动态条件降低学习难度。',
+    description: '针对超高分辨率遥感 VQA（UHR VQA）中小目标证据易被淹没的问题，提出特权在策略自蒸馏框架。通过 CPVP 与 CAD 将放大视觉特权内化进模型，推理期无需额外搜索即可在 XLRS-Bench 等基准取得 SOTA。',
     highlights: [
-      '参与双桥模型框架设计与实现，主导 SOTA 对比实验和消融实验',
-      '通过注意力权重分析和量化指标验证动态条件优于静态条件'
+      '完成前期预实验与技术路线验证，排查并否定无效负向方案，参与核心方法讨论与思路设计',
+      '负责模型在超高分辨率遥感 VQA 基准上的部分定量实验评测与结果分析'
     ],
-    technologies: ['Diffusion Model', 'Dual Bridge', 'Image Enhancement', 'PyTorch'],
+    technologies: ['MLLM', 'Remote Sensing VQA', 'Self-Distillation', 'On-Policy RL'],
     links: [
-      { type: 'arxiv', url: 'https://arxiv.org/abs/2509.03044' }
+      { type: 'arxiv', url: 'https://arxiv.org/abs/2609.38072' }
     ],
-    status: 'arXiv 预印本'
+    status: 'ICLR 在投'
   },
   {
     id: 'grasp',
@@ -71,16 +89,33 @@ const projects = [
     subtitle: '第三作者 · 遥感推理分割',
     venue: '',
     category: 'research',
-    description: '针对遥感文本-掩码推理任务依赖昂贵像素级标注且 OOD 泛化弱的问题，提出由 MLLM 生成框/点弱提示、冻结分割模型生成精细掩码的级联框架，并引入强化学习优化。',
+    description: '采用多模态大模型生成边界框与点级弱提示、驱动冻结分割模型输出精细掩码的级联范式，并结合强化学习策略优化，降低遥感推理分割对像素级标注的依赖并提升域外（OOD）泛化。',
     highlights: [
       '负责 GRASP 级联模型框架搭建与核心代码实现',
-      '独立构建 GRASP-1k OOD 评测基准的数据生产 pipeline，集成 Gemini API 与 SAM2'
+      '独立构建 GRASP-1k OOD 评测基准数据管线，集成 Gemini API 与 SAM2'
     ],
     technologies: ['MLLM', 'Remote Sensing', 'RL', 'SAM2', 'Gemini API'],
     links: [
       { type: 'arxiv', url: 'https://arxiv.org/abs/2508.17102' }
     ],
     status: 'TGRS 在投'
+  },
+  {
+    id: 'dcdb',
+    title: 'DCDB: Dynamic Conditional Dual Diffusion Bridge',
+    subtitle: '第二作者 · 动态条件双扩散桥',
+    venue: '',
+    category: 'research',
+    description: '在图像去雾与融合等逆问题中，传统扩散模型常依赖配对真值（GT）且条件引导固定单一。本文设计双扩散桥架构，将主任务与条件生成解耦，并以随时间步演化的动态条件降低分布迁移难度。',
+    highlights: [
+      '参与双桥模型框架设计与实现，主导 SOTA 对比实验和消融实验',
+      '通过注意力权重可视化与定量指标验证动态条件相比静态引导的收益'
+    ],
+    technologies: ['Diffusion Model', 'Dual Bridge', 'Image Enhancement', 'PyTorch'],
+    links: [
+      { type: 'arxiv', url: 'https://arxiv.org/abs/2509.03044' }
+    ],
+    status: 'arXiv 预印本'
   },
   {
     id: 'hydrogen-economy',
@@ -97,19 +132,67 @@ const projects = [
     status: '省级二等奖'
   },
   {
+    id: 'tcm-llm',
+    title: 'TCM-LLM：老年认知与精神行为医患协同评估系统',
+    subtitle: '主力开发 · 双端实时协同与多模态量表评估系统',
+    venue: '横向课题',
+    category: 'build',
+    description: '面向老年认知与精神行为筛查（MMSE、ADL、NPI、中医证候等 30+ 量表）的医患协同系统。由状态机引擎统一编排测评流程与医生实时接管指令，集成 LLM 辅助评分/受控追问、语音及视觉动作评估。',
+    highlights: [
+      '主导 FastAPI 异步后端、React 医患双端、WebSocket 实时同步及 30+ 临床量表 YAML 混合计分引擎开发（除 GPT-SoVITS 语音微调外均独立负责）',
+      '构建可插拔 LLM / ASR / TTS / Vision Provider 抽象与患者 PII 隐私脱敏机制，完成 PostgreSQL + Nginx + Docker 全量容器化部署'
+    ],
+    technologies: ['FastAPI', 'React', 'WebSocket', 'PostgreSQL', 'Multi-Modal', 'Docker'],
+    status: '横向在研'
+  },
+  {
     id: 'livestream-rag',
     title: '基于检索增强 VLM 的直播互动应用',
     subtitle: '独立完成 · 多模态 RAG 智能问答系统',
     venue: '',
     category: 'build',
-    description: '构建支持多模态数据交互与知识库动态管理的智能问答系统，集成屏幕捕获、OCR、图像内容分析、文档自动解析、向量化检索与上下文生成回答。',
+    description: '面向直播互动场景的多模态检索增强问答系统，串联实时屏幕/弹幕捕获、OCR 文本提取、商品知识库向量检索与上下文回答生成。',
     highlights: [
-      '把直播评论、屏幕图像和文档知识库统一进入检索增强生成链路',
-      '完成从数据采集、解析、索引到回答生成的端到端原型'
+      '打通直播评论、画面截图与本地知识库的统一检索增强生成链路',
+      '完成从实时采集、文档解析、向量索引到回答生成的端到端原型'
     ],
     technologies: ['RAG', 'VLM', 'OCR', 'Vector Search', 'LLM'],
     links: [
       { type: 'github', url: 'https://github.com/jiafeng-yan/LiveStreamRAG' }
+    ],
+    status: '已开源'
+  },
+  {
+    id: 'pigeon-eye',
+    title: 'PigeonEye-AI：信鸽虹膜检测与血统检索系统',
+    subtitle: '项目负责人 · 半监督检测、度量学习与 Android 端侧部署',
+    venue: '综合实践',
+    category: 'build',
+    description: '面向信鸽虹膜图像的 1:1 血统比对与 1:N 品种检索系统，包含 Python 训练管线与离线实时运行的 Android 客户端，采用“全局轻量检测 + 中心聚焦按需特征提取”交互以降低移动端发热与掉帧。',
+    highlights: [
+      '结合半监督伪标签与 Label Studio 人机回环完成 2 万+ 样本清洗及 YOLOv8n 检测训练，并用 ResNet18 + Triplet Loss 提取 128 维虹膜特征',
+      '针对 Android 15（16KB 页大小）兼容性将推理迁移至 ONNX Runtime 量化部署，基于 CameraX 实现端侧离线实时比对'
+    ],
+    technologies: ['YOLOv8', 'ResNet', 'Metric Learning', 'ONNX Runtime', 'Android'],
+    links: [
+      { type: 'github', url: 'https://github.com/jiafeng-yan/PigeonEye-AI' }
+    ],
+    status: '已开源'
+  },
+  {
+    id: 'fe-teacher',
+    title: 'FE-Teacher：金融经济教学智能体',
+    subtitle: '独立完成 · Agentic Workflow 个性化教学系统',
+    venue: '',
+    category: 'build',
+    description: '基于 LangChain 与 FastAPI 构建的金融经济教学智能体，串联 Planner 意图路由、多格式课件 RAG 检索、ChromaDB 长短期学情记忆与外部工具调用，支持苏格拉底式启发问答与动态进度跟踪。',
+    highlights: [
+      '设计 Planner/Router + RAG + Memory + Tools 模块化工作流，支持知识点掌握度、错题本与学习章节的持久化追踪',
+      '实现 PPT/Word/TXT 课件动态分块及本地/云端嵌入模型切换时的向量维度自动检测与无缝重索引'
+    ],
+    technologies: ['LangChain', 'FastAPI', 'ChromaDB', 'React', 'Agentic RAG'],
+    links: [
+      { type: 'github', url: 'https://github.com/jiafeng-yan/FE-Teacher' }
     ],
     status: '已开源'
   },
@@ -119,10 +202,10 @@ const projects = [
     subtitle: '独立完成 · 信息检索课程满分课设',
     venue: '课程设计',
     category: 'build',
-    description: '本地部署的可视化文献检索系统，支持 PDF 上传、停用词更新、通配符查询、查询词高亮、源文档超链接、拼写纠正和自动摘要。',
+    description: '本地部署的可视化文献检索系统，支持 PDF 批量上传、结构化解析、通配符检索、匹配高亮、源文档跳转、拼写纠错与自动摘要。',
     highlights: [
-      '使用 Docker 部署 Grobid 解析 PDF，Lucene 负责索引维护与查询',
-      '在文本分类任务中使用 Qwen2.5-7B + LoRA，以千级样本达到 92% 准确率'
+      '使用 Docker 部署 Grobid 解析 PDF 结构，基于 Lucene 完成倒排索引维护与查询',
+      '使用 Qwen2.5-7B + LoRA 微调文献分类模型，在千级样本上达到 92% 准确率'
     ],
     technologies: ['Lucene', 'Grobid', 'React', 'Flask', 'Docker', 'LoRA'],
     links: [
@@ -136,10 +219,10 @@ const projects = [
     subtitle: '项目负责人 · 半监督图卷积自回归网络',
     venue: '课程设计',
     category: 'build',
-    description: '将异常检测建模为样本不平衡分类任务，提出两阶段训练的半监督图卷积自回归网络，通过噪声注入防止过拟合，并用对比损失增强特征嵌入表达。',
+    description: '将图节点异常检测建模为类别不平衡下的半监督分类问题，设计两阶段训练的图卷积自回归网络，结合噪声注入与对比学习提升异常节点区分度。',
     highlights: [
-      '统筹小组计划、文献调研、算法设计、消融实验与项目汇报',
-      '使用 GraphSAGE 提升运行效率并获得归纳学习能力'
+      '负责课题规划、文献调研、算法设计与消融实验评测',
+      '引入 GraphSAGE 采样聚合提升大图训练效率并具备归纳推理能力'
     ],
     technologies: ['GraphSAGE', 'GCN', 'Contrastive Learning', 'PyTorch'],
     status: '数据挖掘课设'
@@ -148,7 +231,14 @@ const projects = [
 
 const acceptedPapers = [
   {
-    venue: 'AAAI 2026 · Poster',
+    venue: 'IEEE/CAA JAS · 录用待刊',
+    role: '学生一作',
+    title: 'Two in One: Robust Fusion of Infrared and Visible Images in Rainy Condition',
+    url: 'https://github.com/jiafeng-yan/TwoInOne-JAS',
+    linkLabel: 'GitHub'
+  },
+  {
+    venue: 'AAAI 2026',
     role: '学生二作',
     title: 'MdaIF: Robust One-Stop Multi-Degradation Image Fusion with Language-Driven Semantics',
     url: 'https://arxiv.org/abs/2511.12525',
@@ -161,14 +251,14 @@ const projectGroups = [
     id: 'research',
     eyebrow: 'A · 研究',
     title: '科研项目',
-    summary: '主要涵盖红外-可见光融合、多退化恢复、扩散桥与遥感推理分割，另有一项能源经济竞赛课题。',
+    summary: '聚焦雨雾等退化场景下的红外-可见光图像融合、扩散桥建模，以及超高分辨率遥感 VQA 与推理分割。',
     projects: projects.filter((project) => project.category === 'research')
   },
   {
     id: 'build',
     eyebrow: 'B · 工程',
     title: '开发与课程项目',
-    summary: '包括多模态 RAG 问答原型、本地文献检索系统以及图神经网络课程设计。',
+    summary: '涵盖医疗认知评估横向系统、直播多模态 RAG、移动端 ONNX 实时视觉部署、教学 Agent 与文献检索系统。',
     projects: projects.filter((project) => project.category === 'build')
   }
 ];
@@ -194,7 +284,7 @@ const projectGroups = [
         <span class="section-kicker">02 / 项目</span>
         <h2 id="projects-title">研究与工程</h2>
         <p>
-          左侧为论文与科研课题，右侧为独立或带队完成的工程与课程项目。
+          涵盖多模态图像恢复与融合、遥感视觉语言推理等论文课题，以及独立或带队完成的开源系统与端侧应用。
         </p>
       </div>
 

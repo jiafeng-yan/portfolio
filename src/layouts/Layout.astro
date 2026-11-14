@@ -6,7 +6,7 @@ interface Props {
   description?: string;
 }
 
-const { title, description = '闫家锋 - 中央财经大学计算机科学与技术本科生，关注图像融合、计算机视觉、多模态学习与检索增强系统。已保研，AAAI 2026 Poster 作者。' } = Astro.props;
+const { title, description = '闫家锋 - 中央财经大学人工智能硕士研究生（推免），关注图像融合、计算机视觉、多模态学习与智能体系统。IEEE/CAA JAS、AAAI 2026 论文作者。' } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
@@ -44,7 +44,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       "@context": "https://schema.org",
       "@type": "Person",
       "name": "闫家锋",
-      "jobTitle": "计算机科学与技术本科生",
+      "jobTitle": "人工智能硕士研究生",
       "affiliation": {
         "@type": "EducationalOrganization",
         "name": "中央财经大学"

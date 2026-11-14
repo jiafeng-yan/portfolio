@@ -8,7 +8,7 @@ const skills = [
   },
   {
     category: '研究与算法',
-    items: ['计算机视觉', '图像融合', '多模态微调', '图神经网络', '信息检索', '数据挖掘']
+    items: ['计算机视觉', '图像融合', '多模态微调', '自蒸馏与强化学习', '图神经网络', '信息检索']
   },
   {
     category: '框架与工具',
@@ -16,7 +16,11 @@ const skills = [
   },
   {
     category: '系统与模块',
-    items: ['Lucene', 'Grobid', 'Flask', 'OCR', 'RAG', 'SAM']
+    items: ['Lucene', 'Grobid', 'ONNX Runtime', 'Flask', 'OCR', 'RAG', 'SAM2']
+  },
+  {
+    category: 'AI 辅助与 Agent 工具',
+    items: ['Codex (Plus)', 'Antigravity (Pro)', 'OpenCode', 'WorkBuddy', 'CC-Switch']
   }
 ];
 ---
@@ -26,7 +30,7 @@ const skills = [
     <span class="section-kicker">03 / 技能</span>
     <h2 id="skills-title">技术栈与工具</h2>
     <p>
-      科研以 PyTorch 视觉与多模态模型训练为主，工程侧覆盖前后端开发、检索与容器化部署，英语 CET-6。
+      科研以 PyTorch 视觉与多模态模型训练为主，工程侧覆盖前后端开发、检索与容器化部署，日常深度结合 AI Agent 工具链研发提效，英语 CET-6。
     </p>
   </div>
 
@@ -69,7 +73,7 @@ const skills = [
 
   .skills__grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: var(--space-lg);
   }
 
@@ -111,6 +115,12 @@ const skills = [
     background: rgba(255, 255, 255, 0.95);
     border-color: rgba(184, 112, 74, 0.3);
     color: var(--color-text);
+  }
+
+  @media (max-width: 1100px) {
+    .skills__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
   @media (max-width: 900px) {

@@ -11,6 +11,7 @@ interface Project {
   title: string;
   subtitle: string;
   venue: string;
+  period?: string;
   description: string;
   technologies: string[];
   highlights?: string[];
