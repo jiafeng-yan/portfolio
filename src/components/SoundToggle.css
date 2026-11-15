@@ -2,61 +2,67 @@
   position: fixed;
   bottom: calc(var(--space-lg) + 58px);
   right: var(--space-lg);
+  box-sizing: border-box;
   width: 40px;
   height: 40px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  overflow: hidden;
+  opacity: 0.55;
   z-index: 998;
+  transition:
+    height 0.28s var(--ease-out-expo),
+    opacity var(--duration-fast),
+    background-color var(--duration-fast),
+    border-color var(--duration-fast),
+    box-shadow var(--duration-normal) var(--ease-out-expo);
+}
+
+.sound-control:hover,
+.sound-control:focus-within,
+.sound-control.is-dragging {
+  height: 150px;
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.86);
+  border-color: var(--color-border-strong);
+  box-shadow: 0 6px 20px rgba(44, 40, 37, 0.06);
 }
 
 .sound-control__panel {
-  position: absolute;
-  left: 0;
-  bottom: calc(100% + 8px);
-  width: 40px;
-  padding: 10px 0 12px;
-  border-radius: 999px;
-  background: rgba(252, 249, 243, 0.94);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--color-border);
-  box-shadow: 0 10px 26px rgba(28, 25, 23, 0.1);
+  width: 100%;
+  padding: 12px 0 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: flex-end;
+  gap: 7px;
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
-  transform: translateY(10px) scaleY(0.9);
-  transform-origin: bottom center;
+  transform: translateY(6px);
   transition:
-    opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-    visibility 0.2s;
-}
-
-/* Invisible hover bridge across the 8px gap between toggle and panel */
-.sound-control__panel::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  height: 12px;
+    opacity 0.18s ease,
+    transform 0.24s var(--ease-out-expo);
 }
 
 .sound-control:hover .sound-control__panel,
 .sound-control:focus-within .sound-control__panel,
 .sound-control.is-dragging .sound-control__panel {
   opacity: 1;
-  visibility: visible;
   pointer-events: auto;
-  transform: translateY(0) scaleY(1);
+  transform: translateY(0);
 }
 
 .sound-control__value {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  font-weight: 600;
+  font-size: 0.58rem;
+  font-weight: 500;
   line-height: 1;
   letter-spacing: -0.02em;
   color: var(--color-text-muted);
@@ -66,7 +72,7 @@
 .sound-control__track {
   position: relative;
   width: 24px;
-  height: 84px;
+  height: 72px;
   display: flex;
   justify-content: center;
   cursor: ns-resize;
@@ -75,15 +81,15 @@
 }
 
 .sound-control__track:focus-visible .sound-control__thumb {
-  box-shadow: 0 0 0 3px rgba(196, 106, 61, 0.24), 0 2px 6px rgba(28, 25, 23, 0.18);
+  box-shadow: 0 0 0 3px rgba(184, 112, 74, 0.24), 0 0 0 2px rgba(255, 255, 255, 0.92);
 }
 
 .sound-control__rail {
   position: relative;
-  width: 5px;
+  width: 3px;
   height: 100%;
   border-radius: 999px;
-  background: rgba(28, 25, 23, 0.12);
+  background: rgba(44, 40, 37, 0.12);
   overflow: visible;
 }
 
@@ -93,26 +99,25 @@
   right: 0;
   bottom: 0;
   border-radius: 999px;
-  background: var(--color-accent-warm);
+  background: var(--color-primary);
   transition: height 0.06s ease-out;
 }
 
 .sound-control__thumb {
   position: absolute;
   left: 50%;
-  width: 13px;
-  height: 13px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: #fff;
-  border: 2px solid var(--color-accent-warm);
-  box-shadow: 0 2px 6px rgba(28, 25, 23, 0.18);
+  background: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.92);
   transform: translate(-50%, 50%);
   transition: transform 0.12s ease, bottom 0.06s ease-out;
 }
 
 .sound-control__track:hover .sound-control__thumb,
 .sound-control.is-dragging .sound-control__thumb {
-  transform: translate(-50%, 50%) scale(1.12);
+  transform: translate(-50%, 50%) scale(1.18);
 }
 
 .sound-control.is-dragging .sound-control__fill,
@@ -123,22 +128,20 @@
 .sound-toggle {
   position: relative;
   z-index: 2;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
   padding: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--color-text-subtle);
-  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.55;
   transition:
-    opacity var(--duration-fast),
-    transform var(--duration-fast),
-    border-color var(--duration-fast),
-    color var(--duration-fast);
+    color var(--duration-fast),
+    transform var(--duration-fast);
   cursor: pointer;
 }
 
@@ -147,14 +150,7 @@
 .sound-control.is-dragging .sound-toggle,
 .sound-toggle:hover,
 .sound-toggle:focus-visible {
-  opacity: 1;
   color: var(--color-text);
-  border-color: var(--color-border-strong);
-}
-
-.sound-toggle:hover,
-.sound-toggle:focus-visible {
-  transform: translateY(-1px);
 }
 
 .sound-toggle__icon {
@@ -174,27 +170,39 @@
 
 .sound-toggle__copy strong {
   margin-left: 0.25rem;
-  color: var(--color-accent-warm);
+  color: var(--color-primary);
   font-weight: 600;
 }
 
 @media (max-width: 900px), (hover: none), (pointer: coarse) {
+  .sound-control,
+  .sound-control:hover,
+  .sound-control:focus-within,
+  .sound-control.is-dragging {
+    height: 40px;
+    box-shadow: none;
+  }
+
   .sound-control__panel {
     display: none !important;
   }
 }
 
 @media (max-width: 640px) {
-  .sound-control {
+  .sound-control,
+  .sound-control:hover,
+  .sound-control:focus-within,
+  .sound-control.is-dragging {
     bottom: calc(var(--space-md) + 56px);
     right: var(--space-md);
     width: 44px;
     height: 44px;
+    box-shadow: none;
   }
 
   .sound-toggle {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
     padding: 0;
     border-radius: 50%;
   }
