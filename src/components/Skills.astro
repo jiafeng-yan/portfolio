@@ -1,6 +1,142 @@
 ---
 // src/components/Skills.astro
 
+interface ProjectSummary {
+  id: string;
+  groupId: 'research' | 'build';
+  groupLabel: '科研' | '工程';
+  shortTitle: string;
+  status: string;
+}
+
+const projectCatalog: Record<string, ProjectSummary> = {
+  'two-in-one': {
+    id: 'two-in-one',
+    groupId: 'research',
+    groupLabel: '科研',
+    shortTitle: 'Two in One：雨天红外-可见光融合',
+    status: 'IEEE/CAA JAS 录用'
+  },
+  'dehazing-fusion': {
+    id: 'dehazing-fusion',
+    groupId: 'research',
+    groupLabel: '科研',
+    shortTitle: 'Dehazing in Fusion：协同去雾融合',
+    status: 'TIP 在投'
+  },
+  mdaif: {
+    id: 'mdaif',
+    groupId: 'research',
+    groupLabel: '科研',
+    shortTitle: 'MdaIF：语言语义驱动多退化融合',
+    status: 'AAAI 2026 录用'
+  },
+  'rs-opsd': {
+    id: 'rs-opsd',
+    groupId: 'research',
+    groupLabel: '科研',
+    shortTitle: 'RS-OPSD：遥感 VQA 特权自蒸馏',
+    status: 'ICLR 在投'
+  },
+  grasp: {
+    id: 'grasp',
+    groupId: 'research',
+    groupLabel: '科研',
+    shortTitle: 'GRASP：遥感推理分割策略学习',
+    status: 'TGRS 在投'
+  },
+  dcdb: {
+    id: 'dcdb',
+    groupId: 'research',
+    groupLabel: '科研',
+    shortTitle: 'DCDB：动态条件双扩散桥',
+    status: 'arXiv 预印本'
+  },
+  'hydrogen-economy': {
+    id: 'hydrogen-economy',
+    groupId: 'research',
+    groupLabel: '科研',
+    shortTitle: '氢能产业终端促进企业低碳转型',
+    status: '省级二等奖'
+  },
+  'tcm-llm': {
+    id: 'tcm-llm',
+    groupId: 'build',
+    groupLabel: '工程',
+    shortTitle: 'TCM-LLM：老年认知医患协同评估',
+    status: '横向在研'
+  },
+  'livestream-rag': {
+    id: 'livestream-rag',
+    groupId: 'build',
+    groupLabel: '工程',
+    shortTitle: 'LiveStreamRAG：直播多模态检索问答',
+    status: '已开源'
+  },
+  'pigeon-eye': {
+    id: 'pigeon-eye',
+    groupId: 'build',
+    groupLabel: '工程',
+    shortTitle: 'PigeonEye-AI：信鸽虹膜检测与检索',
+    status: '已开源'
+  },
+  'fe-teacher': {
+    id: 'fe-teacher',
+    groupId: 'build',
+    groupLabel: '工程',
+    shortTitle: 'FE-Teacher：金融经济教学智能体',
+    status: '已开源'
+  },
+  'search-engine': {
+    id: 'search-engine',
+    groupId: 'build',
+    groupLabel: '工程',
+    shortTitle: '本地文献检索系统',
+    status: '满分课设'
+  },
+  'gnn-anomaly': {
+    id: 'gnn-anomaly',
+    groupId: 'build',
+    groupLabel: '工程',
+    shortTitle: '基于图神经网络的节点异常检测',
+    status: '数据挖掘课设'
+  }
+};
+
+const skillProjectMap: Record<string, string[]> = {
+  Python: ['two-in-one', 'rs-opsd', 'grasp', 'pigeon-eye', 'tcm-llm', 'fe-teacher', 'gnn-anomaly'],
+  'C++': ['pigeon-eye'],
+  R: ['hydrogen-economy'],
+  MATLAB: ['two-in-one', 'dehazing-fusion', 'hydrogen-economy'],
+  Lingo: ['hydrogen-economy'],
+  计算机视觉: ['two-in-one', 'dehazing-fusion', 'mdaif', 'rs-opsd', 'grasp', 'dcdb', 'pigeon-eye'],
+  图像融合: ['two-in-one', 'dehazing-fusion', 'mdaif', 'dcdb'],
+  多模态微调: ['mdaif', 'rs-opsd', 'grasp', 'search-engine'],
+  自蒸馏与强化学习: ['rs-opsd', 'grasp'],
+  图神经网络: ['gnn-anomaly'],
+  信息检索: ['search-engine', 'livestream-rag', 'fe-teacher', 'pigeon-eye'],
+  PyTorch: ['two-in-one', 'dehazing-fusion', 'mdaif', 'rs-opsd', 'grasp', 'dcdb', 'pigeon-eye', 'gnn-anomaly'],
+  React: ['tcm-llm', 'fe-teacher', 'search-engine'],
+  'LLaMA Factory': ['mdaif', 'rs-opsd', 'search-engine'],
+  DeepSpeed: ['rs-opsd', 'grasp', 'mdaif'],
+  Docker: ['tcm-llm', 'search-engine'],
+  Git: ['pigeon-eye', 'fe-teacher', 'livestream-rag'],
+  Conda: ['two-in-one', 'rs-opsd', 'grasp'],
+  VSCode: ['tcm-llm', 'fe-teacher', 'pigeon-eye'],
+  Lucene: ['search-engine'],
+  Grobid: ['search-engine'],
+  'ONNX Runtime': ['pigeon-eye'],
+  Flask: ['search-engine'],
+  OCR: ['livestream-rag'],
+  RAG: ['livestream-rag', 'fe-teacher'],
+  SAM2: ['grasp'],
+  Codex: ['tcm-llm', 'fe-teacher', 'rs-opsd'],
+  Antigravity: ['tcm-llm', 'fe-teacher', 'pigeon-eye'],
+  OpenCode: ['tcm-llm', 'fe-teacher'],
+  WorkBuddy: ['tcm-llm', 'fe-teacher'],
+  'CC-Switch': ['tcm-llm', 'fe-teacher']
+};
+
 const skills = [
   {
     category: '编程语言',
@@ -32,21 +168,270 @@ const skills = [
     <p>
       围绕视觉与多模态模型训练、全栈系统开发及端侧部署构建工具链，并在日常实验与工程迭代中融入 AI Agent 辅助工作流。
     </p>
+    <p class="skills__hint">悬停（移动端轻触）技能标签可查看关联项目，点击即可直达对应项目卡片。</p>
   </div>
 
   <div class="skills__grid">
-    {skills.map(({ category, items }) => (
+    {skills.map(({ category, items }, catIndex) => (
       <article class="skills__category">
         <h3 class="skills__category-title">{category}</h3>
         <ul class="skills__list">
-          {items.map((item) => (
-            <li class="skills__item">{item}</li>
-          ))}
+          {items.map((item, itemIndex) => {
+            const relatedProjects = (skillProjectMap[item] ?? [])
+              .map((projectId) => projectCatalog[projectId])
+              .filter(Boolean);
+            const popoverId = `skill-popover-${catIndex}-${itemIndex}`;
+
+            return (
+              <li class="skills__item" data-skill-item>
+                <button
+                  type="button"
+                  class="skills__chip"
+                  aria-expanded="false"
+                  aria-controls={popoverId}
+                  data-cursor-hover
+                >
+                  <span class="skills__chip-label">{item}</span>
+                  <span class="skills__chip-count" aria-label={`关联 ${relatedProjects.length} 个项目`}>
+                    {relatedProjects.length}
+                  </span>
+                </button>
+
+                {relatedProjects.length > 0 && (
+                  <div
+                    id={popoverId}
+                    class="skills__popover"
+                    role="region"
+                    aria-label={`${item} 关联项目`}
+                    hidden
+                  >
+                    <div class="skills__popover-head">
+                      <span class="skills__popover-title">{item} · 关联项目</span>
+                      <span class="skills__popover-count">{relatedProjects.length} 项</span>
+                    </div>
+                    <ul class="skills__project-list">
+                      {relatedProjects.map((proj) => (
+                        <li>
+                          <button
+                            type="button"
+                            class="skills__project-link"
+                            data-project-id={proj.id}
+                            data-group-id={proj.groupId}
+                            data-cursor-hover
+                          >
+                            <span
+                              class={`skills__project-badge skills__project-badge--${proj.groupId}`}
+                            >
+                              {proj.groupLabel}
+                            </span>
+                            <span class="skills__project-main">
+                              <span class="skills__project-name">{proj.shortTitle}</span>
+                              <span class="skills__project-status">{proj.status}</span>
+                            </span>
+                            <span class="skills__project-arrow" aria-hidden="true">↗</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </article>
     ))}
   </div>
 </section>
+
+<script>
+  const initSkillProjectPopovers = () => {
+    const items = Array.from(document.querySelectorAll<HTMLElement>('[data-skill-item]'));
+    if (items.length === 0) return;
+
+    const hoverMedia = window.matchMedia('(hover: hover) and (pointer: fine)');
+    let activeItem: HTMLElement | null = null;
+    let closeTimer: number | null = null;
+
+    const clearCloseTimer = () => {
+      if (closeTimer !== null) {
+        window.clearTimeout(closeTimer);
+        closeTimer = null;
+      }
+    };
+
+    const closeItem = (item: HTMLElement | null) => {
+      if (!item) return;
+      item.classList.remove('is-open');
+      item.closest('.skills__category')?.classList.remove('has-open-popover');
+      const chip = item.querySelector<HTMLButtonElement>('.skills__chip');
+      const popover = item.querySelector<HTMLElement>('.skills__popover');
+      if (chip) chip.setAttribute('aria-expanded', 'false');
+      if (popover) {
+        popover.setAttribute('hidden', '');
+        popover.style.removeProperty('--popover-shift-x');
+        delete popover.dataset.placement;
+      }
+      if (activeItem === item) activeItem = null;
+    };
+
+    const closeAll = () => {
+      clearCloseTimer();
+      items.forEach((item) => {
+        if (item.classList.contains('is-open')) {
+          closeItem(item);
+        }
+      });
+      activeItem = null;
+    };
+
+    const positionPopover = (item: HTMLElement) => {
+      const chip = item.querySelector<HTMLButtonElement>('.skills__chip');
+      const popover = item.querySelector<HTMLElement>('.skills__popover');
+      if (!chip || !popover) return;
+
+      popover.style.setProperty('--popover-shift-x', '0px');
+      const chipRect = chip.getBoundingClientRect();
+
+      // 先临时测定尺寸与上下空间，优先向下展开
+      popover.dataset.placement = 'bottom';
+      const popRect = popover.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - chipRect.bottom;
+      const spaceAbove = chipRect.top;
+      const neededHeight = popRect.height + 16;
+
+      if (spaceBelow < neededHeight && spaceAbove > spaceBelow) {
+        popover.dataset.placement = 'top';
+      } else {
+        popover.dataset.placement = 'bottom';
+      }
+
+      const adjustedRect = popover.getBoundingClientRect();
+      const margin = 12;
+      let shiftX = 0;
+
+      if (adjustedRect.left < margin) {
+        shiftX = margin - adjustedRect.left;
+      } else if (adjustedRect.right > window.innerWidth - margin) {
+        shiftX = window.innerWidth - margin - adjustedRect.right;
+      }
+
+      if (shiftX !== 0) {
+        popover.style.setProperty('--popover-shift-x', `${Math.round(shiftX)}px`);
+      }
+    };
+
+    const openItem = (item: HTMLElement) => {
+      clearCloseTimer();
+      if (activeItem && activeItem !== item) {
+        closeItem(activeItem);
+      }
+
+      const chip = item.querySelector<HTMLButtonElement>('.skills__chip');
+      const popover = item.querySelector<HTMLElement>('.skills__popover');
+      if (!chip || !popover) return;
+
+      item.classList.add('is-open');
+      item.closest('.skills__category')?.classList.add('has-open-popover');
+      chip.setAttribute('aria-expanded', 'true');
+      popover.removeAttribute('hidden');
+      activeItem = item;
+      positionPopover(item);
+    };
+
+    const dispatchNavigate = (projectId: string, groupId: string) => {
+      const fire = () => {
+        window.dispatchEvent(
+          new CustomEvent('navigate-to-project', {
+            detail: { projectId, groupId }
+          })
+        );
+      };
+
+      fire();
+
+      // 若用户直接通过锚点进入页面而尚未触发 #projects 岛组件水合，先滚入视口等待水合后再精准定位一次
+      if (!(window as unknown as { __projectShowcaseReady?: boolean }).__projectShowcaseReady) {
+        const projectsSection = document.getElementById('projects');
+        projectsSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        let attempts = 0;
+        const retryTimer = window.setInterval(() => {
+          attempts += 1;
+          if ((window as unknown as { __projectShowcaseReady?: boolean }).__projectShowcaseReady) {
+            window.clearInterval(retryTimer);
+            fire();
+          } else if (attempts >= 20) {
+            window.clearInterval(retryTimer);
+          }
+        }, 80);
+      }
+    };
+
+    items.forEach((item) => {
+      const chip = item.querySelector<HTMLButtonElement>('.skills__chip');
+      const projectLinks = item.querySelectorAll<HTMLButtonElement>('.skills__project-link');
+
+      item.addEventListener('mouseenter', () => {
+        if (!hoverMedia.matches) return;
+        openItem(item);
+      });
+
+      item.addEventListener('mouseleave', () => {
+        if (!hoverMedia.matches) return;
+        clearCloseTimer();
+        closeTimer = window.setTimeout(() => {
+          closeItem(item);
+        }, 140);
+      });
+
+      chip?.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (item.classList.contains('is-open')) {
+          closeItem(item);
+        } else {
+          openItem(item);
+        }
+      });
+
+      projectLinks.forEach((btn) => {
+        btn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const projectId = btn.dataset.projectId;
+          const groupId = btn.dataset.groupId || 'research';
+          closeAll();
+          if (projectId) {
+            dispatchNavigate(projectId, groupId);
+          }
+        });
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!activeItem) return;
+      const target = event.target instanceof Node ? event.target : null;
+      if (target && activeItem.contains(target)) return;
+      closeAll();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && activeItem) {
+        const prevChip = activeItem.querySelector<HTMLButtonElement>('.skills__chip');
+        closeAll();
+        prevChip?.focus();
+      }
+    });
+
+    window.addEventListener(
+      'resize',
+      () => {
+        if (activeItem) positionPopover(activeItem);
+      },
+      { passive: true }
+    );
+  };
+
+  initSkillProjectPopovers();
+</script>
 
 <style>
   .skills {
@@ -71,6 +456,12 @@ const skills = [
     line-height: 1.85;
   }
 
+  .skills__hint {
+    margin-top: var(--space-xs);
+    font-size: 0.84rem;
+    color: var(--color-text-subtle);
+  }
+
   .skills__grid {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -78,8 +469,14 @@ const skills = [
   }
 
   .skills__category {
+    position: relative;
+    z-index: 1;
     padding-top: var(--space-md);
     border-top: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  .skills__category.has-open-popover {
+    z-index: 30;
   }
 
   .skills__category-title {
@@ -99,22 +496,241 @@ const skills = [
   }
 
   .skills__item {
+    position: relative;
+    z-index: 1;
+  }
+
+  .skills__item.is-open {
+    z-index: 40;
+  }
+
+  .skills__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
     padding: var(--space-xs) var(--space-sm);
     background: rgba(255, 255, 255, 0.72);
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 6px;
+    font-family: inherit;
     font-size: 0.86rem;
+    line-height: 1.4;
     color: var(--color-text-muted);
+    cursor: pointer;
     transition:
       background var(--duration-fast),
       border-color var(--duration-fast),
+      color var(--duration-fast),
+      transform var(--duration-fast);
+  }
+
+  .skills__chip-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: rgba(156, 91, 56, 0.1);
+    color: var(--color-primary-ink);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1;
+    transition:
+      background var(--duration-fast),
       color var(--duration-fast);
   }
 
-  .skills__item:hover {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(184, 112, 74, 0.3);
+  .skills__item:hover .skills__chip,
+  .skills__item.is-open .skills__chip,
+  .skills__chip:focus-visible {
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(192, 90, 70, 0.42);
     color: var(--color-text);
+  }
+
+  .skills__item.is-open .skills__chip {
+    box-shadow: 0 4px 14px -6px rgba(192, 90, 70, 0.32);
+  }
+
+  .skills__item:hover .skills__chip-count,
+  .skills__item.is-open .skills__chip-count {
+    background: rgba(192, 90, 70, 0.18);
+  }
+
+  .skills__chip:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .skills__popover {
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 8px);
+    transform: translateX(calc(-50% + var(--popover-shift-x, 0px)));
+    width: min(312px, calc(100vw - 24px));
+    padding: 0.72rem;
+    border-radius: 10px;
+    border: 1px solid rgba(44, 40, 37, 0.14);
+    background: rgba(252, 250, 247, 0.97);
+    backdrop-filter: blur(12px);
+    box-shadow:
+      0 18px 42px -12px rgba(44, 40, 37, 0.2),
+      0 2px 6px rgba(44, 40, 37, 0.06);
+    animation: skillPopoverIn 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* 透明悬停桥接区，防止指针跨越 8px 缝隙时提前触发 mouseleave */
+  .skills__popover::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 12px;
+    top: -12px;
+  }
+
+  .skills__popover[data-placement='top'] {
+    top: auto;
+    bottom: calc(100% + 8px);
+  }
+
+  .skills__popover[data-placement='top']::before {
+    top: auto;
+    bottom: -12px;
+  }
+
+  .skills__popover[hidden] {
+    display: none;
+  }
+
+  @keyframes skillPopoverIn {
+    from {
+      opacity: 0;
+      transform: translateX(calc(-50% + var(--popover-shift-x, 0px))) translateY(4px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(calc(-50% + var(--popover-shift-x, 0px))) translateY(0) scale(1);
+    }
+  }
+
+  .skills__popover-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0 0.25rem 0.5rem;
+    margin-bottom: 0.42rem;
+    border-bottom: 1px solid rgba(44, 40, 37, 0.08);
+  }
+
+  .skills__popover-title {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .skills__popover-count {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--color-primary-ink);
+  }
+
+  .skills__project-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+    max-height: min(260px, 46vh);
+    overflow-y: auto;
+  }
+
+  .skills__project-link {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.52rem;
+    padding: 0.46rem 0.52rem;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--color-text);
+    text-align: left;
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+      background var(--duration-fast),
+      border-color var(--duration-fast),
+      transform var(--duration-fast);
+  }
+
+  .skills__project-link:hover,
+  .skills__project-link:focus-visible {
+    background: rgba(192, 90, 70, 0.08);
+    border-color: rgba(192, 90, 70, 0.24);
+    outline: none;
+  }
+
+  .skills__project-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.66rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .skills__project-badge--research {
+    background: rgba(192, 90, 70, 0.12);
+    color: var(--color-primary-ink);
+  }
+
+  .skills__project-badge--build {
+    background: rgba(122, 155, 184, 0.18);
+    color: var(--color-accent-cool-ink);
+  }
+
+  .skills__project-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .skills__project-name {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--color-text);
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .skills__project-status {
+    font-size: 0.68rem;
+    color: var(--color-text-subtle);
+    line-height: 1.2;
+  }
+
+  .skills__project-arrow {
+    font-size: 0.78rem;
+    color: var(--color-text-subtle);
+    transition:
+      transform var(--duration-fast),
+      color var(--duration-fast);
+  }
+
+  .skills__project-link:hover .skills__project-arrow,
+  .skills__project-link:focus-visible .skills__project-arrow {
+    color: var(--color-primary-ink);
+    transform: translate(2px, -2px);
   }
 
   @media (max-width: 1100px) {
@@ -141,6 +757,12 @@ const skills = [
     .skills__grid {
       grid-template-columns: 1fr;
       gap: var(--space-lg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skills__popover {
+      animation: none;
     }
   }
 </style>

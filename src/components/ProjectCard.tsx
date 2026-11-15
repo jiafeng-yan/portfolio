@@ -126,6 +126,8 @@ export function ProjectCard({ project }: Props) {
 
   return (
     <article
+      id={`project-${project.id}`}
+      data-project-id={project.id}
       ref={cardRef}
       className="project-card spotlight-card"
       data-cursor-hover

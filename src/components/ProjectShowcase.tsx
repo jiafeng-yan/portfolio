@@ -49,9 +49,41 @@ const MOBILE_DECK_QUERY = '(max-width: 900px)';
 const DRAG_LOCK_PX = 10;
 const SWIPE_DISTANCE_PX = 46;
 const SWIPE_VELOCITY = 0.32;
-const NORMAL_LEAVE_MS = 280;
-const WRAP_LEAVE_MS = 440;
+const NORMAL_LEAVE_MS = 260;
+const WRAP_LEAVE_MS = 280;
 const WRAP_NOTICE_MS = 1800;
+const TARGET_HIGHLIGHT_MS = 2600;
+
+let activeHighlightTimer: number | null = null;
+let activeHighlightedCard: HTMLElement | null = null;
+
+function highlightTargetCard(projectId: string) {
+  if (activeHighlightTimer !== null) {
+    window.clearTimeout(activeHighlightTimer);
+    activeHighlightTimer = null;
+  }
+  if (activeHighlightedCard) {
+    activeHighlightedCard.classList.remove('is-targeted');
+    activeHighlightedCard = null;
+  }
+
+  const cardEl = document.querySelector<HTMLElement>(`.project-card[data-project-id="${projectId}"]`);
+  if (!cardEl) return;
+
+  // 触发重排以确保重复定位同一张卡片时也能重播脉冲动画
+  cardEl.classList.remove('is-targeted');
+  void cardEl.offsetWidth;
+  cardEl.classList.add('is-targeted');
+  activeHighlightedCard = cardEl;
+
+  activeHighlightTimer = window.setTimeout(() => {
+    cardEl.classList.remove('is-targeted');
+    if (activeHighlightedCard === cardEl) {
+      activeHighlightedCard = null;
+    }
+    activeHighlightTimer = null;
+  }, TARGET_HIGHLIGHT_MS);
+}
 
 function formatIndex(value: number) {
   return String(value).padStart(2, '0');
@@ -74,7 +106,7 @@ function getRestingTransform(depth: number, total: number, dragProgress: number,
   if (depth === 2 && total >= 3) {
     const y = 18 - 9 * dragProgress;
     const scale = 0.92 + 0.04 * dragProgress;
-    return { y, scale, opacity: 0.96 };
+    return { y, scale, opacity: 1 };
   }
   return { y: 22, scale: 0.9, opacity: 0 };
 }
@@ -109,15 +141,16 @@ function ProjectDeckPanel({
   const total = group.projects.length;
   const [activeIndex, setActiveIndex] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [dragX, setDragX] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
   const [leaving, setLeaving] = useState<LeavingState | null>(null);
   const [wrapNotice, setWrapNotice] = useState<WrapNotice | null>(null);
 
+  const panelRef = useRef<HTMLElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
   const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const leaveTimerRef = useRef<number | null>(null);
   const noticeTimerRef = useRef<number | null>(null);
+  const dragRafRef = useRef<number | null>(null);
+  const dragXRef = useRef(0);
 
   const gestureRef = useRef<{
     pointerId: number | null;
@@ -149,25 +182,57 @@ function ProjectDeckPanel({
     }
   }, []);
 
+  const clearDragVisuals = useCallback(() => {
+    if (dragRafRef.current !== null) {
+      window.cancelAnimationFrame(dragRafRef.current);
+      dragRafRef.current = null;
+    }
+    dragXRef.current = 0;
+    const cardsEl = cardsRef.current;
+    if (!cardsEl) return;
+    cardsEl.classList.remove('is-dragging', 'is-pulling-right');
+    cardsEl.style.removeProperty('--drag-x');
+    cardsEl.style.removeProperty('--drag-y');
+    cardsEl.style.removeProperty('--drag-rot');
+    cardsEl.style.removeProperty('--drag-progress');
+  }, []);
+
+  const applyDragVisuals = useCallback(() => {
+    dragRafRef.current = null;
+    const cardsEl = cardsRef.current;
+    if (!cardsEl) return;
+
+    const dx = dragXRef.current;
+    const dy = -Math.min(6, Math.abs(dx) * 0.035);
+    const rot = Math.max(-6, Math.min(6, dx * 0.03));
+    const progress = Math.min(1, Math.abs(dx) / 140);
+
+    cardsEl.style.setProperty('--drag-x', `${dx}px`);
+    cardsEl.style.setProperty('--drag-y', `${dy}px`);
+    cardsEl.style.setProperty('--drag-rot', `${rot}deg`);
+    cardsEl.style.setProperty('--drag-progress', progress.toFixed(4));
+    cardsEl.classList.toggle('is-pulling-right', dx > 4);
+  }, []);
+
   useEffect(() => {
     return () => {
       clearLeaveTimer();
       clearNoticeTimer();
+      clearDragVisuals();
     };
-  }, [clearLeaveTimer, clearNoticeTimer]);
+  }, [clearLeaveTimer, clearNoticeTimer, clearDragVisuals]);
 
   // 切换到桌面端时清理移动端状态，避免残留 inline 状态
   useEffect(() => {
     if (!isMobileDeck) {
       clearLeaveTimer();
       clearNoticeTimer();
+      clearDragVisuals();
       setDrawerOpen(false);
-      setDragX(0);
-      setIsDragging(false);
       setLeaving(null);
       setWrapNotice(null);
     }
-  }, [isMobileDeck, clearLeaveTimer, clearNoticeTimer]);
+  }, [isMobileDeck, clearLeaveTimer, clearNoticeTimer, clearDragVisuals]);
 
   // 控制背景垫卡的 inert，避免桌面与移动端无障碍焦点错位
   useEffect(() => {
@@ -182,6 +247,7 @@ function ProjectDeckPanel({
       if (total <= 1) return;
 
       clearLeaveTimer();
+      clearDragVisuals();
       const nextIndex =
         direction === 'next'
           ? (activeIndex + 1) % total
@@ -199,8 +265,6 @@ function ProjectDeckPanel({
         startRot
       });
       setActiveIndex(nextIndex);
-      setDragX(0);
-      setIsDragging(false);
       setDrawerOpen(false);
 
       if (isWrap) {
@@ -227,32 +291,56 @@ function ProjectDeckPanel({
         leaveTimerRef.current = null;
       }, duration);
     },
-    [activeIndex, total, clearLeaveTimer, clearNoticeTimer]
+    [activeIndex, total, clearLeaveTimer, clearNoticeTimer, clearDragVisuals]
   );
 
   const jumpToCard = useCallback(
     (targetIndex: number) => {
       if (targetIndex < 0 || targetIndex >= total) return;
       setDrawerOpen(false);
+      clearDragVisuals();
       if (targetIndex === activeIndex) return;
 
       clearLeaveTimer();
       clearNoticeTimer();
       setLeaving(null);
       setWrapNotice(null);
-      setDragX(0);
-      setIsDragging(false);
       setActiveIndex(targetIndex);
     },
-    [activeIndex, total, clearLeaveTimer, clearNoticeTimer]
+    [activeIndex, total, clearLeaveTimer, clearNoticeTimer, clearDragVisuals]
   );
+
+  useEffect(() => {
+    const handleNavigate = (event: Event) => {
+      if (!window.matchMedia(MOBILE_DECK_QUERY).matches) return;
+      const detail = (event as CustomEvent<{ projectId?: string; groupId?: string }>).detail;
+      if (!detail?.projectId) return;
+
+      const targetIndex = group.projects.findIndex((project) => project.id === detail.projectId);
+      if (targetIndex === -1) return;
+
+      jumpToCard(targetIndex);
+      window.requestAnimationFrame(() => {
+        const panelEl = panelRef.current;
+        if (!panelEl) return;
+        const rect = panelEl.getBoundingClientRect();
+        const targetY = Math.max(0, rect.top + window.scrollY - 76);
+        window.scrollTo({ top: targetY, behavior: 'smooth' });
+        highlightTargetCard(detail.projectId!);
+      });
+    };
+
+    window.addEventListener('navigate-to-project', handleNavigate);
+    return () => {
+      window.removeEventListener('navigate-to-project', handleNavigate);
+    };
+  }, [group.projects, jumpToCard]);
 
   const resetDrag = useCallback(() => {
     gestureRef.current.pointerId = null;
     gestureRef.current.lock = 'none';
-    setIsDragging(false);
-    setDragX(0);
-  }, []);
+    clearDragVisuals();
+  }, [clearDragVisuals]);
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!isMobileDeck || total <= 1) return;
@@ -288,7 +376,7 @@ function ProjectDeckPanel({
       }
       if (Math.abs(dx) > DRAG_LOCK_PX && Math.abs(dx) > Math.abs(dy) * 1.15) {
         gesture.lock = 'horizontal';
-        setIsDragging(true);
+        cardsRef.current?.classList.add('is-dragging');
         try {
           cardsRef.current?.setPointerCapture(event.pointerId);
         } catch {
@@ -300,8 +388,10 @@ function ProjectDeckPanel({
     }
 
     event.preventDefault();
-    const clampedDx = Math.max(-220, Math.min(220, dx));
-    setDragX(clampedDx);
+    dragXRef.current = Math.max(-220, Math.min(220, dx));
+    if (dragRafRef.current === null) {
+      dragRafRef.current = window.requestAnimationFrame(applyDragVisuals);
+    }
   };
 
   const finishGesture = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -318,10 +408,11 @@ function ProjectDeckPanel({
 
       if (shouldCommit) {
         const direction: 'next' | 'prev' = dx < 0 ? 'next' : 'prev';
-        const rot = Math.max(-6, Math.min(6, dx * 0.03));
+        const clampedDx = Math.max(-220, Math.min(220, dx));
+        const rot = Math.max(-6, Math.min(6, clampedDx * 0.03));
         gestureRef.current.pointerId = null;
         gestureRef.current.lock = 'none';
-        stepDeck(direction, dx, rot);
+        stepDeck(direction, clampedDx, rot);
         return;
       }
     }
@@ -340,10 +431,6 @@ function ProjectDeckPanel({
     }
   };
 
-  const dragProgress = isDragging ? Math.min(1, Math.abs(dragX) / 140) : 0;
-  const activeRotation = isDragging ? Math.max(-6, Math.min(6, dragX * 0.03)) : 0;
-  const isPullingRight = isDragging && dragX > 4;
-
   const boundaryHint = wrapNotice
     ? wrapNotice.text
     : activeIndex === 0
@@ -354,8 +441,10 @@ function ProjectDeckPanel({
 
   return (
     <section
+      ref={panelRef}
       className="project-showcase__panel spotlight-card"
       data-spotlight
+      data-group-id={group.id}
       aria-labelledby={`${group.id}-title`}
     >
       <header className="project-showcase__header">
@@ -430,6 +519,7 @@ function ProjectDeckPanel({
       <div
         ref={cardsRef}
         className={`project-showcase__cards${isMobileDeck ? ' is-deck-active' : ''}`}
+        style={isMobileDeck ? ({ '--deck-total': total } as React.CSSProperties) : undefined}
         role={isMobileDeck ? 'region' : undefined}
         aria-roledescription={isMobileDeck ? '可循环项目卡堆' : undefined}
         aria-label={isMobileDeck ? `${group.title}卡堆，当前第 ${activeIndex + 1} 项，共 ${total} 项` : undefined}
@@ -442,8 +532,7 @@ function ProjectDeckPanel({
         {group.projects.map((project, index) => {
           const depth = (index - activeIndex + total) % total;
           const isLeavingThis = leaving?.index === index;
-          const isPullTarget = isPullingRight && depth === total - 1;
-          const targetRest = getRestingTransform(depth, total, 0, false);
+          const isPullCandidate = total > 1 && depth === total - 1;
 
           let depthTag = 'hidden';
           if (depth === 0) depthTag = '0';
@@ -452,6 +541,7 @@ function ProjectDeckPanel({
 
           let slotClass = 'project-deck__slot';
           if (isMobileDeck && isLeavingThis && leaving) {
+            slotClass += ' project-deck__slot--is-leaving';
             if (leaving.isWrap) {
               slotClass +=
                 leaving.direction === 'next'
@@ -463,8 +553,6 @@ function ProjectDeckPanel({
                   ? ' project-deck__slot--leave-next'
                   : ' project-deck__slot--leave-prev';
             }
-          } else if (isMobileDeck && isDragging && depth === 0) {
-            slotClass += ' project-deck__slot--dragging';
           }
 
           let slotStyle: React.CSSProperties | undefined;
@@ -473,29 +561,17 @@ function ProjectDeckPanel({
               slotStyle = {
                 '--leave-start-x': `${leaving.startX}px`,
                 '--leave-start-rot': `${leaving.startRot}deg`,
-                '--settle-y': `${targetRest.y}px`,
-                '--settle-scale': targetRest.scale,
-                '--settle-opacity': targetRest.opacity
+                pointerEvents: 'none'
               } as React.CSSProperties;
             } else if (depth === 0) {
               slotStyle = {
                 zIndex: total + 2,
                 opacity: 1,
-                transform: isDragging
-                  ? `translate3d(${dragX}px, ${-Math.min(6, Math.abs(dragX) * 0.035)}px, 0) rotate(${activeRotation}deg)`
-                  : 'translate3d(0, 0, 0) scale(1)',
+                transform: 'translate3d(0, 0, 0) scale(1)',
                 pointerEvents: 'auto'
               };
-            } else if (isPullTarget) {
-              const pullRest = getRestingTransform(depth, total, dragProgress, true);
-              slotStyle = {
-                zIndex: total + 1,
-                opacity: pullRest.opacity,
-                transform: `translate3d(0, ${pullRest.y}px, 0) scale(${pullRest.scale})`,
-                pointerEvents: 'none'
-              };
             } else {
-              const rest = getRestingTransform(depth, total, dragProgress, false);
+              const rest = getRestingTransform(depth, total, 0, false);
               slotStyle = {
                 zIndex: Math.max(1, total - depth),
                 opacity: rest.opacity,
@@ -513,6 +589,7 @@ function ProjectDeckPanel({
               }}
               className={slotClass}
               data-deck-depth={isMobileDeck ? depthTag : undefined}
+              data-pull-candidate={isMobileDeck && isPullCandidate ? 'true' : undefined}
               aria-hidden={isMobileDeck ? index !== activeIndex : undefined}
               style={slotStyle}
             >
@@ -838,6 +915,107 @@ export function ProjectShowcase({ groups }: Props) {
     };
   }, [hideGutterHint, scheduleGutterFadeOut, showGutterHint, updateGutterPosition]);
 
+  useEffect(() => {
+    const win = window as unknown as { __projectShowcaseReady?: boolean };
+    win.__projectShowcaseReady = true;
+    let navTimers: number[] = [];
+    let navLockUntil = 0;
+
+    const clearNavTimers = () => {
+      navTimers.forEach((id) => window.clearTimeout(id));
+      navTimers = [];
+    };
+
+    const clearTargetLock = () => {
+      showcaseRef.current?.removeAttribute('data-target-group');
+    };
+
+    const handleShowcasePointerMove = () => {
+      if (!showcaseRef.current?.hasAttribute('data-target-group')) return;
+      if (performance.now() < navLockUntil) return;
+      clearTargetLock();
+    };
+
+    const handleShowcaseMouseLeave = () => {
+      if (!showcaseRef.current?.hasAttribute('data-target-group')) return;
+      if (performance.now() < navLockUntil) return;
+      clearTargetLock();
+    };
+
+    const handleNavigateDesktop = (event: Event) => {
+      if (window.matchMedia(MOBILE_DECK_QUERY).matches) return;
+      const detail = (event as CustomEvent<{ projectId?: string; groupId?: string }>).detail;
+      const projectId = detail?.projectId;
+      const showcase = showcaseRef.current;
+      if (!projectId || !showcase) return;
+
+      const cardEl = showcase.querySelector<HTMLElement>(`.project-card[data-project-id="${projectId}"]`);
+      const cardsEl = cardEl?.closest<HTMLDivElement>('.project-showcase__cards');
+      const panelEl = cardEl?.closest<HTMLElement>('.project-showcase__panel');
+      if (!cardEl || !cardsEl) return;
+
+      const targetGroup = detail?.groupId || panelEl?.dataset.groupId || '';
+      if (targetGroup) {
+        showcase.dataset.targetGroup = targetGroup;
+      }
+
+      clearNavTimers();
+      navLockUntil = performance.now() + 920;
+
+      // 外层页面定位至双栏展示区，内层列表同步居中滚动至目标项目卡片
+      const showcaseRect = showcase.getBoundingClientRect();
+      const navOffset = 84;
+      const availableHeight = Math.max(320, window.innerHeight - navOffset);
+      const centeredTop =
+        showcaseRect.top +
+        window.scrollY -
+        navOffset -
+        Math.max(0, (availableHeight - showcaseRect.height) * 0.5);
+
+      window.scrollTo({
+        top: Math.max(0, centeredTop),
+        behavior: 'smooth'
+      });
+
+      const scrollCardInColumn = (behavior: ScrollBehavior, onlyIfOffByPx = 0) => {
+        const cardsRect = cardsEl.getBoundingClientRect();
+        const cardRect = cardEl.getBoundingClientRect();
+        const maxInnerScroll = Math.max(0, cardsEl.scrollHeight - cardsEl.clientHeight);
+        const desired =
+          cardsEl.scrollTop +
+          (cardRect.top - cardsRect.top) -
+          Math.max(12, (cardsEl.clientHeight - cardRect.height) / 2);
+        const clamped = Math.max(0, Math.min(maxInnerScroll, desired));
+        if (onlyIfOffByPx > 0 && Math.abs(cardsEl.scrollTop - clamped) <= onlyIfOffByPx) {
+          return;
+        }
+        cardsEl.scrollTo({
+          top: clamped,
+          behavior
+        });
+      };
+
+      scrollCardInColumn('smooth');
+      // 栏宽从 50% -> 62% 过渡期间卡片高度会重排，二次校准保证始终居中落位
+      navTimers.push(window.setTimeout(() => scrollCardInColumn('smooth', 6), 420));
+      navTimers.push(window.setTimeout(() => scrollCardInColumn('smooth', 4), 820));
+
+      highlightTargetCard(projectId);
+    };
+
+    const showcaseEl = showcaseRef.current;
+    showcaseEl?.addEventListener('pointermove', handleShowcasePointerMove, { passive: true });
+    showcaseEl?.addEventListener('mouseleave', handleShowcaseMouseLeave);
+    window.addEventListener('navigate-to-project', handleNavigateDesktop);
+    return () => {
+      delete win.__projectShowcaseReady;
+      clearNavTimers();
+      showcaseEl?.removeEventListener('pointermove', handleShowcasePointerMove);
+      showcaseEl?.removeEventListener('mouseleave', handleShowcaseMouseLeave);
+      window.removeEventListener('navigate-to-project', handleNavigateDesktop);
+    };
+  }, []);
+
   const gutterStateClass = `is-${gutterHint.direction}${gutterHint.visible ? ' is-visible' : ''}`;
 
   return (
@@ -910,22 +1088,39 @@ export function ProjectShowcase({ groups }: Props) {
           overflow: hidden;
         }
 
+        /* 从技能标签直达时优先锁定目标栏焦点，避免页面上滚后静态指针误触邻栏导致目标栏被挤压变暗 */
+        .project-showcase[data-target-group='research'] .project-showcase__panel[data-group-id='research'],
+        .project-showcase[data-target-group='build'] .project-showcase__panel[data-group-id='build'] {
+          flex-basis: calc((100% - var(--showcase-gap)) * 0.62);
+          background: rgba(255, 255, 255, 0.86);
+          border-color: rgba(26, 26, 26, 0.32);
+          transform: translateY(-4px);
+          opacity: 1;
+        }
+
+        .project-showcase[data-target-group='research'] .project-showcase__panel[data-group-id='build'],
+        .project-showcase[data-target-group='build'] .project-showcase__panel[data-group-id='research'] {
+          flex-basis: calc((100% - var(--showcase-gap)) * 0.38);
+          opacity: 0.72;
+          transform: translateY(3px);
+        }
+
         /* Modern browsers with :has() support */
         @supports selector(:has(*)) {
-          .project-showcase:has(.project-showcase__panel:first-child:hover) .project-showcase__panel:first-child,
-          .project-showcase:has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:first-child,
-          .project-showcase:has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:nth-child(2),
-          .project-showcase:has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:nth-child(2) {
+          .project-showcase:not([data-target-group]):has(.project-showcase__panel:first-child:hover) .project-showcase__panel:first-child,
+          .project-showcase:not([data-target-group]):has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:first-child,
+          .project-showcase:not([data-target-group]):has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:nth-child(2),
+          .project-showcase:not([data-target-group]):has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:nth-child(2) {
             flex-basis: calc((100% - var(--showcase-gap)) * 0.62);
             background: rgba(255, 255, 255, 0.86);
             border-color: rgba(26, 26, 26, 0.32);
             transform: translateY(-4px);
           }
 
-          .project-showcase:has(.project-showcase__panel:first-child:hover) .project-showcase__panel:nth-child(2),
-          .project-showcase:has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:nth-child(2),
-          .project-showcase:has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:first-child,
-          .project-showcase:has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:first-child {
+          .project-showcase:not([data-target-group]):has(.project-showcase__panel:first-child:hover) .project-showcase__panel:nth-child(2),
+          .project-showcase:not([data-target-group]):has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:nth-child(2),
+          .project-showcase:not([data-target-group]):has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:first-child,
+          .project-showcase:not([data-target-group]):has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:first-child {
             flex-basis: calc((100% - var(--showcase-gap)) * 0.38);
             opacity: 0.72;
             transform: translateY(3px);
@@ -1025,11 +1220,17 @@ export function ProjectShowcase({ groups }: Props) {
           transform: translateY(-2px);
         }
 
+        .project-showcase[data-target-group='research'] .project-showcase__panel[data-group-id='build'] .project-showcase__cards,
+        .project-showcase[data-target-group='build'] .project-showcase__panel[data-group-id='research'] .project-showcase__cards {
+          opacity: 0.72;
+          transform: translateX(4px);
+        }
+
         @supports selector(:has(*)) {
-          .project-showcase:has(.project-showcase__panel:first-child:hover) .project-showcase__panel:nth-child(2) .project-showcase__cards,
-          .project-showcase:has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:nth-child(2) .project-showcase__cards,
-          .project-showcase:has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:first-child .project-showcase__cards,
-          .project-showcase:has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:first-child .project-showcase__cards {
+          .project-showcase:not([data-target-group]):has(.project-showcase__panel:first-child:hover) .project-showcase__panel:nth-child(2) .project-showcase__cards,
+          .project-showcase:not([data-target-group]):has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:nth-child(2) .project-showcase__cards,
+          .project-showcase:not([data-target-group]):has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:first-child .project-showcase__cards,
+          .project-showcase:not([data-target-group]):has(.project-showcase__panel:nth-child(2):focus-within) .project-showcase__panel:first-child .project-showcase__cards {
             opacity: 0.72;
             transform: translateX(4px);
           }
@@ -1147,6 +1348,33 @@ export function ProjectShowcase({ groups }: Props) {
           }
         }
 
+        .project-showcase .project-card.is-targeted,
+        .project-showcase__panel .project-deck__slot[data-deck-depth='0'] .project-card.is-targeted {
+          border-color: rgba(192, 90, 70, 0.78) !important;
+          box-shadow:
+            0 0 0 3px rgba(192, 90, 70, 0.18),
+            0 20px 44px -16px rgba(192, 90, 70, 0.28) !important;
+          animation: projectCardTargetPulse 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes projectCardTargetPulse {
+          0% {
+            box-shadow:
+              0 0 0 0 rgba(192, 90, 70, 0.42),
+              0 14px 30px -14px rgba(192, 90, 70, 0.2);
+          }
+          35% {
+            box-shadow:
+              0 0 0 6px rgba(192, 90, 70, 0.24),
+              0 24px 48px -14px rgba(192, 90, 70, 0.34);
+          }
+          100% {
+            box-shadow:
+              0 0 0 3px rgba(192, 90, 70, 0.18),
+              0 20px 44px -16px rgba(192, 90, 70, 0.28);
+          }
+        }
+
         @media (max-width: 900px) {
           .project-showcase {
             display: grid;
@@ -1158,6 +1386,7 @@ export function ProjectShowcase({ groups }: Props) {
           }
 
           .project-showcase__panel,
+          .project-showcase[data-target-group] .project-showcase__panel,
           .project-showcase:has(.project-showcase__panel:first-child:hover) .project-showcase__panel:first-child,
           .project-showcase:has(.project-showcase__panel:first-child:hover) .project-showcase__panel:nth-child(2),
           .project-showcase:has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:first-child,
@@ -1184,6 +1413,7 @@ export function ProjectShowcase({ groups }: Props) {
 
           .project-showcase__panel:hover .project-showcase__cards,
           .project-showcase__panel:focus-within .project-showcase__cards,
+          .project-showcase[data-target-group] .project-showcase__cards,
           .project-showcase:has(.project-showcase__panel:first-child:hover) .project-showcase__panel:nth-child(2) .project-showcase__cards,
           .project-showcase:has(.project-showcase__panel:first-child:focus-within) .project-showcase__panel:nth-child(2) .project-showcase__cards,
           .project-showcase:has(.project-showcase__panel:nth-child(2):hover) .project-showcase__panel:first-child .project-showcase__cards,
@@ -1324,38 +1554,78 @@ export function ProjectShowcase({ groups }: Props) {
             min-width: 0;
             height: 100%;
             transform-origin: center bottom;
-            will-change: transform, opacity;
-            transition:
-              transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
-              opacity 240ms ease;
+            transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
           }
 
-          .project-deck__slot--dragging {
+          /* 仅对可见叠卡开启 GPU 合成层；隐藏卡立即不可见且零过渡，防止快速连翻或循环时残影重影 */
+          .project-deck__slot[data-deck-depth='0'],
+          .project-deck__slot[data-deck-depth='1'],
+          .project-deck__slot[data-deck-depth='2'],
+          .project-deck__slot--is-leaving {
+            visibility: visible;
+            will-change: transform;
+          }
+
+          .project-deck__slot[data-deck-depth='hidden']:not(.project-deck__slot--is-leaving) {
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
             transition: none;
+            will-change: auto;
+          }
+
+          .project-showcase__cards.is-dragging .project-deck__slot {
+            transition: none !important;
+          }
+
+          .project-showcase__cards.is-dragging .project-deck__slot[data-deck-depth='0'] {
+            transform: translate3d(var(--drag-x, 0px), var(--drag-y, 0px), 0) rotate(var(--drag-rot, 0deg)) !important;
+          }
+
+          .project-showcase__cards.is-dragging .project-deck__slot[data-deck-depth='1'] {
+            transform: translate3d(0, calc(9px * (1 - var(--drag-progress, 0))), 0) scale(calc(0.96 + 0.04 * var(--drag-progress, 0))) !important;
+          }
+
+          .project-showcase__cards.is-dragging .project-deck__slot[data-deck-depth='2'] {
+            transform: translate3d(0, calc(18px * (1 - var(--drag-progress, 0))), 0) scale(calc(0.92 + 0.04 * var(--drag-progress, 0))) !important;
+          }
+
+          .project-showcase__cards.is-dragging.is-pulling-right .project-deck__slot[data-pull-candidate='true']:not(.project-deck__slot--is-leaving) {
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: calc(var(--deck-total, 7) + 1) !important;
+            will-change: transform;
+            transform: translate3d(0, calc(8px * (1 - var(--drag-progress, 0))), 0) scale(calc(0.965 + 0.035 * var(--drag-progress, 0))) !important;
+          }
+
+          .project-showcase__cards.is-dragging.is-pulling-right .project-deck__slot[data-pull-candidate='true'] .project-card {
+            background: #f4efe8;
+            border-color: rgba(44, 40, 37, 0.13);
+            box-shadow: 0 4px 12px rgba(44, 40, 37, 0.05);
           }
 
           .project-deck__slot--leave-next {
             z-index: 30;
             pointer-events: none;
-            animation: deckLeaveNext 280ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: deckLeaveNext 260ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
           }
 
           .project-deck__slot--leave-prev {
             z-index: 30;
             pointer-events: none;
-            animation: deckLeavePrev 280ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: deckLeavePrev 260ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
           }
 
           .project-deck__slot--wrap-next {
             z-index: 30;
             pointer-events: none;
-            animation: deckWrapNext 440ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: deckWrapNext 280ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
           }
 
           .project-deck__slot--wrap-prev {
             z-index: 30;
             pointer-events: none;
-            animation: deckWrapPrev 440ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: deckWrapPrev 280ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
           }
 
           .project-showcase__panel .project-deck__slot .project-card {
@@ -1377,7 +1647,9 @@ export function ProjectShowcase({ groups }: Props) {
 
           /* 实体叠卡分层：每张垫卡用不透明暖纸色，杜绝底层文本透视重影 */
           .project-showcase__panel .project-deck__slot[data-deck-depth='0'] .project-card,
-          .project-showcase__panel .project-deck__slot[data-deck-depth='0'] .project-card:hover {
+          .project-showcase__panel .project-deck__slot[data-deck-depth='0'] .project-card:hover,
+          .project-showcase__panel .project-deck__slot--is-leaving .project-card,
+          .project-showcase__panel .project-deck__slot--is-leaving .project-card:hover {
             background: #fcfaf7;
             border-color: rgba(44, 40, 37, 0.14);
             box-shadow: 0 10px 26px rgba(44, 40, 37, 0.08), 0 1px 2px rgba(44, 40, 37, 0.04);
@@ -1508,6 +1780,9 @@ export function ProjectShowcase({ groups }: Props) {
             transform: translate3d(var(--leave-start-x, 0px), 0, 0) rotate(var(--leave-start-rot, 0deg)) scale(1);
             opacity: 1;
           }
+          58% {
+            opacity: 1;
+          }
           100% {
             transform: translate3d(-112%, -8px, 0) rotate(-4.5deg) scale(0.96);
             opacity: 0;
@@ -1519,6 +1794,9 @@ export function ProjectShowcase({ groups }: Props) {
             transform: translate3d(var(--leave-start-x, 0px), 0, 0) rotate(var(--leave-start-rot, 0deg)) scale(1);
             opacity: 1;
           }
+          58% {
+            opacity: 1;
+          }
           100% {
             transform: translate3d(112%, -8px, 0) rotate(4.5deg) scale(0.96);
             opacity: 0;
@@ -1527,43 +1805,29 @@ export function ProjectShowcase({ groups }: Props) {
 
         @keyframes deckWrapNext {
           0% {
-            z-index: 30;
             transform: translate3d(var(--leave-start-x, 0px), 0, 0) rotate(var(--leave-start-rot, 0deg)) scale(1);
             opacity: 1;
           }
-          45% {
-            z-index: 30;
-            transform: translate3d(-74%, -6px, 0) rotate(-3.5deg) scale(0.96);
-            opacity: 0.96;
-          }
-          46% {
-            z-index: 1;
+          58% {
+            opacity: 1;
           }
           100% {
-            z-index: 1;
-            transform: translate3d(0, var(--settle-y, 18px), 0) rotate(0deg) scale(var(--settle-scale, 0.92));
-            opacity: var(--settle-opacity, 0.96);
+            transform: translate3d(-114%, -10px, 0) rotate(-5.5deg) scale(0.95);
+            opacity: 0;
           }
         }
 
         @keyframes deckWrapPrev {
           0% {
-            z-index: 30;
             transform: translate3d(var(--leave-start-x, 0px), 0, 0) rotate(var(--leave-start-rot, 0deg)) scale(1);
             opacity: 1;
           }
-          45% {
-            z-index: 30;
-            transform: translate3d(74%, -6px, 0) rotate(3.5deg) scale(0.96);
-            opacity: 0.96;
-          }
-          46% {
-            z-index: 1;
+          58% {
+            opacity: 1;
           }
           100% {
-            z-index: 1;
-            transform: translate3d(0, var(--settle-y, 9px), 0) rotate(0deg) scale(var(--settle-scale, 0.96));
-            opacity: var(--settle-opacity, 1);
+            transform: translate3d(114%, -10px, 0) rotate(5.5deg) scale(0.95);
+            opacity: 0;
           }
         }
 
