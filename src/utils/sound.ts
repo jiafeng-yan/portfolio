@@ -47,11 +47,15 @@ class SoundManager {
   private static readonly ATTACK_SEC = 0.006;
   private static readonly TILE_COOLDOWN_MS = 45;
   private static readonly BOUNDARY_COOLDOWN_MS = 220;
+  private static readonly VOLUME_PREVIEW_COOLDOWN_MS = 65;
 
   private enabled = false;
+  private userVolume = 0.8;
+  private lastNonZeroVolume = 0.8;
   private audioContext: AudioContext | null = null;
   private lastTileSoundTime = 0;
   private lastBoundarySoundTime = 0;
+  private lastVolumePreviewTime = 0;
 
   constructor() {
     if (typeof window === 'undefined') return;
@@ -59,6 +63,17 @@ class SoundManager {
     const storedPreference = window.localStorage.getItem('interaction-sound-enabled');
     if (storedPreference !== null) {
       this.enabled = storedPreference === 'true';
+    }
+
+    const storedVolume = window.localStorage.getItem('interaction-sound-volume');
+    if (storedVolume !== null) {
+      const parsed = Number.parseFloat(storedVolume);
+      if (!Number.isNaN(parsed)) {
+        this.userVolume = Math.min(1, Math.max(0, parsed));
+        if (this.userVolume > 0.01) {
+          this.lastNonZeroVolume = this.userVolume;
+        }
+      }
     }
   }
 
@@ -84,7 +99,7 @@ class SoundManager {
     delay = 0,
     type: WaveType = 'sine'
   ) {
-    if (!this.enabled) return;
+    if (!this.enabled || this.userVolume <= 0.005) return;
 
     const context = this.getAudioContext();
     if (!context) return;
@@ -93,7 +108,7 @@ class SoundManager {
     const attackEnd = startTime + Math.min(SoundManager.ATTACK_SEC, duration * 0.35);
     const oscillator = context.createOscillator();
     const gainNode = context.createGain();
-    const peakGain = Math.max(0.0015, volume * SoundManager.VOLUME_SCALE);
+    const peakGain = Math.max(0.0006, volume * SoundManager.VOLUME_SCALE * this.userVolume);
 
     oscillator.connect(gainNode);
     gainNode.connect(context.destination);
@@ -116,7 +131,7 @@ class SoundManager {
     type: WaveType = 'triangle',
     delay = 0
   ) {
-    if (!this.enabled) return;
+    if (!this.enabled || this.userVolume <= 0.005) return;
 
     const context = this.getAudioContext();
     if (!context) return;
@@ -125,7 +140,7 @@ class SoundManager {
     const attackEnd = startTime + Math.min(SoundManager.ATTACK_SEC, duration * 0.3);
     const oscillator = context.createOscillator();
     const gainNode = context.createGain();
-    const peakGain = Math.max(0.0015, volume * SoundManager.VOLUME_SCALE);
+    const peakGain = Math.max(0.0006, volume * SoundManager.VOLUME_SCALE * this.userVolume);
 
     oscillator.connect(gainNode);
     gainNode.connect(context.destination);
@@ -144,6 +159,13 @@ class SoundManager {
   toggle() {
     this.enabled = !this.enabled;
 
+    if (this.enabled && this.userVolume <= 0.01) {
+      this.userVolume = this.lastNonZeroVolume > 0.01 ? this.lastNonZeroVolume : 0.8;
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('interaction-sound-volume', String(this.userVolume));
+      }
+    }
+
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('interaction-sound-enabled', String(this.enabled));
     }
@@ -153,6 +175,45 @@ class SoundManager {
 
   isEnabled() {
     return this.enabled;
+  }
+
+  getVolume(): number {
+    return this.userVolume;
+  }
+
+  setVolume(nextVolume: number): { volume: number; enabled: boolean } {
+    const clamped = Math.round(Math.min(1, Math.max(0, nextVolume)) * 100) / 100;
+
+    if (clamped > 0.005) {
+      this.userVolume = clamped;
+      this.lastNonZeroVolume = clamped;
+      if (!this.enabled) {
+        this.enabled = true;
+      }
+    } else {
+      this.userVolume = 0;
+      if (this.enabled) {
+        this.enabled = false;
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('interaction-sound-volume', String(this.userVolume));
+      window.localStorage.setItem('interaction-sound-enabled', String(this.enabled));
+    }
+
+    return { volume: this.userVolume, enabled: this.enabled };
+  }
+
+  playVolumePreview() {
+    if (!this.enabled || this.userVolume <= 0.005) return;
+
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    if (now - this.lastVolumePreviewTime < SoundManager.VOLUME_PREVIEW_COOLDOWN_MS) return;
+    this.lastVolumePreviewTime = now;
+
+    const freq = Math.round(440 + this.userVolume * 220);
+    this.playTone(freq, 0.05, 0.028, 0, 'sine');
   }
 
   playClick() {
@@ -320,7 +381,7 @@ if (typeof window !== 'undefined') {
 
   document.addEventListener('click', (event) => {
     const target = getSoundTarget(event.target, CLICK_SELECTOR);
-    if (target && !target.matches('[data-sound-control]')) {
+    if (target && !target.closest('[data-sound-control]')) {
       soundManager.handleClick(target);
     }
   });
@@ -329,7 +390,7 @@ if (typeof window !== 'undefined') {
     if (event.pointerType !== 'mouse') return;
 
     const target = getSoundTarget(event.target, HOVER_SELECTOR);
-    if (!target || target.matches('[data-sound-control]')) return;
+    if (!target || target.closest('[data-sound-control]')) return;
 
     const previousTarget = event.relatedTarget;
     if (previousTarget instanceof Node && target.contains(previousTarget)) return;
