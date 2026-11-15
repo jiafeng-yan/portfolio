@@ -1186,6 +1186,7 @@ export function ProjectShowcase({ groups }: Props) {
           display: grid;
           gap: var(--space-md);
           min-height: 0;
+          overflow-x: hidden;
           overflow-y: auto;
           overscroll-behavior-y: contain;
           padding-right: var(--space-sm);

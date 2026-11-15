@@ -164,7 +164,11 @@ export function CustomCursor() {
                           target.closest('[data-draggable]') ||
                           target.classList.contains('github-calendar__scroll-container') ||
                           target.classList.contains('leetcode-calendar__scroll-container');
-      const isMagnetic = target.hasAttribute('data-magnetic') || target.closest('[data-magnetic]') || isLink || isButton;
+      const isNoMagnetic =
+        target.hasAttribute('data-no-magnetic') || Boolean(target.closest('[data-no-magnetic]'));
+      const isMagnetic =
+        !isNoMagnetic &&
+        (target.hasAttribute('data-magnetic') || target.closest('[data-magnetic]') || isLink || isButton);
 
       if (isMagnetic) {
         currentMagneticTarget.current = (target.hasAttribute('data-magnetic') ? target : target.closest('a, button, [data-magnetic]')) as HTMLElement;

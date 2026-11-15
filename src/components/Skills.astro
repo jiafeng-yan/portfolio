@@ -105,9 +105,8 @@ const projectCatalog: Record<string, ProjectSummary> = {
 
 const skillProjectMap: Record<string, string[]> = {
   Python: ['two-in-one', 'rs-opsd', 'grasp', 'pigeon-eye', 'tcm-llm', 'fe-teacher', 'gnn-anomaly'],
-  'C++': ['pigeon-eye'],
   R: ['hydrogen-economy'],
-  MATLAB: ['two-in-one', 'dehazing-fusion', 'hydrogen-economy'],
+  MATLAB: ['dcdb'],
   Lingo: ['hydrogen-economy'],
   计算机视觉: ['two-in-one', 'dehazing-fusion', 'mdaif', 'rs-opsd', 'grasp', 'dcdb', 'pigeon-eye'],
   图像融合: ['two-in-one', 'dehazing-fusion', 'mdaif', 'dcdb'],
@@ -120,21 +119,13 @@ const skillProjectMap: Record<string, string[]> = {
   'LLaMA Factory': ['mdaif', 'rs-opsd', 'search-engine'],
   DeepSpeed: ['rs-opsd', 'grasp', 'mdaif'],
   Docker: ['tcm-llm', 'search-engine'],
-  Git: ['pigeon-eye', 'fe-teacher', 'livestream-rag'],
-  Conda: ['two-in-one', 'rs-opsd', 'grasp'],
-  VSCode: ['tcm-llm', 'fe-teacher', 'pigeon-eye'],
   Lucene: ['search-engine'],
   Grobid: ['search-engine'],
   'ONNX Runtime': ['pigeon-eye'],
   Flask: ['search-engine'],
   OCR: ['livestream-rag'],
   RAG: ['livestream-rag', 'fe-teacher'],
-  SAM2: ['grasp'],
-  Codex: ['tcm-llm', 'fe-teacher', 'rs-opsd'],
-  Antigravity: ['tcm-llm', 'fe-teacher', 'pigeon-eye'],
-  OpenCode: ['tcm-llm', 'fe-teacher'],
-  WorkBuddy: ['tcm-llm', 'fe-teacher'],
-  'CC-Switch': ['tcm-llm', 'fe-teacher']
+  SAM2: ['grasp']
 };
 
 const skills = [
@@ -182,6 +173,14 @@ const skills = [
               .filter(Boolean);
             const popoverId = `skill-popover-${catIndex}-${itemIndex}`;
 
+            if (relatedProjects.length === 0) {
+              return (
+                <li class="skills__item skills__item--static">
+                  <span class="skills__tag">{item}</span>
+                </li>
+              );
+            }
+
             return (
               <li class="skills__item" data-skill-item>
                 <button
@@ -197,44 +196,45 @@ const skills = [
                   </span>
                 </button>
 
-                {relatedProjects.length > 0 && (
-                  <div
-                    id={popoverId}
-                    class="skills__popover"
-                    role="region"
-                    aria-label={`${item} 关联项目`}
-                    hidden
-                  >
-                    <div class="skills__popover-head">
-                      <span class="skills__popover-title">{item} · 关联项目</span>
-                      <span class="skills__popover-count">{relatedProjects.length} 项</span>
-                    </div>
-                    <ul class="skills__project-list">
-                      {relatedProjects.map((proj) => (
-                        <li>
-                          <button
-                            type="button"
-                            class="skills__project-link"
-                            data-project-id={proj.id}
-                            data-group-id={proj.groupId}
-                            data-cursor-hover
-                          >
-                            <span
-                              class={`skills__project-badge skills__project-badge--${proj.groupId}`}
-                            >
-                              {proj.groupLabel}
-                            </span>
-                            <span class="skills__project-main">
-                              <span class="skills__project-name">{proj.shortTitle}</span>
-                              <span class="skills__project-status">{proj.status}</span>
-                            </span>
-                            <span class="skills__project-arrow" aria-hidden="true">↗</span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+                <div
+                  id={popoverId}
+                  class="skills__popover"
+                  role="region"
+                  aria-label={`${item} 关联项目`}
+                  data-no-magnetic
+                  data-lenis-prevent
+                  hidden
+                >
+                  <div class="skills__popover-head">
+                    <span class="skills__popover-title">{item} · 关联项目</span>
+                    <span class="skills__popover-count">{relatedProjects.length} 项</span>
                   </div>
-                )}
+                  <ul class="skills__project-list" data-lenis-prevent>
+                    {relatedProjects.map((proj) => (
+                      <li>
+                        <button
+                          type="button"
+                          class="skills__project-link"
+                          data-project-id={proj.id}
+                          data-group-id={proj.groupId}
+                          data-cursor-hover
+                          data-no-magnetic
+                        >
+                          <span
+                            class={`skills__project-badge skills__project-badge--${proj.groupId}`}
+                          >
+                            {proj.groupLabel}
+                          </span>
+                          <span class="skills__project-main">
+                            <span class="skills__project-name">{proj.shortTitle}</span>
+                            <span class="skills__project-status">{proj.status}</span>
+                          </span>
+                          <span class="skills__project-arrow" aria-hidden="true">↗</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </li>
             );
           })}
@@ -369,7 +369,34 @@ const skills = [
 
     items.forEach((item) => {
       const chip = item.querySelector<HTMLButtonElement>('.skills__chip');
+      const popover = item.querySelector<HTMLElement>('.skills__popover');
+      const projectList = item.querySelector<HTMLElement>('.skills__project-list');
       const projectLinks = item.querySelectorAll<HTMLButtonElement>('.skills__project-link');
+
+      popover?.addEventListener(
+        'wheel',
+        (event) => {
+          if (!projectList) return;
+          const maxScroll = projectList.scrollHeight - projectList.clientHeight;
+          if (maxScroll <= 1) return;
+
+          event.preventDefault();
+          event.stopPropagation();
+
+          const deltaY =
+            event.deltaMode === WheelEvent.DOM_DELTA_LINE
+              ? event.deltaY * 16
+              : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+                ? event.deltaY * projectList.clientHeight
+                : event.deltaY;
+
+          projectList.scrollTop = Math.max(
+            0,
+            Math.min(maxScroll, projectList.scrollTop + deltaY)
+          );
+        },
+        { passive: false }
+      );
 
       item.addEventListener('mouseenter', () => {
         if (!hoverMedia.matches) return;
@@ -504,7 +531,8 @@ const skills = [
     z-index: 40;
   }
 
-  .skills__chip {
+  .skills__chip,
+  .skills__tag {
     display: inline-flex;
     align-items: center;
     gap: 0.42rem;
@@ -516,12 +544,25 @@ const skills = [
     font-size: 0.86rem;
     line-height: 1.4;
     color: var(--color-text-muted);
-    cursor: pointer;
     transition:
       background var(--duration-fast),
       border-color var(--duration-fast),
       color var(--duration-fast),
       transform var(--duration-fast);
+  }
+
+  .skills__chip {
+    cursor: pointer;
+  }
+
+  .skills__tag {
+    cursor: default;
+  }
+
+  .skills__item--static:hover .skills__tag {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(184, 112, 74, 0.26);
+    color: var(--color-text);
   }
 
   .skills__chip-count {
@@ -642,12 +683,33 @@ const skills = [
   .skills__project-list {
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding: 0 0.25rem 0 0;
     display: flex;
     flex-direction: column;
     gap: 0.28rem;
     max-height: min(260px, 46vh);
+    overflow-x: hidden;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 91, 56, 0.3) transparent;
+  }
+
+  .skills__project-list::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .skills__project-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .skills__project-list::-webkit-scrollbar-thumb {
+    background: rgba(156, 91, 56, 0.28);
+    border-radius: 999px;
+  }
+
+  .skills__project-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 91, 56, 0.48);
   }
 
   .skills__project-link {
