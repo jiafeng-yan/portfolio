@@ -1,17 +1,17 @@
 {
   "username": "anagke-59",
-  "solvedCount": 2517,
+  "solvedCount": 2520,
   "totalQuestions": 3500,
   "easySolved": 756,
-  "easyTotal": 1096,
-  "mediumSolved": 1358,
-  "mediumTotal": 2346,
-  "hardSolved": 403,
-  "hardTotal": 1061,
+  "easyTotal": 1097,
+  "mediumSolved": 1360,
+  "mediumTotal": 2348,
+  "hardSolved": 404,
+  "hardTotal": 1062,
   "ranking": 0,
   "contributionPoints": 0,
-  "totalActiveDays": 1196,
-  "recentYearActiveDays": 267,
+  "totalActiveDays": 1197,
+  "recentYearActiveDays": 268,
   "currentStreak": 30,
   "maxStreak": 73,
   "activeYears": [
@@ -39,7 +39,7 @@
       "streak": 63
     },
     "2026": {
-      "totalActiveDays": 267,
+      "totalActiveDays": 268,
       "streak": 30
     }
   },
@@ -1239,9 +1239,10 @@
     "1794787200": 1,
     "1794960000": 5,
     "1795046400": 6,
-    "1795132800": 5
+    "1795132800": 5,
+    "1795219200": 4
   },
-  "scrapedAt": "2026-11-21T12:30:53.805Z",
+  "scrapedAt": "2026-11-21T21:35:51.050Z",
   "medals": [
     {
       "slug": "200-days-badge-2026",
