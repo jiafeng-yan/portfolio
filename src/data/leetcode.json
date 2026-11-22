@@ -3,15 +3,15 @@
   "solvedCount": 2520,
   "totalQuestions": 3500,
   "easySolved": 756,
-  "easyTotal": 1097,
+  "easyTotal": 1098,
   "mediumSolved": 1360,
-  "mediumTotal": 2348,
+  "mediumTotal": 2350,
   "hardSolved": 404,
-  "hardTotal": 1062,
+  "hardTotal": 1063,
   "ranking": 0,
   "contributionPoints": 0,
-  "totalActiveDays": 1197,
-  "recentYearActiveDays": 268,
+  "totalActiveDays": 1198,
+  "recentYearActiveDays": 269,
   "currentStreak": 30,
   "maxStreak": 73,
   "activeYears": [
@@ -39,7 +39,7 @@
       "streak": 63
     },
     "2026": {
-      "totalActiveDays": 268,
+      "totalActiveDays": 269,
       "streak": 30
     }
   },
@@ -1240,9 +1240,10 @@
     "1794960000": 5,
     "1795046400": 6,
     "1795132800": 5,
-    "1795219200": 4
+    "1795219200": 4,
+    "1795305600": 1
   },
-  "scrapedAt": "2026-11-21T21:35:51.050Z",
+  "scrapedAt": "2026-11-22T12:29:25.355Z",
   "medals": [
     {
       "slug": "200-days-badge-2026",
