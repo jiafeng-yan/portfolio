@@ -135,7 +135,8 @@ const projects = [
     id: 'tcm-llm',
     title: 'TCM-LLM：老年认知与精神行为医患协同评估系统',
     subtitle: '主力开发 · 双端实时协同与多模态量表评估系统',
-    venue: '横向课题',
+    venue: '校外合作',
+    period: '2026.05 — 2026.11',
     category: 'build',
     description: '面向老年认知与精神行为筛查（MMSE、ADL、NPI、中医证候等 30+ 量表）的医患协同系统。由状态机引擎统一编排测评流程与医生实时接管指令，集成 LLM 辅助评分/受控追问、语音及视觉动作评估。',
     highlights: [
@@ -143,7 +144,7 @@ const projects = [
       '构建可插拔 LLM / ASR / TTS / Vision Provider 抽象与患者 PII 隐私脱敏机制，完成 PostgreSQL + Nginx + Docker 全量容器化部署'
     ],
     technologies: ['FastAPI', 'React', 'WebSocket', 'PostgreSQL', 'Multi-Modal', 'Docker'],
-    status: '横向在研'
+    status: '校外合作'
   },
   {
     id: 'livestream-rag',
@@ -183,7 +184,7 @@ const projects = [
     id: 'fe-teacher',
     title: 'FE-Teacher：金融经济教学智能体',
     subtitle: '独立完成 · Agentic Workflow 个性化教学系统',
-    venue: '',
+    venue: '课程设计',
     category: 'build',
     description: '基于 LangChain 与 FastAPI 构建的金融经济教学智能体，串联 Planner 意图路由、多格式课件 RAG 检索、ChromaDB 长短期学情记忆与外部工具调用，支持苏格拉底式启发问答与动态进度跟踪。',
     highlights: [
@@ -258,13 +259,13 @@ const projectGroups = [
     id: 'build',
     eyebrow: 'B · 工程',
     title: '开发与课程项目',
-    summary: '涵盖医疗认知评估横向系统、直播多模态 RAG、移动端 ONNX 实时视觉部署、教学 Agent 与文献检索系统。',
+    summary: '涵盖多模态协同评估系统、直播多模态 RAG、移动端 ONNX 实时视觉部署、教学 Agent 与文献检索系统。',
     projects: projects.filter((project) => project.category === 'build')
   }
 ];
 ---
 
-<Layout title="闫家锋 | 计算机视觉与多模态 AI">
+<Layout title="闫家锋 | 多模态大模型与视觉感知">
   <ReadingProgress client:load />
   <ToastManager client:load />
   <BackToTop client:load />
