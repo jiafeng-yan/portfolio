@@ -43,7 +43,7 @@ const projectCatalog: Record<string, ProjectSummary> = {
     groupId: 'research',
     groupLabel: '科研',
     shortTitle: 'GRASP：遥感推理分割策略学习',
-    status: 'TGRS 在投'
+    status: 'ISPRS JPRS 已发表'
   },
   dcdb: {
     id: 'dcdb',
@@ -92,7 +92,7 @@ const projectCatalog: Record<string, ProjectSummary> = {
     groupId: 'build',
     groupLabel: '工程',
     shortTitle: '本地文献检索系统',
-    status: '满分课设'
+    status: '最高分项目'
   },
   'gnn-anomaly': {
     id: 'gnn-anomaly',
@@ -115,16 +115,19 @@ const skillProjectMap: Record<string, string[]> = {
   图神经网络: ['gnn-anomaly'],
   信息检索: ['search-engine', 'livestream-rag', 'fe-teacher', 'pigeon-eye'],
   PyTorch: ['two-in-one', 'dehazing-fusion', 'mdaif', 'rs-opsd', 'grasp', 'dcdb', 'pigeon-eye', 'gnn-anomaly'],
+  FastAPI: ['tcm-llm', 'fe-teacher'],
   React: ['tcm-llm', 'fe-teacher', 'search-engine'],
-  'LLaMA Factory': ['mdaif', 'rs-opsd', 'search-engine'],
-  DeepSpeed: ['rs-opsd', 'grasp', 'mdaif'],
+  DeepSpeed: ['grasp'],
   verl: ['rs-opsd'],
   Docker: ['tcm-llm', 'search-engine'],
+  LangChain: ['fe-teacher', 'livestream-rag'],
+  ChromaDB: ['fe-teacher', 'livestream-rag'],
+  PostgreSQL: ['tcm-llm'],
+  Redis: ['livestream-rag'],
   Lucene: ['search-engine'],
   Grobid: ['search-engine'],
   'ONNX Runtime': ['pigeon-eye'],
   Flask: ['search-engine'],
-  OCR: ['livestream-rag'],
   RAG: ['livestream-rag', 'fe-teacher'],
   SAM2: ['grasp']
 };
@@ -140,15 +143,11 @@ const skills = [
   },
   {
     category: '框架与工具',
-    items: ['PyTorch', 'DeepSpeed', 'verl', 'LLaMA Factory', 'React', 'Docker', 'Git', 'Conda', 'VSCode']
+    items: ['PyTorch', 'DeepSpeed', 'verl', 'FastAPI', 'React', 'Docker', 'Git', 'Conda', 'VSCode']
   },
   {
     category: '系统与模块',
-    items: ['Lucene', 'Grobid', 'ONNX Runtime', 'Flask', 'OCR', 'RAG', 'SAM2']
-  },
-  {
-    category: 'AI 辅助与 Agent 工具',
-    items: ['Codex', 'Antigravity', 'OpenCode', 'WorkBuddy', 'CC-Switch']
+    items: ['LangChain', 'RAG', 'ChromaDB', 'PostgreSQL', 'Redis', 'ONNX Runtime', 'Lucene', 'Grobid', 'Flask', 'SAM2']
   }
 ];
 ---
@@ -158,7 +157,7 @@ const skills = [
     <span class="section-kicker">03 / 技能</span>
     <h2 id="skills-title">技术栈与工具</h2>
     <p>
-      围绕视觉与多模态模型训练、全栈系统开发及端侧部署构建工具链，并在日常实验与工程迭代中融入 AI Agent 辅助工作流。
+      围绕视觉与多模态模型训练、全栈系统开发及端侧部署构建工具链，并在日常实验与工程迭代中融入 Codex 等 AI Coding Agent 辅助工作流。
     </p>
     <p class="skills__hint">悬停（移动端轻触）技能标签可查看关联项目，点击即可直达对应项目卡片。</p>
   </div>
@@ -492,7 +491,7 @@ const skills = [
 
   .skills__grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-lg);
   }
 
@@ -798,7 +797,7 @@ const skills = [
 
   @media (max-width: 1100px) {
     .skills__grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 

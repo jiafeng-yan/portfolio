@@ -1312,6 +1312,7 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
   .github-calendar {
     --github-cell-size: 10px;
     --github-gap: 2px;
+    container-type: inline-size;
     background: rgba(255, 255, 255, 0.5);
     border-radius: var(--border-radius);
     padding: 0.75rem 0.9rem;
@@ -1531,6 +1532,7 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
     justify-content: flex-end;
     gap: 4px;
     flex-shrink: 0;
+    margin-inline-start: auto;
   }
 
   .github-calendar__legend-text {
@@ -1796,6 +1798,7 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
   .leetcode-calendar {
     --leetcode-cell-size: 10px;
     --leetcode-gap: 2px;
+    container-type: inline-size;
     background: rgba(255, 255, 255, 0.5);
     border-radius: var(--border-radius);
     padding: 0.75rem 0.9rem;
@@ -2013,6 +2016,7 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
     justify-content: flex-end;
     gap: 4px;
     flex-shrink: 0;
+    margin-inline-start: auto;
   }
 
   .leetcode-calendar__legend-text {
@@ -2408,6 +2412,41 @@ const leetcodeLogoSrc = `${assetBase}leetcode-logo.webp`;
     .github-calendar img {
       max-width: 100%;
       height: auto;
+    }
+  }
+
+  /* 窄容器下将滑动提示左移回归文档流左侧，避免与右侧图例重叠 */
+  @container (inline-size < 440px) {
+    .github-calendar__footer,
+    .leetcode-calendar__footer {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .github-calendar__scroll-hint,
+    .leetcode-calendar__scroll-hint {
+      position: static;
+      left: auto;
+      transform: none;
+      min-inline-size: 0;
+    }
+  }
+
+  @supports not (container-type: inline-size) {
+    @media (max-width: 768px) {
+      .github-calendar__footer,
+      .leetcode-calendar__footer {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .github-calendar__scroll-hint,
+      .leetcode-calendar__scroll-hint {
+        position: static;
+        left: auto;
+        transform: none;
+        min-inline-size: 0;
+      }
     }
   }
 </style>

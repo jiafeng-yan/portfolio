@@ -72,12 +72,12 @@ const projects = [
     venue: '',
     period: '2026.07 — 2026.10',
     category: 'research',
-    description: '针对超高分辨率遥感 VQA（UHR VQA）中小目标证据易被淹没的问题，提出特权在策略自蒸馏框架。通过 CPVP 与 CAD 将放大视觉特权内化进模型，推理期无需额外搜索即可在 XLRS-Bench 等基准取得 SOTA。',
+    description: '针对超高分辨率遥感 VQA（UHR VQA）中小目标证据易被缩放淹没的问题，提出特权在策略自蒸馏框架。训练期将局部高分裁剪视觉信息作为特权信号内化至策略模型，实现推理期零额外搜索开销并在 XLRS-Bench 等基准取得 SOTA。',
     highlights: [
-      '完成前期预实验与技术路线验证，排查并否定无效负向方案，参与核心方法讨论与思路设计',
-      '负责模型在超高分辨率遥感 VQA 基准上的部分定量实验评测与结果分析'
+      '基于 verl 搭建前期基线与消融探针实验，定位常规微调与蒸馏在小目标感知上的瓶颈并助力确立核心路线',
+      '负责模型在 XLRS-Bench 等超高分辨率遥感 VQA 基准上的定量评测与错误案例分析'
     ],
-    technologies: ['MLLM', 'Remote Sensing VQA', 'Self-Distillation', 'On-Policy RL'],
+    technologies: ['MLLM', 'verl', 'Remote Sensing VQA', 'Self-Distillation', 'On-Policy RL'],
     links: [
       { type: 'arxiv', url: 'https://arxiv.org/abs/2609.38072' }
     ],
@@ -85,20 +85,21 @@ const projects = [
   },
   {
     id: 'grasp',
-    title: 'GRASP: Geospatial Reasoning Segmentation via Adaptive Structured Policy Learning',
-    subtitle: '第三作者 · 遥感推理分割',
+    title: 'GRASP: Geospatial pixel Reasoning viA Structured Policy learning',
+    subtitle: '第三作者 · 遥感推理分割（Vol. 243, pp. 208–225）',
     venue: '',
     category: 'research',
     description: '采用多模态大模型生成边界框与点级弱提示、驱动冻结分割模型输出精细掩码的级联范式，并结合强化学习策略优化，降低遥感推理分割对像素级标注的依赖并提升域外（OOD）泛化。',
     highlights: [
-      '负责 GRASP 级联模型框架搭建与核心代码实现',
-      '独立构建 GRASP-1k OOD 评测基准数据管线，集成 Gemini API 与 SAM2'
+      '主导 GRASP 级联模型框架搭建、核心代码实现及基于 DeepSpeed 的强化学习训练实验',
+      '独立构建 GRASP-1k OOD 评测基准自动化数据管线（Gemini API + SAM2），OOD gIoU 相对 SOTA 提升 54%'
     ],
-    technologies: ['MLLM', 'Remote Sensing', 'RL', 'SAM2', 'Gemini API'],
+    technologies: ['MLLM', 'DeepSpeed', 'Remote Sensing', 'RL', 'SAM2', 'Gemini API'],
     links: [
+      { type: 'paper', url: 'https://doi.org/10.1016/j.isprsjprs.2026.09.046' },
       { type: 'arxiv', url: 'https://arxiv.org/abs/2508.17102' }
     ],
-    status: 'TGRS 在投'
+    status: 'ISPRS JPRS 已发表'
   },
   {
     id: 'dcdb',
@@ -113,7 +114,7 @@ const projects = [
     ],
     technologies: ['Diffusion Model', 'Dual Bridge', 'Image Enhancement', 'PyTorch'],
     links: [
-      { type: 'arxiv', url: 'https://arxiv.org/abs/2509.03044' }
+      { type: 'arxiv', url: 'https://arxiv.org/abs/2509.03044v1' }
     ],
     status: 'arXiv 预印本'
   },
@@ -140,7 +141,7 @@ const projects = [
     category: 'build',
     description: '面向老年认知与精神行为筛查（MMSE、ADL、NPI、中医证候等 30+ 量表）的医患协同系统。由状态机引擎统一编排测评流程与医生实时接管指令，集成 LLM 辅助评分/受控追问、语音及视觉动作评估。',
     highlights: [
-      '主导 FastAPI 异步后端、React 医患双端、WebSocket 实时同步及 30+ 临床量表 YAML 混合计分引擎开发（除 GPT-SoVITS 语音微调外均独立负责）',
+      '独立主导 FastAPI 异步后端、React 医患双端、WebSocket 实时同步及 30+ 临床量表 YAML 混合计分引擎开发（协同成员完成语音模块对接）',
       '构建可插拔 LLM / ASR / TTS / Vision Provider 抽象与患者 PII 隐私脱敏机制，完成 PostgreSQL + Nginx + Docker 全量容器化部署'
     ],
     technologies: ['FastAPI', 'React', 'WebSocket', 'PostgreSQL', 'Multi-Modal', 'Docker'],
@@ -148,16 +149,16 @@ const projects = [
   },
   {
     id: 'livestream-rag',
-    title: '基于检索增强 VLM 的直播互动应用',
+    title: 'LiveStreamRAG：直播场景多模态实时检索问答系统',
     subtitle: '独立完成 · 多模态 RAG 智能问答系统',
     venue: '',
     category: 'build',
-    description: '面向直播互动场景的多模态检索增强问答系统，串联实时屏幕/弹幕捕获、OCR 文本提取、商品知识库向量检索与上下文回答生成。',
+    description: '面向直播互动场景的多模态检索增强问答系统，基于 PyAutoGUI + OpenCV 实时截屏，采用 VLM 替代传统 OCR 智能解析评论区画面并提取观众提问，结合三级问句去重与商品知识库向量检索实时生成回复。',
     highlights: [
-      '打通直播评论、画面截图与本地知识库的统一检索增强生成链路',
-      '完成从实时采集、文档解析、向量索引到回答生成的端到端原型'
+      '采用 VLM 替代传统 OCR 直接解析直播评论区截图提取问题，规避弹幕噪点与排版干扰',
+      '设计内存精确匹配 + Sentence Transformers 语义相似度 + Redis 持久化三级去重与缓存，基于 LangChain + ChromaDB 实现多格式文档 RAG 与多模型轮换'
     ],
-    technologies: ['RAG', 'VLM', 'OCR', 'Vector Search', 'LLM'],
+    technologies: ['VLM', 'RAG', 'Redis', 'LangChain', 'ChromaDB', 'OpenCV'],
     links: [
       { type: 'github', url: 'https://github.com/jiafeng-yan/LiveStreamRAG' }
     ],
@@ -171,8 +172,8 @@ const projects = [
     category: 'build',
     description: '面向信鸽虹膜图像的 1:1 血统比对与 1:N 品种检索系统，包含 Python 训练管线与离线实时运行的 Android 客户端，采用“全局轻量检测 + 中心聚焦按需特征提取”交互以降低移动端发热与掉帧。',
     highlights: [
-      '结合半监督伪标签与 Label Studio 人机回环完成 2 万+ 样本清洗及 YOLOv8n 检测训练，并用 ResNet18 + Triplet Loss 提取 128 维虹膜特征',
-      '针对 Android 15（16KB 页大小）兼容性将推理迁移至 ONNX Runtime 量化部署，基于 CameraX 实现端侧离线实时比对'
+      '结合半监督伪标签与 Label Studio 人机回环完成 2 万+ 样本清洗及 YOLOv8n 检测训练（检测准确率 97%），并用 ResNet18 + Triplet Loss 提取 128 维虹膜特征',
+      '针对 Android 15（16KB 页大小）兼容性将推理迁移至 ONNX Runtime 量化部署，基于 CameraX 实现端侧虹膜定位约 80ms、本地库比对 0.8s 内离线实时比对'
     ],
     technologies: ['YOLOv8', 'ResNet', 'Metric Learning', 'ONNX Runtime', 'Android'],
     links: [
@@ -186,7 +187,7 @@ const projects = [
     subtitle: '独立完成 · Agentic Workflow 个性化教学系统',
     venue: '课程设计',
     category: 'build',
-    description: '基于 LangChain 与 FastAPI 构建的金融经济教学智能体，串联 Planner 意图路由、多格式课件 RAG 检索、ChromaDB 长短期学情记忆与外部工具调用，支持苏格拉底式启发问答与动态进度跟踪。',
+    description: '基于 LangChain、FastAPI 与 React（SSE 流式渲染）构建的金融经济教学智能体，串联 Planner 四类意图路由、多格式课件 RAG 检索、ChromaDB 长短期学情记忆（0–100 掌握度量化与错题追踪）与外部工具调用，支持苏格拉底式启发问答。',
     highlights: [
       '设计 Planner/Router + RAG + Memory + Tools 模块化工作流，支持知识点掌握度、错题本与学习章节的持久化追踪',
       '实现 PPT/Word/TXT 课件动态分块及本地/云端嵌入模型切换时的向量维度自动检测与无缝重索引'
@@ -200,19 +201,19 @@ const projects = [
   {
     id: 'search-engine',
     title: '本地文献检索系统',
-    subtitle: '独立完成 · 信息检索课程满分课设',
+    subtitle: '独立完成 · 信息检索课程最高分项目',
     venue: '课程设计',
     category: 'build',
     description: '本地部署的可视化文献检索系统，支持 PDF 批量上传、结构化解析、通配符检索、匹配高亮、源文档跳转、拼写纠错与自动摘要。',
     highlights: [
       '使用 Docker 部署 Grobid 解析 PDF 结构，基于 Lucene 完成倒排索引维护与查询',
-      '使用 Qwen2.5-7B + LoRA 微调文献分类模型，在千级样本上达到 92% 准确率'
+      '使用 Qwen2.5-7B + LoRA 构建文献自动分类子模块，在千级样本上达到 92% 准确率（往届最佳 88%）'
     ],
     technologies: ['Lucene', 'Grobid', 'React', 'Flask', 'Docker', 'LoRA'],
     links: [
       { type: 'github', url: 'https://github.com/jiafeng-yan/InformationRetrieval_SearchEngine' }
     ],
-    status: '满分课设'
+    status: '最高分项目'
   },
   {
     id: 'gnn-anomaly',
@@ -244,6 +245,13 @@ const acceptedPapers = [
     title: 'MdaIF: Robust One-Stop Multi-Degradation Image Fusion with Language-Driven Semantics',
     url: 'https://arxiv.org/abs/2511.12525',
     linkLabel: 'arXiv'
+  },
+  {
+    venue: 'ISPRS JPRS · Vol. 243',
+    role: '第三作者',
+    title: 'GRASP: Geospatial pixel Reasoning viA Structured Policy learning',
+    url: 'https://doi.org/10.1016/j.isprsjprs.2026.09.046',
+    linkLabel: 'DOI'
   }
 ];
 
