@@ -311,15 +311,17 @@ const projectGroups = [
                   <span class="accepted-papers__role">{paper.role}</span>
                 </div>
                 <p class="accepted-papers__title">{paper.title}</p>
-                <a
-                  href={paper.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="accepted-papers__link"
-                  data-cursor-hover
-                >
-                  {paper.linkLabel} →
-                </a>
+                <div class="accepted-papers__actions">
+                  <a
+                    href={paper.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="accepted-papers__link"
+                    data-cursor-hover
+                  >
+                    {paper.linkLabel} →
+                  </a>
+                </div>
               </li>
             ))}
           </ul>
@@ -450,6 +452,13 @@ const projectGroups = [
     line-height: 1.5;
   }
 
+  .accepted-papers__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: nowrap;
+  }
+
   .accepted-papers__link {
     font-family: var(--font-mono);
     font-size: 0.76rem;
@@ -523,7 +532,7 @@ const projectGroups = [
       grid-template-columns: 1fr;
     }
 
-    .accepted-papers__link {
+    .accepted-papers__actions {
       justify-self: start;
     }
 

@@ -318,6 +318,7 @@ export function ProjectCard({ project }: Props) {
 
         .project-card__links {
           display: flex;
+          align-items: center;
           flex-wrap: wrap;
           gap: var(--space-sm);
         }
